@@ -1,4 +1,4 @@
-import { PageHeader } from "@/components/page-header"
+import { PageHeader } from "@/components/page-header";
 
 export default function DashboardPage() {
   return (
@@ -6,5 +6,5 @@ export default function DashboardPage() {
       <PageHeader title="DASHBOARD" />
       <div className="flex-1 overflow-auto p-8" />
     </div>
-  )
+  );
 }

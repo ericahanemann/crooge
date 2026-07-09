@@ -1,8 +1,9 @@
-import { ThemeToggle } from "./theme-toggle"
-import { UserAvatar } from "./user-avatar"
+import { LanguageToggle } from "./language-toggle";
+import { ThemeToggle } from "./theme-toggle";
+import { UserAvatar } from "./user-avatar";
 
 interface PageHeaderProps {
-  title: string
+  title: string;
 }
 
 export function PageHeader({ title }: PageHeaderProps) {
@@ -12,9 +13,10 @@ export function PageHeader({ title }: PageHeaderProps) {
         {title}
       </h1>
       <div className="flex items-center gap-2">
+        <LanguageToggle />
         <ThemeToggle />
         <UserAvatar name="Érica" initials="EH" />
       </div>
     </div>
-  )
+  );
 }

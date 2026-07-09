@@ -1,8 +1,10 @@
+import { useLocale } from "next-intl";
 import { PageHeader } from "@/components/page-header";
 
 export default function MonthlyPage() {
+  const locale = useLocale();
   const month = new Date()
-    .toLocaleString("en-US", { month: "long" })
+    .toLocaleString(locale, { month: "long" })
     .toUpperCase();
 
   return (

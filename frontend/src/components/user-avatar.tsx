@@ -1,9 +1,9 @@
-import Image from "next/image"
+import Image from "next/image";
 
 interface UserAvatarProps {
-  name: string
-  initials: string
-  src?: string
+  name: string;
+  initials: string;
+  src?: string;
 }
 
 export function UserAvatar({ name, initials, src }: UserAvatarProps) {
@@ -18,7 +18,9 @@ export function UserAvatar({ name, initials, src }: UserAvatarProps) {
           </span>
         )}
       </div>
-      <span className="font-karantina text-xl tracking-wide uppercase text-muted-foreground">{name}</span>
+      <span className="font-karantina text-xl tracking-wide uppercase text-muted-foreground">
+        {name}
+      </span>
     </div>
-  )
+  );
 }

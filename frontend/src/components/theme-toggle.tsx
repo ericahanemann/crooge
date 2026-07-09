@@ -1,27 +1,37 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Moon, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true)
+  const [isDark, setIsDark] = useState<boolean | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme")
-    setIsDark(stored !== "light")
-  }, [])
+    setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
 
   function toggle() {
-    const next = !isDark
-    setIsDark(next)
-    document.documentElement.classList.toggle("dark", next)
-    localStorage.setItem("theme", next ? "dark" : "light")
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    document.cookie = `theme=${next ? "dark" : "light"};path=/;max-age=31536000;SameSite=Lax`;
   }
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggle} aria-label="Toggle theme">
-      {isDark ? <Sun size={16} /> : <Moon size={16} />}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggle}
+      aria-label="Toggle theme"
+    >
+      {isDark === null ? (
+        <span className="size-4" />
+      ) : isDark ? (
+        <Sun size={16} />
+      ) : (
+        <Moon size={16} />
+      )}
     </Button>
-  )
+  );
 }
