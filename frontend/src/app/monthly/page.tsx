@@ -1,9 +1,13 @@
 import { PageHeader } from "@/components/page-header"
 
-export default function DashboardPage() {
+export default function MonthlyPage() {
+  const month = new Date()
+    .toLocaleString("en-US", { month: "long" })
+    .toUpperCase()
+
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <PageHeader title="DASHBOARD" />
+      <PageHeader title={month} />
       <div className="flex-1 overflow-auto p-8" />
     </div>
   )
