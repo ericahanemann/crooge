@@ -1,0 +1,9 @@
+{
+  "nav": {
+    "dashboard": "DASHBOARD",
+    "monthly": "MENSAL"
+  },
+  "dashboard": {
+    "title": "DASHBOARD"
+  }
+}

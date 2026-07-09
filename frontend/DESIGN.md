@@ -67,6 +67,17 @@ Using shadcn's CSS variable system (neutral base). All in oklch.
 - Accent: **TBD** — considering warm amber or soft green to signal financial health
 - Destructive (losses): `--destructive` (red, already in shadcn)
 
+## Internationalisation (i18n)
+
+- **Languages:** English (`en`, default) and Portuguese Brazil (`pt-BR`)
+- **Detection:** Browser `Accept-Language` header via next-intl middleware. If language isn't EN or PT-BR, default is EN.
+- **URL routing:** `/en/...` and `/pt-BR/...` — handled transparently by next-intl middleware
+- **Translation files:** `src/i18n/messages/en.json` and `src/i18n/messages/pt-BR.json`
+- **Every UI string must have both EN and PT-BR translations.** No hardcoded strings in components.
+- Server components use `useTranslations()` from `next-intl`; client components get messages via `NextIntlClientProvider` in the locale layout
+- Language toggle: Globe icon button in the page header (right side, before theme toggle); opens a small dropdown with EN / PT options
+- Month names: use `toLocaleString(locale, { month: "long" })` — locale-aware, no translation entry needed
+
 ## Components & Icons
 
 - All UI primitives: shadcn (style: `base-nova`, Base UI under the hood)
