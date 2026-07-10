@@ -9,5 +9,35 @@
   "user": {
     "profile": "Meu perfil",
     "signOut": "Sair"
+  },
+  "monthly": {
+    "balance": "SALDO",
+    "incomeThisMonth": "RENDA DO MÊS",
+    "spentThisMonth": "GASTOS DO MÊS",
+    "ofIncome": "DA RENDA",
+    "addIncome": "+ ADICIONAR RENDA",
+    "addExpense": "+ ADICIONAR GASTO",
+    "currentBill": "FATURA ATUAL",
+    "closingDate": "VENCIMENTO",
+    "upcoming": "PRÓXIMAS FATURAS",
+    "viewDetails": "VER DETALHES",
+    "transactions": "TRANSAÇÕES",
+    "dailyLimit": "LIMITE DIÁRIO",
+    "perDay": "/ DIA"
+  },
+  "categories": {
+    "food": "ALIMENTAÇÃO",
+    "groceries": "MERCADO",
+    "transport": "TRANSPORTE",
+    "rideshare": "TRANSPORTE APP",
+    "streaming": "STREAMING",
+    "music": "MÚSICA",
+    "health": "SAÚDE",
+    "shopping": "COMPRAS",
+    "utilities": "CONTAS",
+    "housing": "MORADIA",
+    "entertainment": "LAZER",
+    "coffee": "CAFÉ",
+    "other": "OUTROS"
   }
 }

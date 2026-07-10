@@ -16,10 +16,9 @@
 ### Karantina usage rules
 - **Always uppercase** — no mixed case, ever
 - **Tracking:** `tracking-wide` — Karantina is a condensed display font; `tracking-widest` is too spaced out, `tracking-wide` (0.025em) is the right amount
-- **Nav labels:** `text-2xl tracking-wide` — Karantina renders visually smaller than most fonts at the same size; always size up significantly
+- **Nav labels and all card labels:** `text-2xl tracking-wide` — Karantina renders visually smaller than most fonts at the same size; always size up significantly. All Karantina text in cards, stat labels, section titles, and category names uses `text-2xl`.
 - **Page titles (in header bar):** `text-5xl tracking-wide`
-- **Bento card labels:** `text-xs tracking-wide text-muted-foreground`
-- **Avoid `text-sm`** for Karantina — it becomes illegible due to its condensed proportions. `text-base` is only acceptable for very short labels (2–3 characters, e.g. "EN" / "PT"); never use it for body text or longer strings
+- **Avoid anything below `text-2xl`** for Karantina — it becomes illegible due to its condensed proportions. Exception: "EN"/"PT" locale labels (`text-base`) since they're only 2 characters.
 
 ### Nunito Sans usage rules
 - Normal casing
@@ -37,7 +36,7 @@
 
 Every page has a `<PageHeader title="PAGE NAME" />` that renders a single row:
 - **Left:** Page title in Karantina `text-5xl tracking-wide`
-- **Right (left to right):** `<LanguageToggle />` → `<ThemeToggle />` → `<UserAvatar />`
+- **Right (left to right):** `<LanguageToggle />` → `<ColorThemeToggle />` → `<ThemeToggle />` → `<UserAvatar />`
 - Bottom border: `border-b border-border`
 - Padding: `px-8 py-5`
 
@@ -67,8 +66,28 @@ Using shadcn's CSS variable system (neutral base). All in oklch.
 - Background: `bg-background`
 - Card: `bg-card`
 - Sidebar: `bg-card` with `border-r border-border`
-- Accent: **TBD** — considering warm amber or soft green to signal financial health
 - Destructive (losses): `--destructive` (red, already in shadcn)
+
+### Brand identity: pink + white
+
+Two primary brand colors: **pink** (highlight) and **white** (neutral/foreground). The brand mascot is a cow — lean into light, pastel pinks.
+
+A `--highlight` CSS variable drives all accent/branding color. Defined in `:root` (default: pink-400) and overridden by `[data-color-theme]` attribute selectors on `<html>`. In Tailwind: `text-highlight`, `bg-highlight`, `bg-highlight/10` etc.
+
+Color theme options (user-selectable via the Palette toggle in the header):
+
+| Key | Color | oklch |
+|-----|-------|-------|
+| `pink` (default) | pink-400 | `oklch(0.72 0.17 3.0)` |
+| `violet` | violet-500 | `oklch(0.67 0.22 293)` |
+| `emerald` | emerald-400 | `oklch(0.71 0.17 163)` |
+| `amber` | amber-400 | `oklch(0.77 0.17 70)` |
+| `sky` | sky-400 | `oklch(0.70 0.14 232)` |
+
+Theme preference persisted via `color-theme` cookie. Server reads it and sets `data-color-theme` on `<html>` before render — no flash.
+
+**Uses `--highlight`:** category icon color (`text-highlight`) + icon bubble bg (`bg-highlight/10 rounded-lg`), income amount in balance card, income transaction amounts.
+**Expense amounts:** `text-foreground` (neutral — no red).
 
 ## Internationalisation (i18n)
 
@@ -82,11 +101,42 @@ Using shadcn's CSS variable system (neutral base). All in oklch.
 - Language toggle: Globe icon button in the page header (right side, before theme toggle); opens a small dropdown with EN / PT options
 - Month names: use `toLocaleString(locale, { month: "long" })` — locale-aware, no translation entry needed
 
+## Buttons
+
+All buttons use Karantina: `font-karantina text-xl tracking-wide uppercase`. No exceptions — this applies to primary, secondary, ghost, and inline action buttons alike.
+
+Standard ghost button style (used for section CTAs like "+ ADD INCOME"):
+```
+w-full py-3 rounded-lg border border-border font-karantina text-xl tracking-wide uppercase text-muted-foreground hover:text-foreground hover:bg-muted transition-colors
+```
+
 ## Components & Icons
 
 - All UI primitives: shadcn (style: `base-nova`, Base UI under the hood)
 - Icons: Lucide (`lucide-react`)
 - No emoji in UI
+
+## Categories
+
+Starter set. All category icons share the app's `--highlight` accent color — no per-category colors. Icon bubble style: `size-9 rounded-lg bg-highlight/10` with icon `text-highlight`.
+
+| Key | Icon |
+|-----|------|
+| `food` | `Utensils` |
+| `groceries` | `ShoppingCart` |
+| `transport` | `Car` |
+| `rideshare` | `Navigation` |
+| `streaming` | `MonitorPlay` |
+| `music` | `Music` |
+| `health` | `HeartPulse` |
+| `shopping` | `ShoppingBag` |
+| `utilities` | `Zap` |
+| `housing` | `Home` |
+| `entertainment` | `Gamepad2` |
+| `coffee` | `Coffee` |
+| `other` | `Tag` |
+
+Lucide has no brand icons (no Uber/Netflix logos). Use generic category icons — consistent abstraction looks cleaner than mixed logos.
 
 ## Pages
 
@@ -95,10 +145,31 @@ Using shadcn's CSS variable system (neutral base). All in oklch.
 | `/` | DASHBOARD | Main overview — key metrics, recent transactions |
 | `/monthly` | [CURRENT MONTH] | Month-by-month financial breakdown |
 
+### Monthly page layout
+
+Three stacked sections inside a scrollable `p-8 space-y-6` container:
+
+1. **`grid grid-cols-2 gap-6`** — Balance card (left) + Spending card (right)
+   - Balance card: current account balance (large) + income this month (secondary) + "+ ADD INCOME" button
+   - Spending card: spent this month (large) + DAILY LIMIT (remaining budget ÷ days left in month, as a `/ DAY` figure) + "+ ADD EXPENSE" button
+
+2. **Credit card section** — full-width bento card; left: stylized portrait card visual (gradient bg, card name, brand); right: CURRENT BILL (largest number) + CLOSING DATE + UPCOMING BILLS + VIEW DETAILS button
+
+3. **Transactions list** — full-width; grouped by date (date as `font-sans text-sm uppercase` muted sub-header); each row: highlight-tinted square icon bubble + category name (Karantina `text-2xl`, from `categories` namespace) + description (Nunito Sans sm muted) + amount (`text-foreground` for expenses, `text-highlight` for income)
+
+### Credit card visual
+
+- Aspect ratio: `0.63` (portrait — taller than wide)
+- Background: `linear-gradient(150deg, color-mix(in oklch, var(--highlight) 80%, white), var(--highlight))` — adapts to active color theme automatically
+- Shine: `bg-gradient-to-b from-white/10 to-transparent` overlay
+- Brand: VISA → italic bold white text; Mastercard → two overlapping colored circles; others → Karantina text
+- Card name: Karantina `text-2xl` top-left, white/90
+
 ## Bento Grid Notes (to evolve)
 
 - Cards should have varied widths: some `col-span-1`, some `col-span-2`
 - Each card: `bg-card border border-border rounded-xl p-5`
-- Card label: Karantina `text-xs tracking-wide text-muted-foreground` (uppercase)
+- Primary card label (section titles, category names): Karantina `text-2xl tracking-wide` uppercase
+- Secondary card label (stat names like "INCOME THIS MONTH", "DAILY LIMIT", "CURRENT BILL"): Nunito Sans `text-sm` uppercase, `text-muted-foreground`
 - Card value: Nunito Sans, large and bold
 - Consider subtle `shadow-sm` on cards for depth

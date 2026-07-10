@@ -9,5 +9,35 @@
   "user": {
     "profile": "My profile",
     "signOut": "Sign out"
+  },
+  "monthly": {
+    "balance": "BALANCE",
+    "incomeThisMonth": "INCOME THIS MONTH",
+    "spentThisMonth": "SPENT THIS MONTH",
+    "ofIncome": "OF INCOME",
+    "addIncome": "+ ADD INCOME",
+    "addExpense": "+ ADD EXPENSE",
+    "currentBill": "CURRENT BILL",
+    "closingDate": "CLOSING DATE",
+    "upcoming": "UPCOMING BILLS",
+    "viewDetails": "VIEW DETAILS",
+    "transactions": "TRANSACTIONS",
+    "dailyLimit": "DAILY LIMIT",
+    "perDay": "/ DAY"
+  },
+  "categories": {
+    "food": "FOOD",
+    "groceries": "GROCERIES",
+    "transport": "TRANSPORT",
+    "rideshare": "RIDESHARE",
+    "streaming": "STREAMING",
+    "music": "MUSIC",
+    "health": "HEALTH",
+    "shopping": "SHOPPING",
+    "utilities": "UTILITIES",
+    "housing": "HOUSING",
+    "entertainment": "ENTERTAINMENT",
+    "coffee": "COFFEE",
+    "other": "OTHER"
   }
 }
