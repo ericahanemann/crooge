@@ -19,7 +19,7 @@
 - **Nav labels:** `text-2xl tracking-wide` — Karantina renders visually smaller than most fonts at the same size; always size up significantly
 - **Page titles (in header bar):** `text-5xl tracking-wide`
 - **Bento card labels:** `text-xs tracking-wide text-muted-foreground`
-- **Avoid `text-sm` or `text-base`** for Karantina — it becomes illegible due to its condensed proportions
+- **Avoid `text-sm`** for Karantina — it becomes illegible due to its condensed proportions. `text-base` is only acceptable for very short labels (2–3 characters, e.g. "EN" / "PT"); never use it for body text or longer strings
 
 ### Nunito Sans usage rules
 - Normal casing
@@ -36,31 +36,34 @@
 ## Page Header
 
 Every page has a `<PageHeader title="PAGE NAME" />` that renders a single row:
-- **Left:** Page title in Karantina `text-4xl tracking-wide`
-- **Right:** `<ThemeToggle />` + `<UserAvatar />`
+- **Left:** Page title in Karantina `text-5xl tracking-wide`
+- **Right (left to right):** `<LanguageToggle />` → `<ThemeToggle />` → `<UserAvatar />`
 - Bottom border: `border-b border-border`
 - Padding: `px-8 py-5`
 
 ## Sidebar
 
-- Logo: `public/logo.svg` via `next/image`, `width=90 height=31`
+- **Server component.** Only the `NavLink` sub-component is a client component (needs `usePathname` for active state).
+- Logo: `public/logo.svg` via `next/image`, `width=130 height=44`
   - Use `className="invert dark:invert-0"` — white SVG inverts to black in light mode
-- Nav items: icon (Lucide `size={18} strokeWidth={1.5}`) + label `font-karantina text-xl tracking-wide`
+- Nav items: icon (Lucide `size={18} strokeWidth={1.5}`) + label `font-karantina text-2xl tracking-wide`
 - Active state: `bg-muted text-foreground`; inactive: `text-muted-foreground`
 
 ## User Avatar
 
 Component: `<UserAvatar name="Érica" initials="EH" src={optionalUrl} />`
+- Renders as a clickable chip: `border border-border rounded-lg px-3 py-1.5` with a dropdown menu
 - Shows `src` image (via `next/image fill`) if provided
-- Falls back to initials in `font-karantina text-base` inside a `size-8 rounded-full bg-muted` circle
-- Shows first name only next to the avatar: `font-karantina text-sm tracking-wide uppercase text-muted-foreground`
+- Falls back to initials in `font-karantina text-xl leading-none` inside a `size-8 rounded-full bg-muted` circle
+- Shows first name only next to the avatar: `font-karantina text-xl tracking-wide uppercase text-muted-foreground`
 - Name is always uppercase (Karantina rule)
+- Dropdown items: "My profile" / "Meu perfil" and "Sign out" / "Sair" — translated via `user` namespace
 
 ## Color Palette
 
 Using shadcn's CSS variable system (neutral base). All in oklch.
 
-- **Default mode: dark.** Light mode available via toggle (top-right). Preference persisted in localStorage.
+- **Default mode: dark.** Light mode available via toggle (top-right). Preference persisted in a cookie (`theme=dark|light`) so the server can set the correct class before the page renders — no flash.
 - Background: `bg-background`
 - Card: `bg-card`
 - Sidebar: `bg-card` with `border-r border-border`
@@ -72,6 +75,7 @@ Using shadcn's CSS variable system (neutral base). All in oklch.
 - **Languages:** English (`en`, default) and Portuguese Brazil (`pt-BR`)
 - **Detection:** Browser `Accept-Language` header via next-intl middleware. If language isn't EN or PT-BR, default is EN.
 - **URL routing:** `/en/...` and `/pt-BR/...` — handled transparently by next-intl middleware
+- **Localized pathnames:** route slugs differ per locale — `/en/monthly` becomes `/pt-BR/mensal`. Defined in `src/i18n/routing.ts` under `pathnames`. Internal link href is always the canonical key (e.g. `"/monthly"`); next-intl resolves the locale-specific URL automatically
 - **Translation files:** `src/i18n/messages/en.json` and `src/i18n/messages/pt-BR.json`
 - **Every UI string must have both EN and PT-BR translations.** No hardcoded strings in components.
 - Server components use `useTranslations()` from `next-intl`; client components get messages via `NextIntlClientProvider` in the locale layout

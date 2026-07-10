@@ -5,5 +5,9 @@
   },
   "dashboard": {
     "title": "DASHBOARD"
+  },
+  "user": {
+    "profile": "My profile",
+    "signOut": "Sign out"
   }
 }
