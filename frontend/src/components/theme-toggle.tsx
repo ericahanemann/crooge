@@ -25,6 +25,7 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggle}
       aria-label="Toggle theme"
+      className="cursor-pointer"
     >
       {isDark === null ? (
         <span className="size-4" />

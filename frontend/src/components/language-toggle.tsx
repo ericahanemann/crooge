@@ -23,12 +23,12 @@ export function LanguageToggle() {
 
   return (
     <Menu.Root>
-      <Menu.Trigger className="inline-flex size-8 items-center justify-center rounded-lg text-foreground/70 hover:bg-muted hover:text-foreground transition-colors outline-none">
+      <Menu.Trigger className="inline-flex size-8 items-center justify-center rounded-lg text-foreground/70 hover:bg-muted hover:text-foreground transition-colors outline-none cursor-pointer">
         <Globe size={16} />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="bottom" align="end" sideOffset={4}>
-          <Menu.Popup className="min-w-[72px] bg-card border border-border rounded-md shadow-lg overflow-hidden z-50">
+          <Menu.Popup className="min-w-18 bg-card border border-border rounded-md shadow-lg overflow-hidden z-50">
             {routing.locales.map((l) => (
               <Menu.Item
                 key={l}

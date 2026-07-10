@@ -34,11 +34,13 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   const cookieStore = await cookies();
   const theme = cookieStore.get("theme")?.value ?? "dark";
+  const colorTheme = cookieStore.get("color-theme")?.value ?? "pink";
 
   return (
     <html
       lang={locale}
       suppressHydrationWarning
+      data-color-theme={colorTheme}
       className={cn(
         "h-full antialiased",
         theme === "dark" && "dark",
