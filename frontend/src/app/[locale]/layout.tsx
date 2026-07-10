@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import { Karantina, Nunito_Sans } from "next/font/google";
 import { cookies } from "next/headers";
-import { Geist_Mono, Karantina, Nunito_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import "../globals.css";
-import { cn } from "@/lib/utils";
 import { AppSidebar } from "@/components/sidebar";
+import { cn } from "@/lib/utils";
 
 const karantina = Karantina({
   weight: ["400", "700"],
@@ -16,11 +16,6 @@ const karantina = Karantina({
 const nunitoSans = Nunito_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -49,7 +44,6 @@ export default async function LocaleLayout({
         theme === "dark" && "dark",
         karantina.variable,
         nunitoSans.variable,
-        geistMono.variable,
       )}
     >
       <body className="flex h-full bg-background">

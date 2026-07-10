@@ -4,4 +4,11 @@ export const routing = defineRouting({
   locales: ["en", "pt-BR"],
   defaultLocale: "en",
   localeDetection: true,
+  pathnames: {
+    "/": "/",
+    "/monthly": {
+      en: "/monthly",
+      "pt-BR": "/mensal",
+    },
+  },
 });
