@@ -14,7 +14,7 @@ export default function ErrorPage({
       <button
         type="button"
         onClick={reset}
-        className="font-karantina text-xl tracking-wide text-muted-foreground hover:text-foreground transition-colors"
+        className="font-karantina text-2xl tracking-wide text-muted-foreground hover:text-foreground transition-colors"
       >
         TRY AGAIN
       </button>

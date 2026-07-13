@@ -48,7 +48,7 @@ export default async function LocaleLayout({
         nunitoSans.variable,
       )}
     >
-      <body className="flex h-full bg-background">
+      <body className="flex h-full bg-background" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <AppSidebar />
           <main className="flex flex-col flex-1 overflow-hidden min-w-0">

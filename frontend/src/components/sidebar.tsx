@@ -17,23 +17,23 @@ export async function AppSidebar() {
     {
       href: "/",
       label: t("dashboard"),
-      icon: <LayoutDashboard size={18} strokeWidth={1.5} />,
+      icon: <LayoutDashboard size={17} strokeWidth={1.5} />,
     },
     {
       href: "/monthly",
       label: t("monthly"),
-      icon: <CalendarDays size={18} strokeWidth={1.5} />,
+      icon: <CalendarDays size={17} strokeWidth={1.5} />,
     },
   ];
 
   return (
-    <aside className="flex flex-col w-60 shrink-0 h-screen border-r border-border bg-card">
-      <div className="px-6 py-8">
+    <aside className="flex flex-col w-56 shrink-0 h-screen border-r border-border bg-card">
+      <div className="px-5 py-7">
         <Image
           src="/logo.svg"
           alt="Crooge"
-          width={130}
-          height={44}
+          width={120}
+          height={40}
           priority
           className="invert dark:invert-0"
         />

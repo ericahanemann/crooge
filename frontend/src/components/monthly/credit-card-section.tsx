@@ -54,45 +54,44 @@ export async function CreditCardSection() {
   );
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6">
-      <div className="flex gap-8 items-start">
-        <div className="w-40 shrink-0">
+    <div className="bg-card border border-border rounded-xl p-5">
+      <div className="flex gap-7">
+        <div className="w-36 shrink-0">
           <CreditCardVisual name={card.name} brand={card.brand} />
         </div>
-        <div className="flex-1 flex flex-col">
-          <p className="font-karantina text-2xl tracking-wide text-foreground uppercase mb-3">
-            {card.name}
-          </p>
-          <div className="flex items-baseline justify-between py-3">
-            <span className="font-sans text-sm text-muted-foreground uppercase">
-              {t("currentBill")}
-            </span>
-            <span className="font-sans text-3xl font-bold text-foreground">
-              {fmtCurrency(card.currentBill)}
-            </span>
+        <div className="flex-1 flex flex-col justify-between">
+          <div>
+            <div className="flex items-baseline justify-between py-3">
+              <span className="font-sans text-sm text-muted-foreground uppercase">
+                {t("currentBill")}
+              </span>
+              <span className="font-sans text-3xl font-bold text-foreground">
+                {fmtCurrency(card.currentBill)}
+              </span>
+            </div>
+            <div className="h-px bg-border" />
+            <div className="flex items-baseline justify-between py-3">
+              <span className="font-sans text-sm text-muted-foreground uppercase">
+                {t("closingDate")}
+              </span>
+              <span className="font-sans text-base font-semibold text-foreground">
+                {closingFormatted}
+              </span>
+            </div>
+            <div className="h-px bg-border" />
+            <div className="flex items-baseline justify-between py-3">
+              <span className="font-sans text-sm text-muted-foreground uppercase">
+                {t("upcoming")}
+              </span>
+              <span className="font-sans text-base font-semibold text-muted-foreground">
+                {fmtCurrency(card.upcomingBills)}
+              </span>
+            </div>
           </div>
-          <div className="h-px bg-border" />
-          <div className="flex items-baseline justify-between py-3">
-            <span className="font-sans text-sm text-muted-foreground uppercase">
-              {t("closingDate")}
-            </span>
-            <span className="font-sans text-base font-semibold text-foreground">
-              {closingFormatted}
-            </span>
-          </div>
-          <div className="h-px bg-border" />
-          <div className="flex items-baseline justify-between py-3">
-            <span className="font-sans text-sm text-muted-foreground uppercase">
-              {t("upcoming")}
-            </span>
-            <span className="font-sans text-base font-semibold text-muted-foreground">
-              {fmtCurrency(card.upcomingBills)}
-            </span>
-          </div>
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-end">
             <button
               type="button"
-              className="flex items-center gap-1.5 font-karantina text-xl tracking-wide uppercase text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 font-karantina text-2xl tracking-wide uppercase text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               {t("viewDetails")}
               <ArrowRight size={14} strokeWidth={1.5} />

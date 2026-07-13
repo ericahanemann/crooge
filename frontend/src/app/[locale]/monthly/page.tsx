@@ -19,8 +19,8 @@ export default async function MonthlyPage() {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <PageHeader title={month} />
-      <div className="flex-1 overflow-auto p-8 space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+      <div className="flex-1 overflow-auto p-7 space-y-5">
+        <div className="grid grid-cols-2 gap-5">
           <BalanceCard balance={mockBalance} income={mockIncomeThisMonth} />
           <SpendingCard
             spent={mockSpentThisMonth}
