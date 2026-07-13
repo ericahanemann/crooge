@@ -25,19 +25,65 @@
     "dailyLimit": "DAILY LIMIT",
     "perDay": "/ DAY"
   },
+  "dialogs": {
+    "common": {
+      "cancel": "CANCEL",
+      "add": "ADD",
+      "keepAdding": "Keep adding",
+      "added": "Added",
+      "description": "DESCRIPTION",
+      "descriptionPlaceholder": "What's this for?",
+      "amount": "AMOUNT",
+      "date": "DATE",
+      "category": "CATEGORY",
+      "addCategory": "Add category",
+      "newCategoryPlaceholder": "Category name",
+      "errorRequired": "Required",
+      "errorPositive": "Must be a positive number"
+    },
+    "income": {
+      "title": "ADD INCOME"
+    },
+    "expense": {
+      "title": "ADD EXPENSE",
+      "paymentDebitPix": "DEBIT / PIX",
+      "paymentDebitPixDescription": "Straight from your balance",
+      "paymentCredit": "CREDIT",
+      "paymentCreditDescription": "On your credit card",
+      "timingOneTime": "ONE-TIME",
+      "timingInstallments": "INSTALLMENTS",
+      "timingRecurring": "RECURRING",
+      "totalAmount": "TOTAL AMOUNT",
+      "installments": "INSTALLMENTS",
+      "perMonth": "/ month",
+      "frequency": "FREQUENCY",
+      "frequencyMonthly": "MONTHLY",
+      "frequencyAnnual": "ANNUAL",
+      "errorMinInstallments": "Must be at least 2"
+    }
+  },
   "categories": {
-    "food": "FOOD",
-    "groceries": "GROCERIES",
-    "transport": "TRANSPORT",
-    "rideshare": "RIDESHARE",
-    "streaming": "STREAMING",
-    "music": "MUSIC",
-    "health": "HEALTH",
-    "shopping": "SHOPPING",
-    "utilities": "UTILITIES",
-    "housing": "HOUSING",
-    "entertainment": "ENTERTAINMENT",
-    "coffee": "COFFEE",
-    "other": "OTHER"
+    "expense": {
+      "food": "FOOD",
+      "groceries": "GROCERIES",
+      "transport": "TRANSPORT",
+      "rideshare": "RIDESHARE",
+      "streaming": "STREAMING",
+      "music": "MUSIC",
+      "health": "HEALTH",
+      "shopping": "SHOPPING",
+      "utilities": "UTILITIES",
+      "housing": "HOUSING",
+      "entertainment": "ENTERTAINMENT",
+      "coffee": "COFFEE",
+      "other": "OTHER"
+    },
+    "income": {
+      "salary": "SALARY",
+      "freelance": "FREELANCE",
+      "gift": "GIFT",
+      "investment": "INVESTMENT",
+      "other": "OTHER"
+    }
   }
 }

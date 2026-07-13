@@ -13,3 +13,10 @@ export function parseLocalDate(dateStr: string): Date {
   ];
   return new Date(year, month - 1, day);
 }
+
+export function todayISO(): string {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}

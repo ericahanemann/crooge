@@ -25,19 +25,65 @@
     "dailyLimit": "LIMITE DIÁRIO",
     "perDay": "/ DIA"
   },
+  "dialogs": {
+    "common": {
+      "cancel": "CANCELAR",
+      "add": "ADICIONAR",
+      "keepAdding": "Continuar adicionando",
+      "added": "Adicionado",
+      "description": "DESCRIÇÃO",
+      "descriptionPlaceholder": "Para quê é isso?",
+      "amount": "VALOR",
+      "date": "DATA",
+      "category": "CATEGORIA",
+      "addCategory": "Adicionar categoria",
+      "newCategoryPlaceholder": "Nome da categoria",
+      "errorRequired": "Obrigatório",
+      "errorPositive": "Deve ser um número positivo"
+    },
+    "income": {
+      "title": "ADICIONAR RENDA"
+    },
+    "expense": {
+      "title": "ADICIONAR GASTO",
+      "paymentDebitPix": "DÉBITO / PIX",
+      "paymentDebitPixDescription": "Direto do seu saldo",
+      "paymentCredit": "CRÉDITO",
+      "paymentCreditDescription": "No seu cartão de crédito",
+      "timingOneTime": "À VISTA",
+      "timingInstallments": "PARCELADO",
+      "timingRecurring": "RECORRENTE",
+      "totalAmount": "VALOR TOTAL",
+      "installments": "PARCELAS",
+      "perMonth": "/ mês",
+      "frequency": "FREQUÊNCIA",
+      "frequencyMonthly": "MENSAL",
+      "frequencyAnnual": "ANUAL",
+      "errorMinInstallments": "Deve ser no mínimo 2"
+    }
+  },
   "categories": {
-    "food": "ALIMENTAÇÃO",
-    "groceries": "MERCADO",
-    "transport": "TRANSPORTE",
-    "rideshare": "TRANSPORTE APP",
-    "streaming": "STREAMING",
-    "music": "MÚSICA",
-    "health": "SAÚDE",
-    "shopping": "COMPRAS",
-    "utilities": "CONTAS",
-    "housing": "MORADIA",
-    "entertainment": "LAZER",
-    "coffee": "CAFÉ",
-    "other": "OUTROS"
+    "expense": {
+      "food": "ALIMENTAÇÃO",
+      "groceries": "MERCADO",
+      "transport": "TRANSPORTE",
+      "rideshare": "TRANSPORTE APP",
+      "streaming": "STREAMING",
+      "music": "MÚSICA",
+      "health": "SAÚDE",
+      "shopping": "COMPRAS",
+      "utilities": "CONTAS",
+      "housing": "MORADIA",
+      "entertainment": "LAZER",
+      "coffee": "CAFÉ",
+      "other": "OUTROS"
+    },
+    "income": {
+      "salary": "SALÁRIO",
+      "freelance": "FREELANCE",
+      "gift": "PRESENTE",
+      "investment": "INVESTIMENTO",
+      "other": "OUTROS"
+    }
   }
 }

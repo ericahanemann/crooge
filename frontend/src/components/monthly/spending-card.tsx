@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { fmtCurrency } from "@/lib/format";
+import { AddExpenseDialog } from "./add-expense-dialog";
 
 interface SpendingCardProps {
   spent: number;
@@ -20,7 +21,7 @@ export async function SpendingCard({ spent, income }: SpendingCardProps) {
   const dailyLimit = remaining > 0 ? remaining / daysLeft : 0;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 flex flex-col gap-4">
+    <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3.5">
       <div>
         <p className="font-karantina text-2xl tracking-wide text-muted-foreground uppercase">
           {t("spentThisMonth")}
@@ -43,12 +44,9 @@ export async function SpendingCard({ spent, income }: SpendingCardProps) {
           </span>
         </div>
       </div>
-      <button
-        type="button"
-        className="mt-auto w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-xl tracking-wide uppercase hover:opacity-90 transition-opacity cursor-pointer"
-      >
-        {t("addExpense")}
-      </button>
+      <div className="mt-auto">
+        <AddExpenseDialog />
+      </div>
     </div>
   );
 }

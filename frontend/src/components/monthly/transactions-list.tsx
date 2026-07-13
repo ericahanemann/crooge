@@ -38,7 +38,7 @@ const categoryIcons: Record<Category, LucideIcon> = {
 
 export async function TransactionsList() {
   const t = await getTranslations("monthly");
-  const tCat = await getTranslations("categories");
+  const tCat = await getTranslations("categories.expense");
   const locale = await getLocale();
 
   const grouped = mockTransactions.reduce<Record<string, Transaction[]>>(
@@ -52,8 +52,8 @@ export async function TransactionsList() {
   const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6">
-      <div className="flex items-baseline justify-between mb-6">
+    <div className="bg-card border border-border rounded-xl p-5">
+      <div className="flex items-baseline justify-between mb-5">
         <h2 className="font-karantina text-2xl tracking-wide text-foreground uppercase">
           {t("transactions")}
         </h2>
@@ -61,7 +61,7 @@ export async function TransactionsList() {
           {mockTransactions.length}
         </span>
       </div>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {sortedDates.map((date) => {
           const txs = grouped[date];
           const formattedDate = parseLocalDate(date).toLocaleDateString(

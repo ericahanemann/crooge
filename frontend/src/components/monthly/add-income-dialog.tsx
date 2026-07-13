@@ -1,0 +1,215 @@
+"use client";
+
+import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogPrimaryButton,
+  DialogSecondaryButton,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import type { CategoryDef } from "@/lib/categories";
+import { todayISO } from "@/lib/format";
+import { CategorySelect } from "./category-select";
+
+interface FormErrors {
+  description?: string;
+  amount?: string;
+  date?: string;
+  category?: string;
+}
+
+export function AddIncomeDialog() {
+  const t = useTranslations();
+  const [open, setOpen] = useState(false);
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [date, setDate] = useState(todayISO());
+  const [category, setCategory] = useState<string | null>(null);
+  const [customCategories, setCustomCategories] = useState<CategoryDef[]>([]);
+  const [keepAdding, setKeepAdding] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [justAdded, setJustAdded] = useState(false);
+  const descriptionRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!justAdded) return;
+    const timeout = setTimeout(() => setJustAdded(false), 1500);
+    return () => clearTimeout(timeout);
+  }, [justAdded]);
+
+  function resetForm() {
+    setDescription("");
+    setAmount("");
+    setDate(todayISO());
+    setCategory(null);
+    setCustomCategories([]);
+    setKeepAdding(false);
+    setErrors({});
+    setJustAdded(false);
+  }
+
+  function validate(): boolean {
+    const nextErrors: FormErrors = {};
+    if (!description.trim())
+      nextErrors.description = t("dialogs.common.errorRequired");
+    const parsedAmount = Number(amount);
+    if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      nextErrors.amount = t("dialogs.common.errorPositive");
+    }
+    if (!date) nextErrors.date = t("dialogs.common.errorRequired");
+    if (!category) nextErrors.category = t("dialogs.common.errorRequired");
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  }
+
+  function handleSubmit() {
+    if (!validate()) return;
+
+    if (keepAdding) {
+      setDescription("");
+      setAmount("");
+      setErrors({});
+      setJustAdded(true);
+      descriptionRef.current?.focus();
+      return;
+    }
+
+    setOpen(false);
+    resetForm();
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) resetForm();
+      }}
+    >
+      <DialogTrigger className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] cursor-pointer">
+        {t("monthly.addIncome")}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>{t("dialogs.income.title")}</DialogTitle>
+
+        <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="income-description"
+              className="font-sans text-sm text-muted-foreground uppercase"
+            >
+              {t("dialogs.common.description")}
+            </label>
+            <Input
+              id="income-description"
+              ref={descriptionRef}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder={t("dialogs.common.descriptionPlaceholder")}
+            />
+            {errors.description && (
+              <p className="text-xs text-destructive">{errors.description}</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="income-amount"
+                className="font-sans text-sm text-muted-foreground uppercase"
+              >
+                {t("dialogs.common.amount")}
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="income-amount"
+                  inputMode="decimal"
+                  className="pl-6"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              {errors.amount && (
+                <p className="text-xs text-destructive">{errors.amount}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="income-date"
+                className="font-sans text-sm text-muted-foreground uppercase"
+              >
+                {t("dialogs.common.date")}
+              </label>
+              <Input
+                id="income-date"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+              {errors.date && (
+                <p className="text-xs text-destructive">{errors.date}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="font-sans text-sm text-muted-foreground uppercase">
+              {t("dialogs.common.category")}
+            </span>
+            <CategorySelect
+              kind="income"
+              value={category}
+              onChange={setCategory}
+              customCategories={customCategories}
+              onAddCustomCategory={(c) =>
+                setCustomCategories((prev) => [...prev, c])
+              }
+            />
+            {errors.category && (
+              <p className="text-xs text-destructive">{errors.category}</p>
+            )}
+          </div>
+        </div>
+
+        {justAdded && (
+          <p className="flex items-center gap-1.5 font-sans text-sm text-highlight">
+            <Check size={14} />
+            {t("dialogs.common.added")}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between gap-3">
+          {/* biome-ignore lint/a11y/noLabelWithoutControl: Checkbox renders a native input under the hood */}
+          <label className="flex items-center gap-2 font-sans text-sm text-muted-foreground cursor-pointer">
+            <Checkbox checked={keepAdding} onCheckedChange={setKeepAdding} />
+            {t("dialogs.common.keepAdding")}
+          </label>
+          <div className="flex gap-3">
+            <DialogSecondaryButton
+              onClick={() => {
+                setOpen(false);
+                resetForm();
+              }}
+            >
+              {t("dialogs.common.cancel")}
+            </DialogSecondaryButton>
+            <DialogPrimaryButton onClick={handleSubmit}>
+              {t("dialogs.common.add")}
+            </DialogPrimaryButton>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
