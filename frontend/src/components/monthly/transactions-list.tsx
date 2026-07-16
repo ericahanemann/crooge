@@ -10,7 +10,8 @@ export async function TransactionsList() {
 
   const grouped = mockTransactions.reduce<Record<string, Transaction[]>>(
     (acc, tx) => {
-      (acc[tx.date] ??= []).push(tx);
+      if (!acc[tx.date]) acc[tx.date] = [];
+      acc[tx.date]!.push(tx);
       return acc;
     },
     {},

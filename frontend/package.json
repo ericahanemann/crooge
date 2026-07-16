@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
-    "lint:format:check": "biome format --check .",
+    "lint:format:check": "biome format .",
     "lint:lint:check": "biome lint ."
   },
   "dependencies": {
