@@ -1,0 +1,38 @@
+name: Linting
+
+on: pull_request
+
+jobs:
+  biome-format:
+    name: Biome Format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "frontend/.nvmrc"
+
+      - run: npm ci
+
+      - run: npm run lint:format:check
+
+  biome-lint:
+    name: Biome Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "frontend/.nvmrc"
+
+      - run: npm ci
+
+      - run: npm run lint:lint:check

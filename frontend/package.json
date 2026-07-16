@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "lint:format:check": "biome format --check .",
+    "lint:lint:check": "biome lint ."
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
