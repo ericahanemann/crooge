@@ -13,12 +13,17 @@ export type Category =
   | "coffee"
   | "other";
 
+export type TransactionTiming = "oneTime" | "installment" | "recurring";
+
 export interface Transaction {
   id: number;
   date: string;
   category: Category;
   description: string;
   amount: number;
+  timing: TransactionTiming;
+  installmentCurrent?: number;
+  installmentTotal?: number;
 }
 
 export interface CreditCardData {
@@ -52,6 +57,7 @@ export const mockTransactions: Transaction[] = [
     category: "food",
     description: "Restaurante Italiano",
     amount: -45.0,
+    timing: "oneTime",
   },
   {
     id: 2,
@@ -59,6 +65,7 @@ export const mockTransactions: Transaction[] = [
     category: "coffee",
     description: "Starbucks",
     amount: -18.5,
+    timing: "oneTime",
   },
   {
     id: 3,
@@ -66,6 +73,7 @@ export const mockTransactions: Transaction[] = [
     category: "groceries",
     description: "Supermercado Pão de Açúcar",
     amount: -132.0,
+    timing: "oneTime",
   },
   {
     id: 4,
@@ -73,6 +81,7 @@ export const mockTransactions: Transaction[] = [
     category: "transport",
     description: "Gasolina",
     amount: -80.0,
+    timing: "oneTime",
   },
   {
     id: 5,
@@ -80,6 +89,7 @@ export const mockTransactions: Transaction[] = [
     category: "streaming",
     description: "Netflix",
     amount: -45.9,
+    timing: "recurring",
   },
   {
     id: 6,
@@ -87,6 +97,7 @@ export const mockTransactions: Transaction[] = [
     category: "rideshare",
     description: "Uber",
     amount: -22.0,
+    timing: "oneTime",
   },
   {
     id: 7,
@@ -94,6 +105,9 @@ export const mockTransactions: Transaction[] = [
     category: "shopping",
     description: "Amazon",
     amount: -245.0,
+    timing: "installment",
+    installmentCurrent: 3,
+    installmentTotal: 6,
   },
   {
     id: 8,
@@ -101,6 +115,7 @@ export const mockTransactions: Transaction[] = [
     category: "health",
     description: "Farmácia",
     amount: -89.0,
+    timing: "oneTime",
   },
   {
     id: 9,
@@ -108,6 +123,7 @@ export const mockTransactions: Transaction[] = [
     category: "utilities",
     description: "Conta de Luz",
     amount: -150.0,
+    timing: "recurring",
   },
   {
     id: 10,
@@ -115,5 +131,6 @@ export const mockTransactions: Transaction[] = [
     category: "other",
     description: "Salário",
     amount: 6500.0,
+    timing: "recurring",
   },
 ];

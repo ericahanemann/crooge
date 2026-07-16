@@ -23,7 +23,10 @@
     "viewDetails": "VER DETALHES",
     "transactions": "TRANSAÇÕES",
     "dailyLimit": "LIMITE DIÁRIO",
-    "perDay": "/ DIA"
+    "perDay": "/ DIA",
+    "badgeOneTime": "À VISTA",
+    "badgeInstallment": "PARCELA {current}/{total}",
+    "badgeRecurring": "RECORRENTE"
   },
   "dialogs": {
     "common": {
