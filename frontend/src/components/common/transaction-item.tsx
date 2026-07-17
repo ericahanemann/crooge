@@ -1,22 +1,27 @@
 import {
-  type LucideIcon,
+  Banknote,
+  Briefcase,
   Car,
   Coffee,
   Gamepad2,
+  Gift,
   HeartPulse,
   Home,
+  type LucideIcon,
   MonitorPlay,
   Music,
   Navigation,
   ShoppingBag,
   ShoppingCart,
   Tag,
+  TrendingUp,
   Utensils,
   Zap,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { cn } from "@/lib/utils";
+import { fmtCurrency } from "@/lib/format";
 import type { Category, Transaction } from "@/lib/mock-monthly";
+import { cn } from "@/lib/utils";
 
 const categoryIcons: Record<Category, LucideIcon> = {
   food: Utensils,
@@ -32,15 +37,21 @@ const categoryIcons: Record<Category, LucideIcon> = {
   entertainment: Gamepad2,
   coffee: Coffee,
   other: Tag,
+  salary: Banknote,
+  freelance: Briefcase,
+  gift: Gift,
+  investment: TrendingUp,
 };
 
 export async function TransactionItem({ tx }: { tx: Transaction }) {
   const t = await getTranslations("monthly");
-  const tCat = await getTranslations("categories.expense");
+  const tCatExp = await getTranslations("categories.expense");
+  const tCatInc = await getTranslations("categories.income");
 
   const Icon = categoryIcons[tx.category];
   const isExpense = tx.amount < 0;
-  const formattedAmount = `${isExpense ? "-" : "+"}$${Math.abs(tx.amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const tCat = isExpense ? tCatExp : tCatInc;
+  const formattedAmount = `${isExpense ? "-" : "+"}${fmtCurrency(tx.amount)}`;
 
   return (
     <div className="flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -48,12 +59,9 @@ export async function TransactionItem({ tx }: { tx: Transaction }) {
         <Icon size={16} className="text-highlight" strokeWidth={1.5} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-karantina text-2xl tracking-wide text-foreground uppercase">
-          {tCat(tx.category)}
-        </p>
-        <div className="flex items-center gap-2 min-w-0">
-          <p className="font-sans text-sm text-muted-foreground truncate">
-            {tx.description}
+        <div className="flex items-center gap-2">
+          <p className="font-karantina text-2xl tracking-wide text-foreground uppercase">
+            {tCat(tx.category)}
           </p>
           {tx.timing === "oneTime" && (
             <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-sans text-xs text-muted-foreground shrink-0">
@@ -63,8 +71,8 @@ export async function TransactionItem({ tx }: { tx: Transaction }) {
           {tx.timing === "installment" && (
             <span className="inline-flex items-center rounded-full bg-highlight/10 px-2 py-0.5 font-sans text-xs text-highlight shrink-0">
               {t("badgeInstallment", {
-                current: tx.installmentCurrent,
-                total: tx.installmentTotal,
+                current: tx.installmentCurrent ?? 0,
+                total: tx.installmentTotal ?? 0,
               })}
             </span>
           )}
@@ -74,6 +82,9 @@ export async function TransactionItem({ tx }: { tx: Transaction }) {
             </span>
           )}
         </div>
+        <p className="font-sans text-sm text-muted-foreground truncate">
+          {tx.description}
+        </p>
       </div>
       <p
         className={cn(

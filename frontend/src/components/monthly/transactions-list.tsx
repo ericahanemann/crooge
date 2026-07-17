@@ -1,8 +1,8 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { parseLocalDate } from "@/lib/format";
+import { TransactionItem } from "@/components/common/transaction-item";
+import { parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { Transaction } from "@/lib/mock-monthly";
 import { mockTransactions } from "@/lib/mock-monthly";
-import { TransactionItem } from "./transaction-item";
 
 export async function TransactionsList() {
   const t = await getTranslations("monthly");
@@ -11,7 +11,7 @@ export async function TransactionsList() {
   const grouped = mockTransactions.reduce<Record<string, Transaction[]>>(
     (acc, tx) => {
       if (!acc[tx.date]) acc[tx.date] = [];
-      acc[tx.date]!.push(tx);
+      acc[tx.date]?.push(tx);
       return acc;
     },
     {},
@@ -29,27 +29,33 @@ export async function TransactionsList() {
           {mockTransactions.length}
         </span>
       </div>
-      <div className="space-y-5">
-        {sortedDates.map((date) => {
-          const txs = grouped[date];
-          const formattedDate = parseLocalDate(date).toLocaleDateString(
-            locale === "pt-BR" ? "pt-BR" : "en-US",
-            { weekday: "long", month: "long", day: "numeric" },
-          );
-          return (
-            <div key={date}>
-              <p className="font-sans text-sm text-muted-foreground uppercase mb-2">
-                {formattedDate}
-              </p>
-              <div className="space-y-1">
-                {txs.map((tx) => (
-                  <TransactionItem key={tx.id} tx={tx} />
-                ))}
+      {sortedDates.length === 0 ? (
+        <p className="font-sans text-sm text-muted-foreground text-center py-8">
+          —
+        </p>
+      ) : (
+        <div className="space-y-5">
+          {sortedDates.map((date) => {
+            const txs = grouped[date];
+            const formattedDate = parseLocalDate(date).toLocaleDateString(
+              toIntlLocale(locale),
+              { weekday: "long", month: "long", day: "numeric" },
+            );
+            return (
+              <div key={date}>
+                <p className="font-sans text-sm text-muted-foreground uppercase mb-2">
+                  {formattedDate}
+                </p>
+                <div className="space-y-1">
+                  {txs.map((tx) => (
+                    <TransactionItem key={tx.id} tx={tx} />
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
