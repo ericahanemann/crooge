@@ -1,5 +1,9 @@
+export function toIntlLocale(locale: string): string {
+  return locale === "pt-BR" ? "pt-BR" : "en-US";
+}
+
 export function fmtCurrency(amount: number): string {
-  return `$${Math.abs(amount).toLocaleString("en-US", {
+  return `R$${Math.abs(amount).toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
