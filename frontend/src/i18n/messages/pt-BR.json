@@ -1,7 +1,10 @@
 {
   "nav": {
     "dashboard": "DASHBOARD",
-    "monthly": "MENSAL"
+    "monthly": "MENSAL",
+    "creditCards": "CARTÕES",
+    "currentStatement": "FATURA ATUAL",
+    "statementSummary": "RESUMO"
   },
   "dashboard": {
     "title": "DASHBOARD"
@@ -64,6 +67,28 @@
       "frequencyAnnual": "ANUAL",
       "errorMinInstallments": "Deve ser no mínimo 2"
     }
+  },
+  "creditCards": {
+    "currentStatement": "FATURA ATUAL",
+    "nextStatements": "PRÓXIMAS FATURAS",
+    "closingDate": "FECHA",
+    "dueDate": "VENCE",
+    "available": "DISPONÍVEL",
+    "used": "UTILIZADO",
+    "limit": "LIMITE",
+    "add": "+ ADICIONAR",
+    "anticipate": "ANTECIPAR",
+    "payStatement": "PAGAR FATURA",
+    "seeSummary": "RESUMO DE FATURAS",
+    "addCard": "+ ADICIONAR NOVO CARTÃO",
+    "addTransaction": "ADICIONAR TRANSAÇÃO",
+    "transactions": "TRANSAÇÕES",
+    "modeExpense": "DESPESA",
+    "modePay": "PAGAMENTO",
+    "dialogExpenseTitle": "ADICIONAR AO CARTÃO",
+    "dialogAnteciparTitle": "ANTECIPAR PAGAMENTO",
+    "selectStatements": "SELECIONAR FATURAS",
+    "confirm": "CONFIRMAR"
   },
   "categories": {
     "expense": {

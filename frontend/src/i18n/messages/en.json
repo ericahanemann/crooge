@@ -1,7 +1,10 @@
 {
   "nav": {
     "dashboard": "DASHBOARD",
-    "monthly": "MONTHLY"
+    "monthly": "MONTHLY",
+    "creditCards": "CREDIT CARDS",
+    "currentStatement": "CURRENT STATEMENT",
+    "statementSummary": "STATEMENT SUMMARY"
   },
   "dashboard": {
     "title": "DASHBOARD"
@@ -64,6 +67,28 @@
       "frequencyAnnual": "ANNUAL",
       "errorMinInstallments": "Must be at least 2"
     }
+  },
+  "creditCards": {
+    "currentStatement": "CURRENT STATEMENT",
+    "nextStatements": "NEXT STATEMENTS",
+    "closingDate": "CLOSES",
+    "dueDate": "DUE",
+    "available": "AVAILABLE",
+    "used": "USED",
+    "limit": "LIMIT",
+    "add": "+ ADD",
+    "anticipate": "ANTICIPATE",
+    "payStatement": "PAY STATEMENT",
+    "seeSummary": "SEE STATEMENTS SUMMARY",
+    "addCard": "+ ADD NEW CARD",
+    "addTransaction": "ADD TRANSACTION",
+    "transactions": "TRANSACTIONS",
+    "modeExpense": "EXPENSE",
+    "modePay": "PAYMENT",
+    "dialogExpenseTitle": "ADD TO CARD",
+    "dialogAnteciparTitle": "ANTICIPATE PAYMENT",
+    "selectStatements": "SELECT STATEMENTS",
+    "confirm": "CONFIRM"
   },
   "categories": {
     "expense": {

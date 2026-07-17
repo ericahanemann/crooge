@@ -1,14 +1,20 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { TransactionItem } from "@/components/common/transaction-item";
 import { parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { Transaction } from "@/lib/mock-monthly";
-import { mockTransactions } from "@/lib/mock-monthly";
 
-export async function TransactionsList() {
-  const t = await getTranslations("monthly");
-  const locale = await getLocale();
+interface CreditCardTransactionsListProps {
+  transactions: Transaction[];
+  locale: string;
+}
 
-  const grouped = mockTransactions.reduce<Record<string, Transaction[]>>(
+export async function CreditCardTransactionsList({
+  transactions,
+  locale,
+}: CreditCardTransactionsListProps) {
+  const t = await getTranslations("creditCards");
+
+  const grouped = transactions.reduce<Record<string, Transaction[]>>(
     (acc, tx) => {
       if (!acc[tx.date]) acc[tx.date] = [];
       acc[tx.date]?.push(tx);
@@ -26,7 +32,7 @@ export async function TransactionsList() {
           {t("transactions")}
         </h2>
         <span className="font-karantina text-2xl tracking-wide text-muted-foreground">
-          {mockTransactions.length}
+          {transactions.length}
         </span>
       </div>
       {sortedDates.length === 0 ? (
@@ -36,7 +42,8 @@ export async function TransactionsList() {
       ) : (
         <div className="space-y-5">
           {sortedDates.map((date) => {
-            const txs = grouped[date];
+            // biome-ignore lint/style/noNonNullAssertion: sortedDates derives from Object.keys(grouped), so date is always present
+            const txs = grouped[date]!;
             const formattedDate = parseLocalDate(date).toLocaleDateString(
               toIntlLocale(locale),
               { weekday: "long", month: "long", day: "numeric" },

@@ -1,5 +1,5 @@
 import { getLocale } from "next-intl/server";
-import { PageHeader } from "@/components/page-header";
+import { PageHeader } from "@/components/common/page-header";
 import { BalanceCard } from "@/components/monthly/balance-card";
 import { CreditCardSection } from "@/components/monthly/credit-card-section";
 import { SpendingCard } from "@/components/monthly/spending-card";
