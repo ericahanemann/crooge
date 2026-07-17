@@ -11,7 +11,11 @@ export type Category =
   | "housing"
   | "entertainment"
   | "coffee"
-  | "other";
+  | "other"
+  | "salary"
+  | "freelance"
+  | "gift"
+  | "investment";
 
 export type TransactionTiming = "oneTime" | "installment" | "recurring";
 
@@ -26,29 +30,9 @@ export interface Transaction {
   installmentTotal?: number;
 }
 
-export interface CreditCardData {
-  name: string;
-  brand: "visa" | "mastercard" | "amex" | "elo";
-  gradientFrom: string;
-  gradientTo: string;
-  currentBill: number;
-  closingDate: string;
-  upcomingBills: number;
-}
-
 export const mockBalance = 4320.0;
 export const mockIncomeThisMonth = 6500.0;
 export const mockSpentThisMonth = 2180.0;
-
-export const mockCreditCard: CreditCardData = {
-  name: "NUBANK",
-  brand: "mastercard",
-  gradientFrom: "#7c3aed",
-  gradientTo: "#4c1d95",
-  currentBill: 1240.5,
-  closingDate: "2026-07-15",
-  upcomingBills: 890.0,
-};
 
 export const mockTransactions: Transaction[] = [
   {
@@ -128,7 +112,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 10,
     date: "2026-07-01",
-    category: "other",
+    category: "salary",
     description: "Salário",
     amount: 6500.0,
     timing: "recurring",
