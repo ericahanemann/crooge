@@ -4,7 +4,9 @@
     "monthly": "MENSAL",
     "creditCards": "CARTÕES",
     "currentStatement": "FATURA ATUAL",
-    "statementSummary": "RESUMO"
+    "statementSummary": "RESUMO",
+    "collapse": "Recolher menu",
+    "expand": "Expandir menu"
   },
   "dashboard": {
     "title": "DASHBOARD"

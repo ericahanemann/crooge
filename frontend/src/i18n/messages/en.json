@@ -4,7 +4,9 @@
     "monthly": "MONTHLY",
     "creditCards": "CREDIT CARDS",
     "currentStatement": "CURRENT STATEMENT",
-    "statementSummary": "STATEMENT SUMMARY"
+    "statementSummary": "STATEMENT SUMMARY",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
   },
   "dashboard": {
     "title": "DASHBOARD"

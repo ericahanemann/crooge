@@ -28,7 +28,7 @@
 
 ## Layout
 
-- **Structure:** Fixed sidebar (`w-56`, left) + flex-col content area (`flex-1`, right)
+- **Structure:** Fixed sidebar (`w-56` expanded / `w-14` collapsed, left) + flex-col content area (`flex-1`, right)
 - **Content area:** `<main className="flex flex-col flex-1 overflow-hidden min-w-0">`
 - **Page structure:** Each page wraps its content in `<div className="flex flex-col flex-1 overflow-hidden">` with a `<PageHeader>` at the top and `<div className="flex-1 overflow-auto p-7">` for the scrollable body
 - **Card style:** Bento box grid — asymmetric tiles, varied sizes, tight gutters
@@ -46,9 +46,18 @@ Every page has a `<PageHeader title="PAGE NAME" />` that renders a single row:
 
 ## Sidebar
 
-- **Server component.** Only the `NavLink` sub-component is a client component (needs `usePathname` for active state).
-- Logo: `public/logo.svg` via `next/image`, `width=120 height=40`
-  - Use `className="invert dark:invert-0"` — white SVG inverts to black in light mode
+- **Server component** (`AppSidebar`). Client parts are extracted to minimize "use client" surface:
+  - `SidebarProvider` — context + localStorage for collapsed state
+  - `SidebarShell` — animated width wrapper, logo switcher, toggle button host
+  - `SidebarToggle` — collapse/expand icon button at sidebar bottom
+  - `NavLink`, `NavGroup`, `NavSubLink` — all client (need `usePathname` + `useSidebar`)
+- **Collapsible:** `w-56` expanded ↔ `w-14` collapsed, `transition-[width] duration-300`.
+  - State persisted in `localStorage` key `"sidebar-collapsed"`.
+  - Toggle button at bottom uses `PanelLeftClose` / `PanelLeftOpen` icons (Lucide).
+- **Collapsed logo:** `public/cow-icon.svg` (minimalist white cow silhouette, `width=32 height=32`), same `className="invert dark:invert-0"` treatment as the main logo.
+- **Expanded logo:** `public/logo.svg`, `width=120 height=40`, `className="invert dark:invert-0"`.
+- **Collapsed nav items:** icon only, centered (`justify-center px-0`). Label span fades with `transition-[opacity,max-width] duration-200`. Tooltip appears to the right on hover (absolute, `left-full ml-2 z-50`, styled `bg-card border border-border shadow-md font-karantina text-xl`). Tooltip is only rendered when collapsed.
+- **NavGroup when collapsed:** renders as a Link to the first sub-link, icon only, tooltip shows the group label. Sub-links are hidden.
 - Nav items: icon (Lucide `size={17} strokeWidth={1.5}`) + label `font-karantina text-2xl tracking-wide`
 - Active state: `bg-muted text-foreground`; inactive: `text-muted-foreground`
 
