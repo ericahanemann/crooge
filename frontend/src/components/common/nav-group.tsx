@@ -2,10 +2,11 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { usePathname } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import type { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { NavSubLink } from "./nav-sub-link";
+import { useSidebar } from "./sidebar-context";
 
 type AppPathname = keyof typeof routing.pathnames;
 
@@ -22,8 +23,30 @@ interface NavGroupProps {
 
 export function NavGroup({ icon, label, links }: NavGroupProps) {
   const pathname = usePathname();
+  const { collapsed } = useSidebar();
   const isActive = links.some((link) => pathname === link.href);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  if (collapsed) {
+    return (
+      <div className="relative group/nav-item">
+        <Link
+          href={links[0]?.href ?? "/"}
+          className={cn(
+            "flex items-center justify-center rounded-md px-0 py-2.5 transition-colors",
+            isActive
+              ? "bg-muted text-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+          )}
+        >
+          {icon}
+        </Link>
+        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 px-2.5 py-1 rounded-md bg-card border border-border shadow-md font-karantina text-xl tracking-wide uppercase whitespace-nowrap opacity-0 pointer-events-none group-hover/nav-item:opacity-100 transition-opacity duration-150">
+          {label}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -34,7 +57,7 @@ export function NavGroup({ icon, label, links }: NavGroupProps) {
           "flex w-full items-center gap-3 px-3 py-2 rounded-md font-karantina text-2xl tracking-wide uppercase transition-colors",
           isActive
             ? "bg-muted text-foreground"
-            : "text-muted-foreground hover:text-foreground",
+            : "text-muted-foreground hover:text-foreground hover:bg-muted",
         )}
       >
         {icon}
