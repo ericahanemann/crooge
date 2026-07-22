@@ -92,6 +92,17 @@
     "selectStatements": "SELECIONAR FATURAS",
     "confirm": "CONFIRMAR"
   },
+  "notFound": {
+    "title": "PÁGINA NÃO ENCONTRADA",
+    "subtitle": "A página que você está procurando não existe ou foi movida.",
+    "cta": "IR PARA O DASHBOARD"
+  },
+  "error": {
+    "title": "ALGO DEU ERRADO",
+    "subtitle": "Um erro inesperado ocorreu. Você pode tentar novamente ou voltar para o início.",
+    "tryAgain": "TENTAR NOVAMENTE",
+    "goHome": "IR PARA O INÍCIO"
+  },
   "categories": {
     "expense": {
       "food": "ALIMENTAÇÃO",
