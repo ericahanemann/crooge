@@ -1,18 +1,22 @@
 import { getTranslations } from "next-intl/server";
 import { TransactionItem } from "@/components/common/transaction-item";
+import { getCreditCardTransactions } from "@/lib/data";
 import { parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { Transaction } from "@/lib/mock-monthly";
 
 interface CreditCardTransactionsListProps {
-  transactions: Transaction[];
+  cardId: string;
+  month: string;
   locale: string;
 }
 
 export async function CreditCardTransactionsList({
-  transactions,
+  cardId,
+  month,
   locale,
 }: CreditCardTransactionsListProps) {
   const t = await getTranslations("creditCards");
+  const transactions = await getCreditCardTransactions(cardId, month);
 
   const grouped = transactions.reduce<Record<string, Transaction[]>>(
     (acc, tx) => {

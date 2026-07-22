@@ -2,13 +2,13 @@ import { ArrowRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CardVisual } from "@/components/credit-card/card-visual";
 import { Link } from "@/i18n/navigation";
+import { getCreditCard } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
-import { mockCreditCard } from "@/lib/mock-credit-card";
 
 export async function CreditCardSection() {
   const t = await getTranslations("monthly");
   const locale = await getLocale();
-  const card = mockCreditCard;
+  const card = await getCreditCard();
 
   // biome-ignore lint/style/noNonNullAssertion: mock data always has a current bill
   const currentBill = card.bills.find((b) => b.status === "current")!;

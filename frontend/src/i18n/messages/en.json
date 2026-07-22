@@ -92,6 +92,17 @@
     "selectStatements": "SELECT STATEMENTS",
     "confirm": "CONFIRM"
   },
+  "notFound": {
+    "title": "PAGE NOT FOUND",
+    "subtitle": "The page you're looking for doesn't exist or has been moved.",
+    "cta": "GO TO DASHBOARD"
+  },
+  "error": {
+    "title": "SOMETHING WENT WRONG",
+    "subtitle": "An unexpected error occurred. You can try again or go back home.",
+    "tryAgain": "TRY AGAIN",
+    "goHome": "GO HOME"
+  },
   "categories": {
     "expense": {
       "food": "FOOD",

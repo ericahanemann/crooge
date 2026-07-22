@@ -1,6 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { AppSidebar } from "@/components/common/sidebar";
 
 export default async function LocaleLayout({
   children,
@@ -14,10 +13,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <AppSidebar />
-      <main className="flex flex-col flex-1 overflow-hidden min-w-0">
-        {children}
-      </main>
+      {children}
     </NextIntlClientProvider>
   );
 }
