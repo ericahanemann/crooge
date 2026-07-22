@@ -2,7 +2,6 @@
 
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
 
 export function SidebarToggle() {

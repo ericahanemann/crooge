@@ -1,6 +1,9 @@
 import { getLocale } from "next-intl/server";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/common/page-header";
+import { TransactionsSkeleton } from "@/components/common/transactions-skeleton";
 import { CardSelector } from "@/components/credit-card/card-selector";
+import { ChartCardSkeleton } from "@/components/credit-card/chart-card-skeleton";
 import { CreditCardTransactionsList } from "@/components/credit-card/credit-card-transactions-list";
 import { StatementChartCard } from "@/components/credit-card/statement-chart-card";
 import { toIntlLocale } from "@/lib/format";
@@ -24,13 +27,6 @@ export default async function BillsSummaryPage({
       ? rawMonth
       : mockCreditCard.currentMonth;
 
-  // biome-ignore lint/style/noNonNullAssertion: selectedMonth is validated above to exist in bills
-  const selectedBill = mockCreditCard.bills.find(
-    (b) => b.month === selectedMonth,
-  )!;
-
-  const transactions = mockCreditCard.transactionsByMonth[selectedMonth] ?? [];
-
   const [year, mon] = selectedMonth.split("-").map(Number) as [number, number];
   const title = new Date(year, mon - 1, 1)
     .toLocaleString(toIntlLocale(locale), {
@@ -53,16 +49,20 @@ export default async function BillsSummaryPage({
           selectedCard={selectedCard}
           selectedMonth={selectedMonth}
         />
-        <StatementChartCard
-          bills={mockCreditCard.bills}
-          selectedBill={selectedBill}
-          selectedMonth={selectedMonth}
-          locale={locale}
-        />
-        <CreditCardTransactionsList
-          transactions={transactions}
-          locale={locale}
-        />
+        <Suspense fallback={<ChartCardSkeleton />}>
+          <StatementChartCard
+            cardId={selectedCard}
+            selectedMonth={selectedMonth}
+            locale={locale}
+          />
+        </Suspense>
+        <Suspense fallback={<TransactionsSkeleton />}>
+          <CreditCardTransactionsList
+            cardId={selectedCard}
+            month={selectedMonth}
+            locale={locale}
+          />
+        </Suspense>
       </div>
     </div>
   );

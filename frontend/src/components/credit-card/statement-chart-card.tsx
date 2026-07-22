@@ -1,24 +1,28 @@
 import { getTranslations } from "next-intl/server";
+import { getCreditCard } from "@/lib/data";
 import { toIntlLocale } from "@/lib/format";
-import type { CreditCardBill } from "@/lib/mock-credit-card";
 import { AddCardExpenseDialog } from "./add-card-expense-dialog";
 import { AnteciparDialog } from "./antecipar-dialog";
 import { BillsChart } from "./bills-chart";
 
 interface StatementChartCardProps {
-  bills: CreditCardBill[];
-  selectedBill: CreditCardBill;
+  cardId: string;
   selectedMonth: string;
   locale: string;
 }
 
 export async function StatementChartCard({
-  bills,
-  selectedBill,
+  cardId,
   selectedMonth,
   locale,
 }: StatementChartCardProps) {
   const t = await getTranslations("creditCards");
+  const card = await getCreditCard(cardId);
+  const bills = card.bills;
+  const selectedBill =
+    bills.find((b) => b.month === selectedMonth) ??
+    // biome-ignore lint/style/noNonNullAssertion: bills always contains at least one entry
+    bills.find((b) => b.status === "current")!;
 
   const [year, mon] = selectedMonth.split("-").map(Number) as [number, number];
   const formattedMonth = new Date(year, mon - 1, 1)
