@@ -205,6 +205,35 @@ Lucide has no brand icons (no Uber/Netflix logos). Use generic category icons �
 |-------|-------------|-------------|
 | `/` | DASHBOARD | Main overview — key metrics, recent transactions |
 | `/monthly` | [CURRENT MONTH] | Month-by-month financial breakdown |
+| `/login` | — | Sign-in page (no sidebar) |
+| `/signup` | — | Sign-up / registration page (no sidebar) |
+
+### Auth pages layout
+
+Login and signup live in a `(auth)` route group inside `[locale]` — same level as `(app)`, but no sidebar and no `AppLayout`. The body's `flex h-full` flow fills the viewport directly.
+
+Two-column split (desktop only, `hidden lg:flex` on left):
+- **Left (w-1/2):** `AuthBrandCard` — `bg-card rounded-xl overflow-hidden border border-border`, fills the full column height via `flex flex-col p-7 > flex-1`. Contains the cow pattern image absolutely positioned, and the title/subtitle absolutely positioned at `bottom-7 left-7`.
+- **Right (flex-1):** Vertically centered `max-w-sm` column: logo on top → intro paragraph → form fields → primary submit → OR divider → Google button → cross-link.
+
+On mobile the left card is hidden; the right form fills the full viewport.
+
+### Cow Pattern
+
+Image file: `public/cow-pattern.webp` — decorative background overlay inside `AuthBrandCard`.
+
+Rendered with Next.js `<Image fill sizes="50vw" />` inside the card's `relative overflow-hidden` container. Classes: `object-cover opacity-10 dark:invert` — low opacity on top of the card background in light mode; inverted so spots appear light in dark mode.
+
+### Auth brand card titles
+
+- **Signup:** "GET CROOOOOGY" (same in EN and PT-BR — brand language)
+- **Login:** "STAY CROOOOOGY" (same in EN and PT-BR)
+
+Subtitles: 6 variants per page per locale, randomly picked server-side with `Math.random()` on each request (no hydration issue — picked in RSC before render). Both EN and PT-BR variants defined in `auth.login.subtitles` / `auth.signup.subtitles` in the i18n JSON files.
+
+### Logo on auth pages
+
+`<Image src="/logo.svg" width={120} height={40} className="invert dark:invert-0" />` — same treatment as the sidebar. Works on `bg-background` in both themes.
 
 ### Monthly page layout
 
