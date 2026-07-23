@@ -103,6 +103,52 @@
     "tryAgain": "TRY AGAIN",
     "goHome": "GO HOME"
   },
+  "auth": {
+    "signin": {
+      "title": "STAY CROOOOOGY",
+      "subtitles": [
+        "Your wallet missed you. We didn't.",
+        "Welcome back. Let's see the damage.",
+        "The bills waited. You showed up anyway.",
+        "You remembered your password. That's something.",
+        "Still croogy. We love that.",
+        "Back at it. Respect."
+      ],
+      "intro": "Your finances are waiting.",
+      "emailLabel": "EMAIL",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "PASSWORD",
+      "passwordPlaceholder": "••••••••",
+      "submit": "SIGN IN",
+      "or": "OR",
+      "google": "CONTINUE WITH GOOGLE",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up"
+    },
+    "signup": {
+      "title": "GET CROOOOOGY",
+      "subtitles": [
+        "Your money finally has a babysitter.",
+        "No spreadsheets required. We promise.",
+        "Step one of not crying at your bank statement.",
+        "Your future self will thank you. Probably.",
+        "Financial adulting, finally made easy.",
+        "Because 'I think I have money' is not a budget strategy."
+      ],
+      "intro": "Take control of your finances.",
+      "nameLabel": "NAME",
+      "namePlaceholder": "Your name",
+      "emailLabel": "EMAIL",
+      "emailPlaceholder": "your@email.com",
+      "passwordLabel": "PASSWORD",
+      "passwordPlaceholder": "Something you'll actually remember",
+      "submit": "CREATE ACCOUNT",
+      "or": "OR",
+      "google": "CONTINUE WITH GOOGLE",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    }
+  },
   "categories": {
     "expense": {
       "food": "FOOD",

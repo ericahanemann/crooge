@@ -22,5 +22,13 @@ export const routing = defineRouting({
       en: "/credit-cards/bills-summary",
       "pt-BR": "/cartoes/resumo",
     },
+    "/signin": {
+      en: "/signin",
+      "pt-BR": "/entrar",
+    },
+    "/signup": {
+      en: "/signup",
+      "pt-BR": "/cadastro",
+    },
   },
 });

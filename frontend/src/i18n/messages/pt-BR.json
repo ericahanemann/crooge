@@ -103,6 +103,52 @@
     "tryAgain": "TENTAR NOVAMENTE",
     "goHome": "IR PARA O INÍCIO"
   },
+  "auth": {
+    "signin": {
+      "title": "STAY CROOOOOGY",
+      "subtitles": [
+        "Sua carteira sentiu sua falta. Nós não.",
+        "Bem-vindo de volta. Vamos ver o estrago.",
+        "As contas esperaram. Você apareceu assim mesmo.",
+        "Você lembrou a senha. Já é algo.",
+        "Ainda croogy. A gente ama isso.",
+        "De volta ao jogo. Respeito."
+      ],
+      "intro": "Suas finanças estão esperando.",
+      "emailLabel": "E-MAIL",
+      "emailPlaceholder": "seu@email.com",
+      "passwordLabel": "SENHA",
+      "passwordPlaceholder": "••••••••",
+      "submit": "ENTRAR",
+      "or": "OU",
+      "google": "CONTINUAR COM O GOOGLE",
+      "noAccount": "Não tem uma conta?",
+      "signUp": "Cadastre-se"
+    },
+    "signup": {
+      "title": "GET CROOOOOGY",
+      "subtitles": [
+        "Seu dinheiro finalmente tem uma babá.",
+        "Sem planilha. Promessa.",
+        "Passo um pra não chorar no extrato.",
+        "Seu eu do futuro vai agradecer. Provavelmente.",
+        "Vida adulta financeira, finalmente fácil.",
+        "Porque 'acho que tenho dinheiro' não é uma boa estratégia."
+      ],
+      "intro": "Assuma o controle das suas finanças.",
+      "nameLabel": "NOME",
+      "namePlaceholder": "Seu nome",
+      "emailLabel": "E-MAIL",
+      "emailPlaceholder": "seu@email.com",
+      "passwordLabel": "SENHA",
+      "passwordPlaceholder": "Algo que você vai lembrar",
+      "submit": "CRIAR CONTA",
+      "or": "OU",
+      "google": "CONTINUAR COM O GOOGLE",
+      "hasAccount": "Já tem uma conta?",
+      "signIn": "Entrar"
+    }
+  },
   "categories": {
     "expense": {
       "food": "ALIMENTAÇÃO",
