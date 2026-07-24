@@ -46,7 +46,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <SidebarContext.Provider value={{ collapsed, toggle, mobileOpen, openMobile, closeMobile }}>
+    <SidebarContext.Provider
+      value={{ collapsed, toggle, mobileOpen, openMobile, closeMobile }}
+    >
       {children}
     </SidebarContext.Provider>
   );

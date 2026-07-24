@@ -12,7 +12,7 @@ export function PageHeader({ title }: PageHeaderProps) {
   return (
     <div className="flex items-center justify-between px-7 py-7 border-b border-border shrink-0">
       {/* Mobile: title left, avatar + burger right */}
-      <h1 className="font-karantina text-5xl tracking-wide text-foreground lg:hidden">
+      <h1 className="font-karantina text-4xl sm:text-5xl tracking-wide text-foreground lg:hidden">
         {title}
       </h1>
       <div className="flex items-center gap-2 lg:hidden">

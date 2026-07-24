@@ -27,7 +27,12 @@ export function LanguageToggle() {
         <Globe size={16} />
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
+        <Menu.Positioner
+          side="bottom"
+          align="end"
+          sideOffset={4}
+          className="z-50"
+        >
           <Menu.Popup className="min-w-18 bg-card border border-border rounded-md shadow-lg overflow-hidden">
             {routing.locales.map((l) => (
               <Menu.Item

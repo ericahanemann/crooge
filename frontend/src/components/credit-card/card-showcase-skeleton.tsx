@@ -3,9 +3,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function CardShowcaseSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">
+      <div className="w-full aspect-[1.587] md:hidden mb-5 rounded-xl overflow-hidden">
+        <Skeleton className="w-full h-full rounded-xl" />
+      </div>
       <div className="flex gap-7">
         <div
-          className="w-48 shrink-0 rounded-xl overflow-hidden"
+          className="hidden md:block w-48 shrink-0 rounded-xl overflow-hidden"
           style={{ aspectRatio: "0.63" }}
         >
           <Skeleton className="w-full h-full rounded-xl" />

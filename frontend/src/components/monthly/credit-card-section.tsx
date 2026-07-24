@@ -25,11 +25,19 @@ export async function CreditCardSection() {
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex gap-7">
-        <div className="w-36 shrink-0" style={{ aspectRatio: "0.63" }}>
+      <div className="flex flex-col md:flex-row gap-7">
+        {/* Mobile: landscape card, full width */}
+        <div className="w-full aspect-[1.587] md:hidden">
           <CardVisual name={card.name} brand={card.brand} />
         </div>
-        <div className="flex-1 flex flex-col justify-between">
+        {/* Desktop: portrait card */}
+        <div
+          className="hidden md:block w-36 shrink-0"
+          style={{ aspectRatio: "0.63" }}
+        >
+          <CardVisual name={card.name} brand={card.brand} />
+        </div>
+        <div className="flex-1 flex flex-col md:justify-between">
           <div>
             <div className="flex items-baseline justify-between py-3">
               <span className="font-sans text-sm text-muted-foreground uppercase">

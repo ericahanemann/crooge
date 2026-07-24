@@ -213,8 +213,14 @@ export function MobileMenu() {
           icon={<CreditCard size={20} strokeWidth={1.5} />}
           label={t("creditCards")}
           links={[
-            { href: "/credit-cards/current-bill", label: t("currentStatement") },
-            { href: "/credit-cards/bills-summary", label: t("statementSummary") },
+            {
+              href: "/credit-cards/current-bill",
+              label: t("currentStatement"),
+            },
+            {
+              href: "/credit-cards/bills-summary",
+              label: t("statementSummary"),
+            },
           ]}
           onClose={closeMobile}
         />

@@ -26,7 +26,7 @@ export default async function CurrentBillPage({
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <PageHeader title={t("currentStatement")} />
-      <div className="flex-1 overflow-auto p-7 space-y-5">
+      <div className="flex-1 overflow-auto p-4 sm:p-7 space-y-5">
         <Suspense fallback={<CardShowcaseSkeleton />}>
           <CardHeaderSection selectedCardId={selectedCard} locale={locale} />
         </Suspense>

@@ -3,14 +3,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function CreditCardSectionSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex gap-7">
+      <div className="flex flex-col md:flex-row gap-7">
+        <div className="w-full aspect-[1.587] md:hidden rounded-xl overflow-hidden">
+          <Skeleton className="w-full h-full rounded-xl" />
+        </div>
         <div
-          className="w-36 shrink-0 rounded-xl overflow-hidden"
+          className="hidden md:block w-36 shrink-0 rounded-xl overflow-hidden"
           style={{ aspectRatio: "0.63" }}
         >
           <Skeleton className="w-full h-full rounded-xl" />
         </div>
-        <div className="flex-1 flex flex-col justify-between">
+        <div className="flex-1 flex flex-col md:justify-between">
           <div>
             {[0, 1, 2].map((i) => (
               <div key={i}>

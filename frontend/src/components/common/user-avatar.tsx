@@ -11,7 +11,12 @@ interface UserAvatarProps {
   compact?: boolean;
 }
 
-export function UserAvatar({ name, initials, src, compact = false }: UserAvatarProps) {
+export function UserAvatar({
+  name,
+  initials,
+  src,
+  compact = false,
+}: UserAvatarProps) {
   const t = useTranslations("user");
 
   return (
@@ -39,7 +44,12 @@ export function UserAvatar({ name, initials, src, compact = false }: UserAvatarP
         )}
       </Menu.Trigger>
       <Menu.Portal>
-        <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-50">
+        <Menu.Positioner
+          side="bottom"
+          align="end"
+          sideOffset={4}
+          className="z-50"
+        >
           <Menu.Popup className="min-w-40 bg-card border border-border rounded-md shadow-lg overflow-hidden">
             <Menu.Item className="block w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-muted cursor-default transition-colors outline-none">
               {t("profile")}
