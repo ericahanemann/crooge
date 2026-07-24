@@ -19,6 +19,7 @@
     "signOut": "Sair"
   },
   "monthly": {
+    "title": "MENSAL",
     "balance": "SALDO",
     "incomeThisMonth": "RENDA DO MÊS",
     "spentThisMonth": "GASTOS DO MÊS",
@@ -34,7 +35,13 @@
     "perDay": "/ DIA",
     "badgeOneTime": "À VISTA",
     "badgeInstallment": "PARCELA {current}/{total}",
-    "badgeRecurring": "RECORRENTE"
+    "badgeRecurring": "RECORRENTE",
+    "searchPlaceholder": "Buscar transações...",
+    "allCategories": "TODAS",
+    "noResults": "Sem resultados",
+    "emptyTransactions": "Nenhuma transação ainda",
+    "prevMonth": "Mês anterior",
+    "nextMonth": "Próximo mês"
   },
   "dialogs": {
     "common": {
@@ -75,6 +82,7 @@
   },
   "creditCards": {
     "currentStatement": "FATURA ATUAL",
+    "summaryTitle": "RESUMO DE FATURAS",
     "nextStatements": "PRÓXIMAS FATURAS",
     "closingDate": "FECHA",
     "dueDate": "VENCE",
