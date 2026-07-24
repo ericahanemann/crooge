@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function MonthlySummarySkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
       {[0, 1].map((i) => (
         <div
           key={i}

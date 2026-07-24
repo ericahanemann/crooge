@@ -1,8 +1,12 @@
 import { getTranslations } from "next-intl/server";
-import { TransactionItem } from "@/components/common/transaction-item";
+import {
+  TransactionsFilterClient,
+  type ResolvedCategoryOption,
+  type ResolvedTransactionGroup,
+  type ResolvedTransactionItem,
+} from "@/components/common/transactions-filter-client";
 import { getCreditCardTransactions } from "@/lib/data";
-import { parseLocalDate, toIntlLocale } from "@/lib/format";
-import type { Transaction } from "@/lib/mock-monthly";
+import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
 interface CreditCardTransactionsListProps {
   cardId: string;
@@ -15,58 +19,71 @@ export async function CreditCardTransactionsList({
   month,
   locale,
 }: CreditCardTransactionsListProps) {
-  const t = await getTranslations("creditCards");
+  const t = await getTranslations("monthly");
+  const tCatExp = await getTranslations("categories.expense");
+  const tCatInc = await getTranslations("categories.income");
   const transactions = await getCreditCardTransactions(cardId, month);
 
-  const grouped = transactions.reduce<Record<string, Transaction[]>>(
-    (acc, tx) => {
-      if (!acc[tx.date]) acc[tx.date] = [];
-      acc[tx.date]?.push(tx);
-      return acc;
-    },
-    {},
-  );
+  const grouped: Record<string, ResolvedTransactionItem[]> = {};
+  const seenCategories = new Set<string>();
+  const categories: ResolvedCategoryOption[] = [];
 
-  const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+  for (const tx of transactions) {
+    const isIncome = tx.amount > 0;
+    const tCat = isIncome ? tCatInc : tCatExp;
+
+    const item: ResolvedTransactionItem = {
+      id: tx.id,
+      category: tx.category,
+      categoryLabel: tCat(tx.category),
+      description: tx.description,
+      formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount)}`,
+      isIncome,
+      badge:
+        tx.timing === "installment"
+          ? {
+              label: t("badgeInstallment", {
+                current: tx.installmentCurrent ?? 0,
+                total: tx.installmentTotal ?? 0,
+              }),
+              highlight: true,
+            }
+          : tx.timing === "recurring"
+            ? { label: t("badgeRecurring"), highlight: false }
+            : tx.timing === "oneTime"
+              ? { label: t("badgeOneTime"), highlight: false }
+              : undefined,
+    };
+
+    if (!grouped[tx.date]) grouped[tx.date] = [];
+    grouped[tx.date]!.push(item);
+
+    if (!seenCategories.has(tx.category)) {
+      seenCategories.add(tx.category);
+      categories.push({ key: tx.category, label: tCat(tx.category) });
+    }
+  }
+
+  const groups: ResolvedTransactionGroup[] = Object.keys(grouped)
+    .sort((a, b) => b.localeCompare(a))
+    .map((date) => ({
+      date,
+      formattedDate: parseLocalDate(date).toLocaleDateString(
+        toIntlLocale(locale),
+        { weekday: "long", month: "long", day: "numeric" },
+      ),
+      items: grouped[date]!,
+    }));
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5">
-      <div className="flex items-baseline justify-between mb-5">
-        <h2 className="font-karantina text-2xl tracking-wide text-foreground uppercase">
-          {t("transactions")}
-        </h2>
-        <span className="font-karantina text-2xl tracking-wide text-muted-foreground">
-          {transactions.length}
-        </span>
-      </div>
-      {sortedDates.length === 0 ? (
-        <p className="font-sans text-sm text-muted-foreground text-center py-8">
-          —
-        </p>
-      ) : (
-        <div className="space-y-5">
-          {sortedDates.map((date) => {
-            // biome-ignore lint/style/noNonNullAssertion: sortedDates derives from Object.keys(grouped), so date is always present
-            const txs = grouped[date]!;
-            const formattedDate = parseLocalDate(date).toLocaleDateString(
-              toIntlLocale(locale),
-              { weekday: "long", month: "long", day: "numeric" },
-            );
-            return (
-              <div key={date}>
-                <p className="font-sans text-sm text-muted-foreground uppercase mb-2">
-                  {formattedDate}
-                </p>
-                <div className="space-y-1">
-                  {txs.map((tx) => (
-                    <TransactionItem key={tx.id} tx={tx} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    <TransactionsFilterClient
+      groups={groups}
+      categories={categories}
+      title={t("transactions")}
+      searchPlaceholder={t("searchPlaceholder")}
+      allCategoriesLabel={t("allCategories")}
+      noResultsLabel={t("noResults")}
+      emptyLabel={t("emptyTransactions")}
+    />
   );
 }

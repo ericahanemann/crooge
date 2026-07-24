@@ -18,7 +18,7 @@ export async function StatementCardsSection({
   if (!currentBill) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
       <CurrentStatementCard bill={currentBill} locale={locale} />
       <NextStatementsCard
         available={card.available}

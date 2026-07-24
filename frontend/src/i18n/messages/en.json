@@ -6,7 +6,10 @@
     "currentStatement": "CURRENT STATEMENT",
     "statementSummary": "STATEMENT SUMMARY",
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menuTitle": "Navigation menu"
   },
   "dashboard": {
     "title": "DASHBOARD"
@@ -16,6 +19,7 @@
     "signOut": "Sign out"
   },
   "monthly": {
+    "title": "MONTHLY",
     "balance": "BALANCE",
     "incomeThisMonth": "INCOME THIS MONTH",
     "spentThisMonth": "SPENT THIS MONTH",
@@ -31,7 +35,13 @@
     "perDay": "/ DAY",
     "badgeOneTime": "ONE-TIME",
     "badgeInstallment": "INST. {current}/{total}",
-    "badgeRecurring": "RECURRING"
+    "badgeRecurring": "RECURRING",
+    "searchPlaceholder": "Search transactions...",
+    "allCategories": "ALL",
+    "noResults": "No results",
+    "emptyTransactions": "No transactions yet",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "dialogs": {
     "common": {
@@ -72,6 +82,7 @@
   },
   "creditCards": {
     "currentStatement": "CURRENT STATEMENT",
+    "summaryTitle": "STATEMENTS SUMMARY",
     "nextStatements": "NEXT STATEMENTS",
     "closingDate": "CLOSES",
     "dueDate": "DUE",

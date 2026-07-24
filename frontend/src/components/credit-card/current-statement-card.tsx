@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { fmtCurrency, parseLocalDate } from "@/lib/format";
+import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/mock-credit-card";
 import { AddCardExpenseDialog } from "./add-card-expense-dialog";
 
@@ -15,10 +15,10 @@ export async function CurrentStatementCard({
   const t = await getTranslations("creditCards");
 
   const fmt = (dateStr: string) =>
-    parseLocalDate(dateStr).toLocaleDateString(
-      locale === "pt-BR" ? "pt-BR" : "en-US",
-      { month: "short", day: "numeric" },
-    );
+    parseLocalDate(dateStr).toLocaleDateString(toIntlLocale(locale), {
+      month: "short",
+      day: "numeric",
+    });
 
   return (
     <div className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3.5">

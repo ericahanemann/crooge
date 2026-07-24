@@ -44,8 +44,16 @@ export async function CardShowcase({
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
+      {/* Mobile: landscape card full-width on top */}
+      <div className="w-full aspect-[1.587] md:hidden mb-5">
+        <CardVisual name={card.name} brand={card.brand} />
+      </div>
       <div className="flex gap-7">
-        <div className="w-48 shrink-0" style={{ aspectRatio: "0.63" }}>
+        {/* Desktop: portrait card on the left */}
+        <div
+          className="hidden md:block w-48 shrink-0"
+          style={{ aspectRatio: "0.63" }}
+        >
           <CardVisual name={card.name} brand={card.brand} />
         </div>
         <div className="flex-1 flex flex-col gap-3.5">
