@@ -6,7 +6,10 @@
     "currentStatement": "FATURA ATUAL",
     "statementSummary": "RESUMO",
     "collapse": "Recolher menu",
-    "expand": "Expandir menu"
+    "expand": "Expandir menu",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "menuTitle": "Menu de navegação"
   },
   "dashboard": {
     "title": "DASHBOARD"

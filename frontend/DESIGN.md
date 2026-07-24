@@ -44,6 +44,19 @@ Every page has a `<PageHeader title="PAGE NAME" />` that renders a single row:
 - Bottom border: `border-b border-border`
 - Padding: `px-7 py-7` — vertical padding matches the sidebar's logo-block top padding (`py-7`), so the header and sidebar content start at the same height
 
+## Mobile Navigation
+
+Below `lg` (1024px), the sidebar is hidden (`hidden lg:flex` on `SidebarShell`). A **burger menu button** appears in the `PageHeader` on the left, next to the page title. Tapping it opens a full-screen overlay (`MobileMenu`) that covers the entire viewport.
+
+The mobile menu overlay:
+- **Header:** Crooge logo (left) + X close button (right), same `py-7 border-b` as the desktop page header
+- **Nav links:** Full-width rows with icon + Karantina label. Same active/inactive states as desktop (`bg-muted text-foreground` / `text-muted-foreground`). Sub-links (e.g. under Credit Cards) are always expanded and indented to align with the parent label (`pl-16`)
+- **Footer:** LanguageToggle, ColorThemeToggle, ThemeToggle, and UserAvatar — the 4 icons that are hidden from the page header on mobile
+- **Closing:** X button, tapping any nav link, or pressing Escape
+- **Accessibility:** `role="dialog" aria-modal="true"`, focus trap (Tab cycles within menu), body scroll locked while open, focus moves to X button on open
+
+On mobile, the `PageHeader` shows only the burger button + page title. The 4 action icons are hidden (`hidden lg:flex`).
+
 ## Sidebar
 
 - **Server component** (`AppSidebar`). Client parts are extracted to minimize "use client" surface:
@@ -205,7 +218,7 @@ Lucide has no brand icons (no Uber/Netflix logos). Use generic category icons �
 |-------|-------------|-------------|
 | `/` | DASHBOARD | Main overview — key metrics, recent transactions |
 | `/monthly` | [CURRENT MONTH] | Month-by-month financial breakdown |
-| `/login` | — | Sign-in page (no sidebar) |
+| `/signin` | — | Sign-in page (no sidebar) |
 | `/signup` | — | Sign-up / registration page (no sidebar) |
 
 ### Auth pages layout
@@ -227,9 +240,9 @@ Rendered with Next.js `<Image fill sizes="50vw" />` inside the card's `relative 
 ### Auth brand card titles
 
 - **Signup:** "GET CROOOOOGY" (same in EN and PT-BR — brand language)
-- **Login:** "STAY CROOOOOGY" (same in EN and PT-BR)
+- **Signin:** "STAY CROOOOOGY" (same in EN and PT-BR)
 
-Subtitles: 6 variants per page per locale, randomly picked server-side with `Math.random()` on each request (no hydration issue — picked in RSC before render). Both EN and PT-BR variants defined in `auth.login.subtitles` / `auth.signup.subtitles` in the i18n JSON files.
+Subtitles: 6 variants per page per locale, randomly picked server-side with `Math.random()` on each request (no hydration issue — picked in RSC before render). Both EN and PT-BR variants defined in `auth.signin.subtitles` / `auth.signup.subtitles` in the i18n JSON files.
 
 ### Logo on auth pages
 

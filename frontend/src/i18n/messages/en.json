@@ -6,7 +6,10 @@
     "currentStatement": "CURRENT STATEMENT",
     "statementSummary": "STATEMENT SUMMARY",
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "menuTitle": "Navigation menu"
   },
   "dashboard": {
     "title": "DASHBOARD"

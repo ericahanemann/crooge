@@ -12,7 +12,7 @@ export function SidebarShell({ children }: { children: ReactNode }) {
   return (
     <aside
       className={cn(
-        "flex flex-col shrink-0 h-screen border-r border-border bg-card transition-[width] duration-300 ease-in-out",
+        "hidden lg:flex flex-col shrink-0 h-screen border-r border-border bg-card transition-[width] duration-300 ease-in-out",
         collapsed ? "w-14" : "w-56",
       )}
     >
