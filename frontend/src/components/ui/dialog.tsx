@@ -141,6 +141,11 @@ function DialogDescription({
   );
 }
 
+// DialogPrimaryButton/DialogSecondaryButton are project-specific additions on top of the
+// base-ui Dialog primitives below — auto-width karantina ctas for dialog footers (see
+// DESIGN.md "Dialogs"). not part of stock shadcn, use these instead of the generic
+// `Button` inside a dialog footer
+
 function DialogPrimaryButton({
   className,
   ...props

@@ -12,6 +12,13 @@ interface SegmentedControlProps<T extends string> {
   className?: string;
 }
 
+/**
+ * hand-rolled pill toggle — not a base ui primitive, a plain button group is simpler
+ * than fighting `toggle-group`/`tabs` apis for a 2–3 option single-select (see
+ * DESIGN.md "Segmented control")
+ *
+ * generic over `T` (the option value type) so callers get type-checked `value`/`onChange`
+ */
 export function SegmentedControl<T extends string>({
   options,
   value,
