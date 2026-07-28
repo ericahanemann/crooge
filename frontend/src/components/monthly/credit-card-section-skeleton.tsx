@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** loading placeholder mirroring `CreditCardSection`'s layout. */
 export function CreditCardSectionSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">

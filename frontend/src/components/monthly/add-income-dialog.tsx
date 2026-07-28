@@ -24,6 +24,16 @@ interface FormErrors {
   category?: string;
 }
 
+/**
+ * "+ ADD INCOME" dialog triggered from `BalanceCard`
+ *
+ * @state open - dialog visibility; resetting the form runs on close (X, Cancel, or backdrop) via `onOpenChange`
+ * @state description/amount/date/category - the form fields. `date` defaults to today (`todayISO()`).
+ * @state customCategories - session-local categories added via `CategorySelect`'s "+" button; lost when the dialog fully closes (not persisted)
+ * @state keepAdding - "keep adding" checkbox
+ * @state errors - per-field validation messages, recomputed on submit by `validate()`.
+ * @state justAdded - drives the brief "added" acknowledgment shown after a keep-adding submit; auto-clears after 1.5s
+ */
 export function AddIncomeDialog() {
   const t = useTranslations();
   const [open, setOpen] = useState(false);
@@ -68,6 +78,13 @@ export function AddIncomeDialog() {
     return Object.keys(nextErrors).length === 0;
   }
 
+  /**
+   * validates all fields; if invalid, sets `errors` and stops
+   *
+   * if `keepAdding` is checked, clears only `description`/`amount` and refocuses
+   * the description field - `date`/`category`/custom categories persist, since
+   * consecutive entries tend to share them. otherwise closes the dialog and resets everything
+   */
   function handleSubmit() {
     if (!validate()) return;
 
