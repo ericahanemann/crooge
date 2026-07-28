@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleIcon } from "./google-icon";
 
+/** sign-up form (name + email + password + google button); same stub state as `AuthSigninForm` — no submit handler or backend wired up yet */
 export function AuthSignupForm() {
   const t = useTranslations("auth.signup");
   const [name, setName] = useState("");
