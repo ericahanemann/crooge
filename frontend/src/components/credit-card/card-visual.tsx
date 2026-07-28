@@ -1,8 +1,13 @@
+/**
+ * @prop name - card name printed top-left
+ * @prop brand - drives which brand mark renders bottom-right: "visa" → italic wordmark, "mastercard" → overlapping circles, anything else → the raw string in karantina
+ */
 interface CardVisualProps {
   name: string;
   brand: string;
 }
 
+/** the gradient credit-card graphic; aspect ratio is set by the parent container, not this component */
 export function CardVisual({ name, brand }: CardVisualProps) {
   return (
     <div

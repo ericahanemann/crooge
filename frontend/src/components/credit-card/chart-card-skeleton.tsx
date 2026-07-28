@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const BAR_HEIGHTS = [65, 45, 85, 55, 100, 40, 70, 50, 90, 35, 80, 60, 75];
 
+/** loading placeholder mirroring `StatementChartCard`'s header + bar-chart layout; `BAR_HEIGHTS` are arbitrary, just varied enough to read as a real chart */
 export function ChartCardSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">

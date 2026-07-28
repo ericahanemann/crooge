@@ -14,12 +14,14 @@ interface CardOption {
   name: string;
 }
 
+/** @prop selectedMonth - preserved in the url when switching cards so the page stays on the same month */
 interface CardSelectorProps {
   cards: CardOption[];
   selectedCard: string;
   selectedMonth?: string;
 }
 
+/** dropdown for switching between credit cards; selecting one updates the `?card=` (and `?month=`, if provided) search param via `router.push` */
 export function CardSelector({
   cards,
   selectedCard,
