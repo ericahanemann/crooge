@@ -10,6 +10,15 @@ interface MonthNavProps {
   locale: string;
 }
 
+/**
+ * prev/next month stepper for the monthly page
+ *
+ * navigation only updates the `?month=YYYY-MM` search param (via `router.push`) — the page
+ * itself re-reads that param server-side to pick which month's data to show and what
+ * `PageHeader`'s title says
+ *
+ * this component doesn't validate `currentMonth`; it trusts the page already did.
+ */
 export function MonthNav({ currentMonth, locale }: MonthNavProps) {
   const router = useRouter();
   const pathname = usePathname();

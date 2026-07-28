@@ -6,6 +6,9 @@ interface CardHeaderSectionProps {
   locale: string;
 }
 
+/**
+ * fetches the selected credit card and renders `CardShowcase`
+ */
 export async function CardHeaderSection({
   selectedCardId,
   locale,

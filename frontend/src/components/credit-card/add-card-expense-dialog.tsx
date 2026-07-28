@@ -27,12 +27,24 @@ interface FormErrors {
   category?: string;
 }
 
+/**
+ * @prop defaultMode - initial `SegmentedControl` value; user can still switch modes after opening
+ * @prop compact - auto-width trigger (used inline in `StatementChartCard`'s header) vs. the default full-width card cta
+ * @prop triggerLabel - overrides the default trigger text (both call sites pass `t("addTransaction")`)
+ */
 interface AddCardExpenseDialogProps {
   defaultMode?: Mode;
   compact?: boolean;
   triggerLabel?: string;
 }
 
+/**
+ * combined "add card expense" / "pay bill" dialog
+ *
+ * `mode` toggles which fields render: "expense" shows description + category, "pay" only needs amount + date
+ *
+ * no backend yet, submission is a stub — validation and reset both branch on `mode`
+ */
 export function AddCardExpenseDialog({
   defaultMode = "expense",
   compact = false,

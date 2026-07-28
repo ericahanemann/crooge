@@ -37,6 +37,18 @@ interface FormErrors {
   category?: string;
 }
 
+/**
+ * "+ ADD EXPENSE" dialog triggered from `SpendingCard`
+ *
+ * @state paymentMethod - debit/pix vs credit. UI-only right now — doesn't
+ *   change validation or the submit stub, since there's no backend yet to
+ *   route the expense to a card vs. account balance.
+ * @state timing - which field set renders (one-time / installments /
+ *   recurring); see the three conditional blocks below.
+ * @state frequency - monthly/annual, only relevant (and only rendered) when `timing === "recurring"`.
+ * @state installmentCount - only used/validated when `timing === "installments"`; must be an integer ≥ 2.
+ * @state customCategories/keepAdding/errors/justAdded - same as `AddIncomeDialog`.
+ */
 export function AddExpenseDialog() {
   const t = useTranslations();
   const [open, setOpen] = useState(false);

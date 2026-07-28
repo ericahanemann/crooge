@@ -2,11 +2,13 @@ import { getTranslations } from "next-intl/server";
 import { fmtCurrency } from "@/lib/format";
 import { AddIncomeDialog } from "./add-income-dialog";
 
+/** @prop balance/income - already-resolved monthly figures from `getMonthlySummary`; this component only formats/renders them. */
 interface BalanceCardProps {
   balance: number;
   income: number;
 }
 
+/** "asset" half of the monthly page's top bento row */
 export async function BalanceCard({ balance, income }: BalanceCardProps) {
   const t = await getTranslations("monthly");
   return (

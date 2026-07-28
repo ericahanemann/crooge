@@ -2,6 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const groups = [{ rows: 2 }, { rows: 2 }, { rows: 1 }];
 
+/** loading placeholder shown in a `Suspense` boundary while the transactions list section fetches/formats its data */
 export function TransactionsSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">

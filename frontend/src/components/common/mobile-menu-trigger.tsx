@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSidebar } from "./sidebar-context";
 
+/** burger button in `PageHeader` (mobile only) that opens `MobileMenu`. */
 export function MobileMenuTrigger() {
   const { openMobile } = useSidebar();
   const t = useTranslations("nav");

@@ -7,6 +7,11 @@ interface StatementCardsSectionProps {
   locale: string;
 }
 
+/**
+ * fetches the card and renders `CurrentStatementCard` + `NextStatementsCard` side by side
+ *
+ * renders nothing if the card has no "current"-status bill — defensive for real data, the mock card always has one
+ */
 export async function StatementCardsSection({
   cardId,
   locale,

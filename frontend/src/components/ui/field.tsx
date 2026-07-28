@@ -1,5 +1,11 @@
 "use client";
 
+// stock shadcn `Field` primitive suite — not currently imported anywhere. the app's
+// actual forms (add income/expense, antecipar, auth) use plain `<label>` + `Input`
+// markup instead (see DESIGN.md "Dialogs"). kept as generated scaffolding in case a
+// future form needs the fuller fieldset/legend/error-list api; safe to delete if it
+// stays unused
+
 import { cva, type VariantProps } from "class-variance-authority";
 import { useMemo } from "react";
 import { Label } from "@/components/ui/label";

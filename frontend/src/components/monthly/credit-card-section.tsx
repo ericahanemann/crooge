@@ -5,6 +5,13 @@ import { Link } from "@/i18n/navigation";
 import { getCreditCard } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
+/**
+ * credit card bento tile on the monthly page
+ *
+ * fetches its own data (`getCreditCard`) rather than receiving props
+ *
+ * assumes exactly one card and exactly one "current" bill
+ */
 export async function CreditCardSection() {
   const t = await getTranslations("monthly");
   const locale = await getLocale();
@@ -26,11 +33,11 @@ export async function CreditCardSection() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">
       <div className="flex flex-col md:flex-row gap-7">
-        {/* Mobile: landscape card, full width */}
+        {/* mobile: landscape card, full width */}
         <div className="w-full aspect-[1.587] md:hidden">
           <CardVisual name={card.name} brand={card.brand} />
         </div>
-        {/* Desktop: portrait card */}
+        {/* desktop: portrait card */}
         <div
           className="hidden md:block w-36 shrink-0"
           style={{ aspectRatio: "0.63" }}

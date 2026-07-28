@@ -6,6 +6,13 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
 import { SidebarToggle } from "./sidebar-toggle";
 
+/**
+ * animated width wrapper for the desktop sidebar
+ *
+ * reads `collapsed` from `useSidebar()`; doesn't own the state itself
+ *
+ * @prop children - nav items to render in the scrollable middle section
+ */
 export function SidebarShell({ children }: { children: ReactNode }) {
   const { collapsed } = useSidebar();
 

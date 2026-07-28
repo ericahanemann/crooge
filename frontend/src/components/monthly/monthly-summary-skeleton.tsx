@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** loading placeholder mirroring `MonthlySummaryCards`'s two-tile layout. */
 export function MonthlySummarySkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

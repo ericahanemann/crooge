@@ -21,6 +21,15 @@ interface NavGroupProps {
   links: NavGroupLink[];
 }
 
+/**
+ * expandable sidebar nav item with sub-links
+ *
+ * expanded state is local — active state instead comes from the route,
+ * so the group is highlighted whenever any of its `links` matches the current path
+ *
+ * when the sidebar is collapsed to icon-only, renders as a plain link
+ * straight to the first sub-link with a tooltip showing the group label.
+ */
 export function NavGroup({ icon, label, links }: NavGroupProps) {
   const pathname = usePathname();
   const { collapsed } = useSidebar();

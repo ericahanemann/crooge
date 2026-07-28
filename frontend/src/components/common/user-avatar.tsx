@@ -4,6 +4,12 @@ import { Menu } from "@base-ui/react/menu";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 
+/**
+ * @prop name - display name; shown uppercase next to the avatar unless `compact`
+ * @prop initials - fallback shown when `src` isn't provided
+ * @prop src - optional avatar image URL
+ * @prop compact - icon-only mode (no name label) used in the mobile `PageHeader`, default false.
+ */
 interface UserAvatarProps {
   name: string;
   initials: string;
@@ -11,6 +17,7 @@ interface UserAvatarProps {
   compact?: boolean;
 }
 
+/** avatar chip with a dropdown menu */
 export function UserAvatar({
   name,
   initials,

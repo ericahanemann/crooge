@@ -8,6 +8,10 @@ import {
   useState,
 } from "react";
 
+/**
+ * @property collapsed - desktop sidebar width state, persisted to `localStorage`.
+ * @property mobileOpen - whether the full-screen `MobileMenu` overlay is open (separate from `collapsed`, mobile has no collapse state).
+ */
 interface SidebarContextValue {
   collapsed: boolean;
   toggle: () => void;
@@ -24,6 +28,16 @@ const SidebarContext = createContext<SidebarContextValue>({
   closeMobile: () => {},
 });
 
+/**
+ * provides sidebar collapse + mobile-menu-open state to the whole app layout
+ *
+ * mounted once in the `(app)` layout, above both `AppSidebar` and `MobileMenu`.
+ *
+ * `collapsed` starts `false` on every render (server and first client paint)
+ * and is synced from `localStorage` in an effect after mount, rather than
+ * read eagerly — avoids a server/client hydration mismatch, at the cost of a
+ * brief expanded-then-collapsed flash for returning users who collapsed it.
+ */
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);

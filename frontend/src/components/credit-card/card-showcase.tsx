@@ -11,6 +11,11 @@ interface CardOption {
   name: string;
 }
 
+/**
+ * @prop card - full detail for the currently selected card
+ * @prop cards - all cards for the `CardSelector` dropdown (id + name only)
+ * @prop selectedMonth - passed through to the "see summary" link's query string so bills-summary opens on the same month the user was viewing
+ */
 interface CardShowcaseProps {
   card: CreditCardDetail;
   cards: CardOption[];
@@ -19,6 +24,9 @@ interface CardShowcaseProps {
   selectedMonth: string;
 }
 
+/**
+ * top bento tile on the credit cards pages
+ */
 export async function CardShowcase({
   card,
   cards,
@@ -44,12 +52,12 @@ export async function CardShowcase({
 
   return (
     <div className="bg-card border border-border rounded-xl p-5">
-      {/* Mobile: landscape card full-width on top */}
+      {/* mobile: landscape card full-width on top */}
       <div className="w-full aspect-[1.587] md:hidden mb-5">
         <CardVisual name={card.name} brand={card.brand} />
       </div>
       <div className="flex gap-7">
-        {/* Desktop: portrait card on the left */}
+        {/* desktop: portrait card on the left */}
         <div
           className="hidden md:block w-48 shrink-0"
           style={{ aspectRatio: "0.63" }}

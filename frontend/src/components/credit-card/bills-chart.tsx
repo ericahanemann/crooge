@@ -25,6 +25,7 @@ function monthLabel(month: string, locale: string): string {
     .toUpperCase();
 }
 
+/** bar color: full highlight for the selected month, dimmed highlight for other current/future bills, dimmed gray for paid (past) ones */
 function barFill(bill: CreditCardBill, selectedMonth: string): string {
   if (bill.month === selectedMonth) return "var(--highlight)";
   if (bill.status === "current" || bill.status === "future") {
@@ -61,6 +62,11 @@ function CustomTooltip({
   );
 }
 
+/**
+ * recharts bar chart of all 13 months of bills
+ *
+ * clicking a bar updates the `?month=` search param (`router.push`), which is how the parent page decides `selectedMonth` — this chart is the only month-picker on the bills summary page
+ */
 export function BillsChart({ bills, selectedMonth, locale }: BillsChartProps) {
   const router = useRouter();
   const pathname = usePathname();

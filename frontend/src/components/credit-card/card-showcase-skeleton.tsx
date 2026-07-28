@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** loading placeholder mirroring `CardShowcase`'s layout */
 export function CardShowcaseSkeleton() {
   return (
     <div className="bg-card border border-border rounded-xl p-5">

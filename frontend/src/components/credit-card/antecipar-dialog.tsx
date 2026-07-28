@@ -17,11 +17,23 @@ import { fmtCurrency, toIntlLocale } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/mock-credit-card";
 import { cn } from "@/lib/utils";
 
+/**
+ * @prop futureBills - bills eligible for early payment (status "future"); from `NextStatementsCard` this is all of them, from `StatementChartCard` it's just the selected one
+ * @prop compact - auto-width `px-5 py-2` trigger (for inline placement in `StatementChartCard`'s header) instead of the default full-width card cta
+ */
 interface AnteciparDialogProps {
   futureBills: CreditCardBill[];
   compact?: boolean;
 }
 
+/**
+ * "antecipar" (pay a future bill early) dialog: pick one or more upcoming bills, confirm/adjust the amount, submit
+ *
+ * no backend — `handleClose` is shared by both cancel and confirm, so submission has no real effect yet
+ *
+ * @state selected - set of bill `month` keys the user has checked
+ * @state amount - payment amount; auto-fills to the sum of `selected` bills whenever the selection changes, but stays user-editable afterward
+ */
 export function AnteciparDialog({
   futureBills,
   compact = false,

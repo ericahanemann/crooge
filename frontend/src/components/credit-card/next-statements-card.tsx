@@ -8,6 +8,7 @@ interface NextStatementsCardProps {
   futureBills: CreditCardBill[];
 }
 
+/** bento tile showing the total of all upcoming (future-status) bills + available credit + "antecipar" (pay early) cta, pairs with `CurrentStatementCard` on the current bill page */
 export async function NextStatementsCard({
   available,
   futureBills,

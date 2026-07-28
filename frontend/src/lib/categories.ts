@@ -19,6 +19,12 @@ import {
   Zap,
 } from "lucide-react";
 
+/**
+ * A selectable transaction category (expense or income) as shown in
+ * `CategorySelect` and the transactions list. Built-in categories set
+ * `labelKey` (resolved via next-intl); custom categories added inline in a
+ * dialog set `customLabel` instead, since user-typed text has no i18n key.
+ */
 export interface CategoryDef {
   key: string;
   icon: LucideIcon;
@@ -90,6 +96,7 @@ export const defaultIncomeCategories: CategoryDef[] = [
   { key: "other", icon: Tag, labelKey: "categories.income.other" },
 ];
 
+/** Resolves the display label for a category: translated for built-ins, verbatim for custom ones. */
 export function categoryLabel(
   category: CategoryDef,
   t: (key: string) => string,
@@ -97,6 +104,7 @@ export function categoryLabel(
   return category.customLabel ?? t(category.labelKey ?? "");
 }
 
+/** Turns a user-typed custom category label into a unique `CategoryDef.key` (slug + timestamp, since there's no backend id yet). */
 export function slugifyCategoryKey(label: string): string {
   const base = label
     .trim()

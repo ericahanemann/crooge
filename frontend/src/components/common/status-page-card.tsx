@@ -1,5 +1,10 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * @prop hero - illustration/icon slot above the title (e.g. an error graphic).
+ * @prop actions - buttons/links rendered below the divider (e.g. "Go home").
+ * @prop heroGap - tailwind gap class between `hero` and the title/subtitle block, default "gap-2".
+ */
 interface StatusPageCardProps {
   hero: React.ReactNode;
   title: string;
@@ -8,6 +13,7 @@ interface StatusPageCardProps {
   heroGap?: string;
 }
 
+/** centered card shell for full-page status states (error, not-found) — hero graphic + title/subtitle + divider + actions. */
 export function StatusPageCard({
   hero,
   title,
