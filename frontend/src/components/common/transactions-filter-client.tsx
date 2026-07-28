@@ -32,6 +32,8 @@ import {
 import { cn } from "@/lib/utils";
 import type { Category } from "@/lib/mock-monthly";
 
+// pre-formatted transaction data ready for client-side rendering
+
 export type ResolvedTransactionItem = {
   id: number;
   category: Category;
@@ -56,6 +58,12 @@ export type ResolvedCategoryOption = {
   label: string;
 };
 
+/**
+ * @prop groups - transactions pre-grouped by date, already formatted.
+ * @prop categories - categories present in `groups`, for the filter `Select` (not the full category list — only ones with at least one transaction).
+ * @prop emptyLabel - shown when `groups` itself is empty (no transactions at all).
+ * @prop noResultsLabel - shown when `groups` has data but the current search/category filter matches nothing.
+ */
 interface TransactionsFilterClientProps {
   groups: ResolvedTransactionGroup[];
   categories: ResolvedCategoryOption[];
@@ -86,6 +94,11 @@ const categoryIcons: Record<Category, LucideIcon> = {
   investment: TrendingUp,
 };
 
+/**
+ * client-side search + category filter over an already-formatted transaction list
+ *
+ * shared by the Monthly and Credit Card transaction sections
+ */
 export function TransactionsFilterClient({
   groups,
   categories,

@@ -8,12 +8,24 @@ import { useSidebar } from "./sidebar-context";
 
 type AppPathname = keyof typeof routing.pathnames;
 
+/**
+ * @prop href - canonical route key (e.g. "/monthly") — resolved to the
+ *   locale-specific URL by the i18n `Link`, not a raw path.
+ * @prop label - already-translated nav label (caller resolves via `useTranslations`).
+ * @prop icon - lucide icon element rendered before the label.
+ */
 interface NavLinkProps {
   href: AppPathname;
   label: string;
   icon: ReactNode;
 }
 
+/** single sidebar nav row
+ *
+ * highlights itself when its `href` matches the current route
+ *
+ * shows a floating tooltip with the full label when the sidebar is collapsed to icon-only
+ */
 export function NavLink({ href, label, icon }: NavLinkProps) {
   const pathname = usePathname();
   const { collapsed } = useSidebar();

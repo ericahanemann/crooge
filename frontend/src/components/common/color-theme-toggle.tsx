@@ -15,6 +15,14 @@ const COLOR_OPTIONS = [
 
 type ColorKey = (typeof COLOR_OPTIONS)[number]["key"];
 
+/**
+ * palette icon dropdown for picking the `--highlight` accent color
+ *
+ * sets `data-color-theme` on `<html>` from a cookie to avoid a flash
+ *
+ * this component just writes the attribute + cookie on selection and
+ * mirrors it into state
+ */
 export function ColorThemeToggle() {
   const [colorTheme, setColorTheme] = useState<ColorKey | null>(null);
 
