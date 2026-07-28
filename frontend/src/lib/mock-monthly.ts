@@ -1,3 +1,5 @@
+// mock seed data for the monthly page, consumed only through lib/data.ts
+
 export type Category =
   | "food"
   | "groceries"

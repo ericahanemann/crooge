@@ -1,5 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/** loading placeholder mirroring `StatementCardsSection`'s two-card layout */
 export function StatementCardsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

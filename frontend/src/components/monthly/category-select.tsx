@@ -19,6 +19,12 @@ import {
   slugifyCategoryKey,
 } from "@/lib/categories";
 
+/**
+ * @prop kind - which built-in category list to offer (`defaultExpenseCategories` vs `defaultIncomeCategories`).
+ * @prop value - selected category key, or `null` if none chosen yet. Controlled — state lives in the parent dialog.
+ * @prop customCategories - session-local categories added this dialog session, appended after the built-ins.
+ * @prop onAddCustomCategory - called when the user confirms a new custom category (parent is responsible for storing it in `customCategories` and re-passing it down).
+ */
 interface CategorySelectProps {
   kind: "expense" | "income";
   value: string | null;
@@ -27,6 +33,9 @@ interface CategorySelectProps {
   onAddCustomCategory: (category: CategoryDef) => void;
 }
 
+/**
+ * category dropdown used inside add income/expense dialogs
+ */
 export function CategorySelect({
   kind,
   value,

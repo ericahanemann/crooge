@@ -1,3 +1,4 @@
+/** inline google "g" logo mark for the auth forms' "sign in with google" button (lucide has no brand icons */
 export function GoogleIcon() {
   return (
     <svg

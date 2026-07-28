@@ -11,6 +11,7 @@ interface NavSubLinkProps {
   label: string;
 }
 
+/** indented link inside an expanded `NavGroup`. */
 export function NavSubLink({ href, label }: NavSubLinkProps) {
   const pathname = usePathname();
   const active = pathname === href;

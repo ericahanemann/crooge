@@ -1,12 +1,14 @@
 import Image from "next/image";
 import { AuthBrandCard } from "./auth-brand-card";
 
+/** @prop children - the page-specific form (`AuthSigninForm` / `AuthSignupForm`), rendered below the logo */
 interface AuthPageShellProps {
   title: string;
   subtitle: string;
   children: React.ReactNode;
 }
 
+/** two-column layout shared by /signin and /signup: `AuthBrandCard` on the left (hidden on mobile), logo + form on the right, see DESIGN.md "Auth pages layout" */
 export function AuthPageShell({
   title,
   subtitle,

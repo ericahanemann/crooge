@@ -5,6 +5,10 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
+// adapted from stock shadcn: the floating `SelectContent` popup uses this project's
+// `bg-card border border-border` tokens instead of shadcn's default `bg-popover`/ring
+// treatment, to match Dialog and dropdown menus elsewhere in the app (see DESIGN.md "Dialogs")
+
 const Select = SelectPrimitive.Root;
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {

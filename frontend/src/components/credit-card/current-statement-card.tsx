@@ -8,6 +8,7 @@ interface CurrentStatementCardProps {
   locale: string;
 }
 
+/** bento tile showing the current open statement (amount + closing/due dates) plus an "add transaction" cta, used on the current bill page */
 export async function CurrentStatementCard({
   bill,
   locale,

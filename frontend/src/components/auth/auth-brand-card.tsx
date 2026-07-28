@@ -1,10 +1,12 @@
 import Image from "next/image";
 
+/** @prop title/subtitle - already-translated brand copy, resolved server-side by the signin/signup page, not this component */
 interface AuthBrandCardProps {
   title: string;
   subtitle: string;
 }
 
+/** left-column brand panel on auth pages (desktop only, `lg:`+) — decorative cow-pattern background + bottom-anchored title/subtitle, see DESIGN.md "Auth pages layout" and "Cow Pattern" */
 export function AuthBrandCard({ title, subtitle }: AuthBrandCardProps) {
   return (
     <div className="relative flex-1 bg-card/10 rounded-xl overflow-hidden border border-border">

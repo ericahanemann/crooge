@@ -91,13 +91,22 @@ function MobileNavGroup({
   );
 }
 
+/**
+ * full-screen nav overlay shown below `lg` screens in place of the desktop sidebar
+ *
+ * open state lives in `useSidebar()`, shared with `MobileMenuTrigger`'s burger
+ * button in `PageHeader`
+ *
+ * handles its own mount/unmount so the slide-out transition can
+ * finish before the overlay leaves the DOM
+ */
 export function MobileMenu() {
   const { mobileOpen, closeMobile } = useSidebar();
   const t = useTranslations("nav");
   const menuRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Slide animation: mount first, then slide in on next frame; slide out then unmount
+  // slide animation: mount first, then slide in on next frame; slide out then unmount
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -113,14 +122,14 @@ export function MobileMenu() {
     }
   }, [mobileOpen]);
 
-  // Focus close button once mounted and visible
+  // focus close button once mounted and visible
   useEffect(() => {
     if (mobileOpen && mounted) {
       closeButtonRef.current?.focus();
     }
   }, [mobileOpen, mounted]);
 
-  // Escape key + focus trap
+  // escape key + focus trap
   useEffect(() => {
     if (!mobileOpen) return;
 
@@ -155,7 +164,7 @@ export function MobileMenu() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen, closeMobile]);
 
-  // Body scroll lock
+  // body scroll lock
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {

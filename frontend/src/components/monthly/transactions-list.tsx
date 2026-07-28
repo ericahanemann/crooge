@@ -8,6 +8,16 @@ import {
 import { getMonthlyTransactions } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
+/**
+ * server component that fetches all monthly transactions, resolves i18n
+ * labels/badges/currency formatting, groups them by date (newest first), and
+ * hands the pre-formatted result to the client-side `TransactionsFilterClient`
+ * for search/filter interaction
+ *
+ * follows the RSC streaming pattern: this component does its own data fetching
+ * rather than receiving props, so the monthly page can wrap it in `<Suspense>`
+ * independently of the other sections
+ */
 export async function TransactionsList() {
   const t = await getTranslations("monthly");
   const tCatExp = await getTranslations("categories.expense");

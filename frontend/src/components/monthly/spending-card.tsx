@@ -7,6 +7,15 @@ interface SpendingCardProps {
   income: number;
 }
 
+/**
+ * "cost" half of the monthly page's top bento row — spent this month +
+ * daily limit + Add Expense CTA
+ *
+ * `dailyLimit` = remaining budget (income − spent) ÷ days left in the
+ * *current calendar month* — always today's month, not whatever month the
+ * page is viewing via `MonthNav`. floors at 0 once the budget is exhausted
+ * rather than going negative.
+ */
 export async function SpendingCard({ spent, income }: SpendingCardProps) {
   const t = await getTranslations("monthly");
 

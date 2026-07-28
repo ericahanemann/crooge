@@ -7,6 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleIcon } from "./google-icon";
 
+/**
+ * sign-in form (email + password + google button)
+ *
+ * no auth wiring yet — `onSubmit` just calls `preventDefault()` and the google button has no handler, both are placeholders for when a backend exists
+ */
 export function AuthSigninForm() {
   const t = useTranslations("auth.signin");
   const [email, setEmail] = useState("");

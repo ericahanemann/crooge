@@ -1,5 +1,8 @@
 import type { Transaction } from "./mock-monthly";
 
+// mock seed data for the credit cards pages, consumed only through
+// lib/data.ts
+
 export interface CreditCardBill {
   month: string;
   amount: number;
@@ -8,6 +11,7 @@ export interface CreditCardBill {
   dueDate: string;
 }
 
+/** @property transactionsByMonth - keyed by "YYYY-MM"; only months with purchases have an entry. */
 export interface CreditCardDetail {
   id: string;
   name: string;

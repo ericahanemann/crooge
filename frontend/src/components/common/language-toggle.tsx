@@ -12,6 +12,11 @@ const localeLabels: Record<string, string> = {
   "pt-BR": "PT",
 };
 
+/** globe icon dropdown for switching locale (en/pt)
+ *
+ * navigates to the same page in the new locale via the i18n-aware `router.replace`,
+ * which also resolves any localized pathname (e.g. "/monthly" → "/mensal").
+ */
 export function LanguageToggle() {
   const locale = useLocale();
   const pathname = usePathname();

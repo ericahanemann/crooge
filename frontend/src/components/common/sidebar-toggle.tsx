@@ -4,6 +4,7 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSidebar } from "./sidebar-context";
 
+/** icon button at the sidebar's bottom that flips `collapsed` via `useSidebar()`. */
 export function SidebarToggle() {
   const { collapsed, toggle } = useSidebar();
   const t = useTranslations("nav");
