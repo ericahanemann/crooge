@@ -1,0 +1,10 @@
+node_modules
+.env
+
+/src/generated/prisma
+
+# Prisma-generated AI-agent skill docs (vendor reference material, not project code)
+/.claude/skills
+/.windsurf/skills
+/.agents/skills
+/skills-lock.json
