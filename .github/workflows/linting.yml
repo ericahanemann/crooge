@@ -36,3 +36,37 @@ jobs:
       - run: npm ci
 
       - run: npm run lint:lint:check
+
+  backend-biome-format:
+    name: Backend Biome Format
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "backend/.nvmrc"
+
+      - run: npm ci
+
+      - run: npm run lint:format:check
+
+  backend-biome-lint:
+    name: Backend Biome Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "backend/.nvmrc"
+
+      - run: npm ci
+
+      - run: npm run lint:lint:check

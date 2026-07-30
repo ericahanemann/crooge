@@ -9,7 +9,11 @@
   "scripts": {
     "dev": "node --watch --env-file=.env src/server.ts",
     "start": "node --env-file=.env src/server.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "lint:format:check": "biome format .",
+    "lint:lint:check": "biome lint ."
   },
   "dependencies": {
     "@prisma/client": "7.9.1",
@@ -17,6 +21,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.0",
     "@types/node": "24.13.3",
     "prisma": "7.9.1",
     "typescript": "6.0.3"
