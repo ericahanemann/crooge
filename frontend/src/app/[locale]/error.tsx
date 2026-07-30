@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { StatusPageCard } from "@/components/common/status-page-card";
 
+/**
+ * next.js error boundary for the `[locale]` segment — catches render-time errors from
+ * any page below it. must be a client component (next.js requirement for `error.tsx`);
+ * receives `reset` to retry the failed render without a full navigation
+ */
 export default function ErrorPage({
   reset,
 }: {

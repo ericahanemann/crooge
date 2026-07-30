@@ -12,6 +12,9 @@ interface BillsSummaryPageProps {
   searchParams: Promise<{ card?: string; month?: string }>;
 }
 
+/**
+ * bills summary page: `BillsChart` is the primary way `selectedMonth` changes — clicking a bar updates `?month=`, which this page re-reads on the next render
+ */
 export default async function BillsSummaryPage({
   searchParams,
 }: BillsSummaryPageProps) {
@@ -22,6 +25,8 @@ export default async function BillsSummaryPage({
   const selectedCard =
     rawCard === mockCreditCard.id ? rawCard : mockCreditCard.id;
 
+  // falls back to the current month if `?month=` is missing or doesn't match any
+  // known bill (covers both an absent param and a stale/tampered one)
   const selectedMonth =
     rawMonth && mockCreditCard.bills.some((b) => b.month === rawMonth)
       ? rawMonth

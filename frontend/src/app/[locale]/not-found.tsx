@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import { StatusPageCard } from "@/components/common/status-page-card";
 
+/** in-app 404 — shown for any unmatched route under a resolved locale, fully translated unlike the root `not-found.tsx` fallback */
 export default async function NotFoundPage() {
   const locale = await getLocale();
   const t = await getTranslations("notFound");

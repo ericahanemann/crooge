@@ -20,6 +20,17 @@ export const metadata: Metadata = {
   description: "Get croogy. Control your finances.",
 };
 
+/**
+ * outermost layout (above the `[locale]` segment) — the one place `<html>`/`<body>` are
+ * rendered, so it's also where flash-free theme/color-theme/locale setup happens
+ *
+ * reads the `theme` and `color-theme` cookies and the
+ * locale header set by proxy.ts, and applies the `dark` class / `data-color-theme`
+ * attribute before the first paint — no client-side flash on load
+ *
+ * `suppressHydrationWarning` is needed because the toggles (`ThemeToggle`,
+ * `ColorThemeToggle`) mutate these same attributes client-side
+ */
 export default async function RootLayout({
   children,
 }: {

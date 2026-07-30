@@ -1,6 +1,5 @@
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/common/page-header";
-
 export default function DashboardPage() {
   const t = useTranslations("dashboard");
   return (

@@ -13,11 +13,23 @@ interface MonthlyPageProps {
   searchParams: Promise<{ month?: string }>;
 }
 
+/**
+ * reference implementation of the app's RSC streaming pattern:
+ * the page itself only resolves `currentMonth` from the `?month=` param (fast,
+ * synchronous) and renders `PageHeader` immediately
+ *
+ * each section below (`MonthlySummaryCards`, `CreditCardSection`, `TransactionsList`)
+ * fetches its own data internally and streams in behind its own `<Suspense>` skeleton,
+ * so slow sections don't block fast ones
+ */
 export default async function MonthlyPage({ searchParams }: MonthlyPageProps) {
   const { month: monthParam } = await searchParams;
   const locale = await getLocale();
   const t = await getTranslations("monthly");
 
+  // only "YYYY-MM" with a valid month (01–12) is accepted; anything else (missing,
+  // malformed, out-of-range) silently falls back to the current month rather than
+  // erroring — `MonthNav` never has to handle a bad state
   const isValidMonth =
     monthParam !== undefined && /^\d{4}-(?:0[1-9]|1[0-2])$/.test(monthParam);
   const targetDate = isValidMonth

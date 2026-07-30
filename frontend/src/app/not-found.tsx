@@ -2,6 +2,13 @@ import { Home } from "lucide-react";
 import Link from "next/link";
 import { StatusPageCard } from "@/components/common/status-page-card";
 
+/**
+ * fallback for a 404 with no resolvable locale segment
+ *
+ * strings are hardcoded english rather than translated — this route sits above
+ * `[locale]`, so there's no `NextIntlClientProvider`/locale to translate with. see
+ * `[locale]/not-found.tsx` for the in-app 404, which is what users actually hit
+ */
 export default function RootNotFoundPage() {
   return (
     <StatusPageCard

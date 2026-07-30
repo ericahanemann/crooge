@@ -13,6 +13,11 @@ interface CurrentBillPageProps {
   searchParams: Promise<{ card?: string }>;
 }
 
+/**
+ * same RSC streaming pattern as the monthly page: resolves `selectedCard`
+ * synchronously, then each of the three sections fetches and streams
+ * independently behind its own skeleton
+ */
 export default async function CurrentBillPage({
   searchParams,
 }: CurrentBillPageProps) {

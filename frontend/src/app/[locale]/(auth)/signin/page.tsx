@@ -2,6 +2,10 @@ import { useTranslations } from "next-intl";
 import { AuthPageShell } from "@/components/auth/auth-page-shell";
 import { AuthSigninForm } from "@/components/auth/auth-signin-form";
 
+/**
+ * server component (no "use client") — the `Math.random()` subtitle pick below runs
+ * per-request on the server, before render, so there's no hydration mismatch
+ */
 export default function SigninPage() {
   const t = useTranslations("auth.signin");
   const subtitles = t.raw("subtitles") as string[];
