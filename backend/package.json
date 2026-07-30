@@ -23,7 +23,12 @@
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
     "@types/node": "24.13.3",
+    "dotenv": "17.4.2",
     "prisma": "7.9.1",
     "typescript": "6.0.3"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.9.1": true,
+    "prisma@7.9.1": true
   }
 }

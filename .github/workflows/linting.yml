@@ -3,8 +3,8 @@ name: Linting
 on: pull_request
 
 jobs:
-  biome-format:
-    name: Biome Format
+  frontend-biome-format:
+    name: Frontend Biome Format
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -20,8 +20,8 @@ jobs:
 
       - run: npm run lint:format:check
 
-  biome-lint:
-    name: Biome Lint
+  frontend-biome-lint:
+    name: Frontend Biome Lint
     runs-on: ubuntu-latest
     defaults:
       run:
