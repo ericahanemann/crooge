@@ -1,7 +1,6 @@
 import { app } from "./app.ts";
+import { env } from "./env/index.ts";
 
-const PORT = 3333;
-
-app.listen({ host: "0.0.0.0", port: PORT }).then(() => {
-  console.log(`🚀 HTTP server running on port ${PORT}`);
+app.listen({ host: "0.0.0.0", port: env.PORT }).then(() => {
+  console.log(`🚀 HTTP server running on port ${env.PORT}`);
 });
