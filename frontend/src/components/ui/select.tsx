@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 // adapted from stock shadcn: the floating `SelectContent` popup uses this project's
 // `bg-card border border-border` tokens instead of shadcn's default `bg-popover`/ring
-// treatment, to match Dialog and dropdown menus elsewhere in the app (see DESIGN.md "Dialogs")
+// treatment, to match Dialog and dropdown menus elsewhere in the app
 
 const Select = SelectPrimitive.Root;
 

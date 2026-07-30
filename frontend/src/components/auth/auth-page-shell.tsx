@@ -8,7 +8,7 @@ interface AuthPageShellProps {
   children: React.ReactNode;
 }
 
-/** two-column layout shared by /signin and /signup: `AuthBrandCard` on the left (hidden on mobile), logo + form on the right, see DESIGN.md "Auth pages layout" */
+/** two-column layout shared by /signin and /signup: `AuthBrandCard` on the left (hidden on mobile), logo + form on the right */
 export function AuthPageShell({
   title,
   subtitle,

@@ -5,8 +5,7 @@ import { NavLink } from "./nav-link";
 import { SidebarShell } from "./sidebar-shell";
 
 /**
- * desktop navigation sidebar (hidden below `lg`, see MobileMenu for the
- * small-screen equivalent)
+ * desktop navigation sidebar (hidden below `lg`)
  *
  * server component — only the interactive bits it composes (`SidebarShell`,
  * `NavLink`, `NavGroup`) are "use client"
