@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: crooge
+    ports:
+      - "5432:5432"
+    volumes:
+      - crooge-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  crooge-postgres-data:
