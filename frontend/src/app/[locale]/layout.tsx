@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { AuthProvider } from "@/components/auth/auth-provider";
 
 /**
  * wraps every page under `[locale]` (both the `(app)` and `(auth)` groups) in
@@ -19,7 +20,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      {children}
+      <AuthProvider>{children}</AuthProvider>
     </NextIntlClientProvider>
   );
 }

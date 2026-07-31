@@ -1,30 +1,35 @@
 "use client";
 
 import { Menu } from "@base-ui/react/menu";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useRouter } from "@/i18n/navigation";
+import { getInitials } from "@/lib/utils";
 
-/**
- * @prop name - display name; shown uppercase next to the avatar unless `compact`
- * @prop initials - fallback shown when `src` isn't provided
- * @prop src - optional avatar image URL
- * @prop compact - icon-only mode (no name label) used in the mobile `PageHeader`, default false.
- */
+/** @prop compact - icon-only mode (no name label) used in the mobile `PageHeader`, default false. */
 interface UserAvatarProps {
-  name: string;
-  initials: string;
-  src?: string;
   compact?: boolean;
 }
 
-/** avatar chip with a dropdown menu */
-export function UserAvatar({
-  name,
-  initials,
-  src,
-  compact = false,
-}: UserAvatarProps) {
+/**
+ * avatar chip with a dropdown menu — reads the signed-in user from `useAuth()`
+ * (only rendered inside the `(app)` group, which `AuthGate` already guarantees
+ * is authenticated) and wires "Sign out" to the auth context's `logout()`
+ */
+export function UserAvatar({ compact = false }: UserAvatarProps) {
   const t = useTranslations("user");
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  if (!user) return null;
+
+  const initials = getInitials(user.name);
+  const firstName = user.name.split(" ")[0];
+
+  async function handleSignOut() {
+    await logout();
+    router.push("/signin");
+  }
 
   return (
     <Menu.Root>
@@ -36,17 +41,13 @@ export function UserAvatar({
         }
       >
         <div className="relative size-8 rounded-full bg-highlight/15 flex items-center justify-center overflow-hidden shrink-0">
-          {src ? (
-            <Image src={src} alt={name} fill className="object-cover" />
-          ) : (
-            <span className="font-karantina text-xl leading-none text-highlight">
-              {initials}
-            </span>
-          )}
+          <span className="font-karantina text-xl leading-none text-highlight">
+            {initials}
+          </span>
         </div>
         {!compact && (
           <span className="font-karantina text-xl tracking-wide uppercase text-foreground">
-            {name}
+            {firstName}
           </span>
         )}
       </Menu.Trigger>
@@ -62,7 +63,10 @@ export function UserAvatar({
               {t("profile")}
             </Menu.Item>
             <Menu.Separator className="my-1 h-px bg-border" />
-            <Menu.Item className="block w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-muted cursor-default transition-colors outline-none">
+            <Menu.Item
+              onClick={handleSignOut}
+              className="block w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-muted cursor-default transition-colors outline-none"
+            >
               {t("signOut")}
             </Menu.Item>
           </Menu.Popup>

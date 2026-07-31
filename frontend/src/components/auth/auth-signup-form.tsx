@@ -1,18 +1,42 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link, useRouter } from "@/i18n/navigation";
+import { ApiError } from "@/lib/auth-api";
 import { GoogleIcon } from "./google-icon";
 
-/** sign-up form (name + email + password + google button); same stub state as `AuthSigninForm` — no submit handler or backend wired up yet */
+/** sign-up form (name + email + password + google button); wired to `useAuth().register`, no google handler yet */
 export function AuthSignupForm() {
   const t = useTranslations("auth.signup");
+  const router = useRouter();
+  const { register } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      await register(name, email, password);
+      router.push("/");
+    } catch (err) {
+      setError(
+        err instanceof ApiError && err.status === 409
+          ? t("errorEmailTaken")
+          : t("errorGeneric"),
+      );
+      setSubmitting(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -20,10 +44,7 @@ export function AuthSignupForm() {
         {t("intro")}
       </p>
 
-      <form
-        onSubmit={(e) => e.preventDefault()}
-        className="flex flex-col gap-4"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <Label
             htmlFor="name"
@@ -38,6 +59,8 @@ export function AuthSignupForm() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoComplete="name"
+            required
+            disabled={submitting}
           />
         </div>
 
@@ -55,6 +78,8 @@ export function AuthSignupForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
+            required
+            disabled={submitting}
           />
         </div>
 
@@ -72,14 +97,20 @@ export function AuthSignupForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
+            required
+            minLength={8}
+            disabled={submitting}
           />
         </div>
 
+        {error && <p className="text-xs text-destructive">{error}</p>}
+
         <button
           type="submit"
-          className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] mt-1 cursor-pointer"
+          disabled={submitting}
+          className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] mt-1 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
         >
-          {t("submit")}
+          {submitting ? t("submitting") : t("submit")}
         </button>
       </form>
 

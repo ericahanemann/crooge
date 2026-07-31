@@ -44,11 +44,20 @@ npm run dev                   # http://localhost:3333
 
 ### 3. Frontend
 
+`frontend/.env.local` is gitignored too — it just needs to point at wherever the backend from step 2 is reachable:
+
 ```bash
 cd frontend
 npm install
+
+cat > .env.local << EOF
+NEXT_PUBLIC_API_URL=http://localhost:3333
+EOF
+
 npm run dev                   # http://localhost:3000
 ```
+
+If frontend and backend are exposed on different hosts (e.g. separate forwarded ports in Codespaces), update `NEXT_PUBLIC_API_URL` above and the backend's `FRONTEND_URL` (step 2) to match each other's actual origins — the backend's CORS check and the frontend's auth cookie both depend on these matching reality.
 
 ## Other useful commands (run inside `backend/` or `frontend/`)
 
