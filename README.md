@@ -26,10 +26,14 @@ cd crooge
 cd backend
 npm install
 
-cat > .env << 'EOF'
+JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")
+
+cat > .env << EOF
 NODE_ENV=dev
 PORT=3333
 DATABASE_URL=postgresql://docker:docker@localhost:5432/crooge
+JWT_SECRET=$JWT_SECRET
+FRONTEND_URL=http://localhost:3000
 EOF
 
 docker compose up -d          # starts local Postgres
