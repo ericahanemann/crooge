@@ -27,7 +27,7 @@ export function PageHeader({ title }: PageHeaderProps) {
         {title}
       </h1>
       <div className="flex items-center gap-2 lg:hidden">
-        <UserAvatar name="Érica" initials="EH" compact />
+        <UserAvatar compact />
         <MobileMenuTrigger />
       </div>
       {/* desktop: title left, icons right */}
@@ -38,7 +38,7 @@ export function PageHeader({ title }: PageHeaderProps) {
         <LanguageToggle />
         <ColorThemeToggle />
         <ThemeToggle />
-        <UserAvatar name="Érica" initials="EH" />
+        <UserAvatar />
       </div>
     </div>
   );
