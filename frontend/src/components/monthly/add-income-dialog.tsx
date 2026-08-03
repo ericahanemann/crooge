@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -15,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { CategoryDef } from "@/lib/categories";
 import { todayISO } from "@/lib/format";
+import { createTransactionAction } from "@/lib/transaction-actions";
 import { CategorySelect } from "./category-select";
 
 interface FormErrors {
@@ -36,6 +38,7 @@ interface FormErrors {
  */
 export function AddIncomeDialog() {
   const t = useTranslations();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -45,6 +48,8 @@ export function AddIncomeDialog() {
   const [keepAdding, setKeepAdding] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [justAdded, setJustAdded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const descriptionRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -62,6 +67,7 @@ export function AddIncomeDialog() {
     setKeepAdding(false);
     setErrors({});
     setJustAdded(false);
+    setSubmitError(null);
   }
 
   function validate(): boolean {
@@ -79,14 +85,35 @@ export function AddIncomeDialog() {
   }
 
   /**
-   * validates all fields; if invalid, sets `errors` and stops
+   * validates all fields; if invalid, sets `errors` and stops. otherwise
+   * submits the transaction to the backend
    *
    * if `keepAdding` is checked, clears only `description`/`amount` and refocuses
    * the description field - `date`/`category`/custom categories persist, since
    * consecutive entries tend to share them. otherwise closes the dialog and resets everything
    */
-  function handleSubmit() {
-    if (!validate()) return;
+  async function handleSubmit() {
+    if (!validate() || !category) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const result = await createTransactionAction({
+      type: "income",
+      description,
+      amount: Number(amount),
+      date,
+      category,
+    });
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError(result.message);
+      return;
+    }
+
+    router.refresh();
 
     if (keepAdding) {
       setDescription("");
@@ -206,6 +233,10 @@ export function AddIncomeDialog() {
           </p>
         )}
 
+        {submitError && (
+          <p className="text-xs text-destructive">{submitError}</p>
+        )}
+
         <div className="flex items-center justify-between gap-3">
           {/* biome-ignore lint/a11y/noLabelWithoutControl: Checkbox renders a native input under the hood */}
           <label className="flex items-center gap-2 font-sans text-sm text-muted-foreground cursor-pointer">
@@ -221,7 +252,7 @@ export function AddIncomeDialog() {
             >
               {t("dialogs.common.cancel")}
             </DialogSecondaryButton>
-            <DialogPrimaryButton onClick={handleSubmit}>
+            <DialogPrimaryButton onClick={handleSubmit} disabled={submitting}>
               {t("dialogs.common.add")}
             </DialogPrimaryButton>
           </div>
