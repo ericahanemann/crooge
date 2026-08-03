@@ -44,14 +44,18 @@ export async function signUp(input: {
   if (!response.ok) throw await toApiError(response);
 }
 
+export interface Session {
+  accessToken: string;
+  refreshToken: string;
+}
+
 export async function signIn(input: {
   email: string;
   password: string;
-}): Promise<{ accessToken: string }> {
+}): Promise<Session> {
   const response = await fetch(`${API_URL}/sessions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(input),
   });
 
@@ -60,10 +64,16 @@ export async function signIn(input: {
   return response.json();
 }
 
-export async function refreshSession(): Promise<{ accessToken: string }> {
+/**
+ * `refreshToken` is passed explicitly (not read from a browser cookie) —
+ * callers are Server Actions holding the token from their own first-party
+ * cookie (`session.ts`), not the browser talking to this backend directly.
+ */
+export async function refreshSession(refreshToken: string): Promise<Session> {
   const response = await fetch(`${API_URL}/sessions/refresh`, {
     method: "POST",
-    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
   });
 
   if (!response.ok) throw await toApiError(response);
@@ -71,10 +81,11 @@ export async function refreshSession(): Promise<{ accessToken: string }> {
   return response.json();
 }
 
-export async function signOut(): Promise<void> {
+export async function signOut(refreshToken: string): Promise<void> {
   const response = await fetch(`${API_URL}/sessions`, {
     method: "DELETE",
-    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
   });
 
   if (!response.ok && response.status !== 401) throw await toApiError(response);
