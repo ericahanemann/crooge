@@ -1,6 +1,6 @@
+import { randomBytes, randomUUID } from "node:crypto";
 import { hash, verify } from "@node-rs/argon2";
 import type { FastifyInstance } from "fastify";
-import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import {
   ACCESS_TOKEN_EXPIRES_IN,

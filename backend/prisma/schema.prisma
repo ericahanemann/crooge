@@ -15,6 +15,8 @@ model User {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]
+  transactions  Transaction[]
+  creditCards   CreditCard[]
 
   @@map("users")
 }
@@ -32,4 +34,91 @@ model RefreshToken {
   @@index([userId])
   @@index([familyId])
   @@map("refresh_tokens")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionTiming {
+  ONE_TIME
+  INSTALLMENT
+  RECURRING
+}
+
+enum PaymentMethod {
+  DEBIT_PIX
+  CREDIT
+}
+
+enum RecurringFrequency {
+  MONTHLY
+  ANNUAL
+}
+
+enum CardBrand {
+  VISA
+  MASTERCARD
+  AMEX
+  ELO
+}
+
+model Transaction {
+  id                 String              @id @default(uuid())
+  userId             String              @map("user_id")
+  user               User                @relation(fields: [userId], references: [id])
+  type               TransactionType
+  category           String
+  description        String
+  amount             Decimal             @db.Decimal(12, 2)
+  date               DateTime            @db.Date
+  timing             TransactionTiming   @default(ONE_TIME)
+  paymentMethod      PaymentMethod?      @map("payment_method")
+  frequency          RecurringFrequency?
+  installmentCurrent Int?                @map("installment_current")
+  installmentTotal   Int?                @map("installment_total")
+  groupId            String?             @map("group_id")
+  creditCardId       String?             @map("credit_card_id")
+  creditCard         CreditCard?         @relation(fields: [creditCardId], references: [id])
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@index([userId, date])
+  @@index([creditCardId, date])
+  @@index([groupId])
+  @@map("transactions")
+}
+
+model CreditCard {
+  id           String           @id @default(uuid())
+  userId       String           @map("user_id")
+  user         User             @relation(fields: [userId], references: [id])
+  name         String
+  brand        CardBrand
+  limit        Decimal          @db.Decimal(12, 2)
+  closingDay   Int              @map("closing_day")
+  dueDay       Int              @map("due_day")
+  transactions Transaction[]
+  bills        CreditCardBill[]
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("credit_cards")
+}
+
+model CreditCardBill {
+  id           String     @id @default(uuid())
+  creditCardId String     @map("credit_card_id")
+  creditCard   CreditCard @relation(fields: [creditCardId], references: [id])
+  cycleMonth   String     @map("cycle_month")
+  closingDate  DateTime   @map("closing_date") @db.Date
+  dueDate      DateTime   @map("due_date") @db.Date
+  paidAt       DateTime?  @map("paid_at")
+  paidAmount   Decimal?   @map("paid_amount") @db.Decimal(12, 2)
+
+  @@unique([creditCardId, cycleMonth])
+  @@index([creditCardId])
+  @@map("credit_card_bills")
 }
