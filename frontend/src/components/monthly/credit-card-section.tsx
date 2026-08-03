@@ -10,15 +10,17 @@ import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
  *
  * fetches its own data (`getCreditCard`) rather than receiving props
  *
- * assumes exactly one card and exactly one "current" bill
+ * renders nothing if the user has no card yet (no "add a card" flow exists
+ * yet) or the card has no "current"-status bill
  */
 export async function CreditCardSection() {
   const t = await getTranslations("monthly");
   const locale = await getLocale();
   const card = await getCreditCard();
+  const currentBill = card?.bills.find((b) => b.status === "current");
 
-  // biome-ignore lint/style/noNonNullAssertion: mock data always has a current bill
-  const currentBill = card.bills.find((b) => b.status === "current")!;
+  if (!card || !currentBill) return null;
+
   const upcomingBills = card.bills
     .filter((b) => b.status === "future")
     .reduce((sum, b) => sum + b.amount, 0);
