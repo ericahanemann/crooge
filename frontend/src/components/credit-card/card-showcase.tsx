@@ -2,7 +2,7 @@ import { ArrowRight, Plus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
-import type { CreditCardDetail } from "@/lib/mock-credit-card";
+import type { CreditCardDetail } from "@/lib/types";
 import { CardSelector } from "./card-selector";
 import { CardVisual } from "./card-visual";
 
