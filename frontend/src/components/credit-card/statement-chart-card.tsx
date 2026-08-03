@@ -23,11 +23,14 @@ export async function StatementChartCard({
 }: StatementChartCardProps) {
   const t = await getTranslations("creditCards");
   const card = await getCreditCard(cardId);
+  if (!card) return null;
+
   const bills = card.bills;
   const selectedBill =
     bills.find((b) => b.month === selectedMonth) ??
-    // biome-ignore lint/style/noNonNullAssertion: bills always contains at least one entry
-    bills.find((b) => b.status === "current")!;
+    bills.find((b) => b.status === "current");
+
+  if (!selectedBill) return null;
 
   const [year, mon] = selectedMonth.split("-").map(Number) as [number, number];
   const formattedMonth = new Date(year, mon - 1, 1)
@@ -45,13 +48,19 @@ export async function StatementChartCard({
         </h2>
         {selectedBill.status === "current" && (
           <AddCardExpenseDialog
+            cardId={cardId}
+            billMonth={selectedBill.month}
             defaultMode="pay"
             compact
             triggerLabel={t("addTransaction")}
           />
         )}
         {selectedBill.status === "future" && (
-          <AnteciparDialog futureBills={[selectedBill]} compact />
+          <AnteciparDialog
+            cardId={cardId}
+            futureBills={[selectedBill]}
+            compact
+          />
         )}
       </div>
       <BillsChart bills={bills} selectedMonth={selectedMonth} locale={locale} />

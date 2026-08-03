@@ -1,15 +1,17 @@
 import { getTranslations } from "next-intl/server";
 import { fmtCurrency } from "@/lib/format";
-import type { CreditCardBill } from "@/lib/mock-credit-card";
+import type { CreditCardBill } from "@/lib/types";
 import { AnteciparDialog } from "./antecipar-dialog";
 
 interface NextStatementsCardProps {
+  cardId: string;
   available: number;
   futureBills: CreditCardBill[];
 }
 
 /** bento tile showing the total of all upcoming (future-status) bills + available credit + "antecipar" (pay early) cta, pairs with `CurrentStatementCard` on the current bill page */
 export async function NextStatementsCard({
+  cardId,
   available,
   futureBills,
 }: NextStatementsCardProps) {
@@ -36,7 +38,7 @@ export async function NextStatementsCard({
         </p>
       </div>
       <div className="mt-auto">
-        <AnteciparDialog futureBills={futureBills} />
+        <AnteciparDialog cardId={cardId} futureBills={futureBills} />
       </div>
     </div>
   );

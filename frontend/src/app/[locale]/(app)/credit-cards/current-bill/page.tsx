@@ -7,7 +7,7 @@ import { CardShowcaseSkeleton } from "@/components/credit-card/card-showcase-ske
 import { CreditCardTransactionsList } from "@/components/credit-card/credit-card-transactions-list";
 import { StatementCardsSection } from "@/components/credit-card/statement-cards-section";
 import { StatementCardsSkeleton } from "@/components/credit-card/statement-cards-skeleton";
-import { mockCreditCard } from "@/lib/mock-credit-card";
+import { getCreditCards } from "@/lib/data";
 
 interface CurrentBillPageProps {
   searchParams: Promise<{ card?: string }>;
@@ -17,6 +17,8 @@ interface CurrentBillPageProps {
  * same RSC streaming pattern as the monthly page: resolves `selectedCard`
  * synchronously, then each of the three sections fetches and streams
  * independently behind its own skeleton
+ *
+ * renders a "no cards yet" message if the user has no card (no "add a card" flow exists yet)
  */
 export default async function CurrentBillPage({
   searchParams,
@@ -25,23 +27,36 @@ export default async function CurrentBillPage({
   const locale = await getLocale();
   const t = await getTranslations("creditCards");
 
-  const selectedCard =
-    rawCard === mockCreditCard.id ? rawCard : mockCreditCard.id;
+  const cards = await getCreditCards();
+  const matched = cards.find((c) => c.id === rawCard) ?? cards[0];
+
+  if (!matched) {
+    return (
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <PageHeader title={t("currentStatement")} />
+        <div className="flex-1 overflow-auto p-4 sm:p-7 flex items-center justify-center">
+          <span className="font-karantina text-2xl tracking-wide text-muted-foreground">
+            {t("noCards")}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <PageHeader title={t("currentStatement")} />
       <div className="flex-1 overflow-auto p-4 sm:p-7 space-y-5">
         <Suspense fallback={<CardShowcaseSkeleton />}>
-          <CardHeaderSection selectedCardId={selectedCard} locale={locale} />
+          <CardHeaderSection selectedCardId={matched.id} locale={locale} />
         </Suspense>
         <Suspense fallback={<StatementCardsSkeleton />}>
-          <StatementCardsSection cardId={selectedCard} locale={locale} />
+          <StatementCardsSection cardId={matched.id} locale={locale} />
         </Suspense>
         <Suspense fallback={<TransactionsSkeleton />}>
           <CreditCardTransactionsList
-            cardId={selectedCard}
-            month={mockCreditCard.currentMonth}
+            cardId={matched.id}
+            month={matched.currentMonth}
             locale={locale}
           />
         </Suspense>

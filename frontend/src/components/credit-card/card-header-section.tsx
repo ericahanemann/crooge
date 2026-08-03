@@ -1,4 +1,4 @@
-import { getCreditCard } from "@/lib/data";
+import { getCreditCard, getCreditCards } from "@/lib/data";
 import { CardShowcase } from "./card-showcase";
 
 interface CardHeaderSectionProps {
@@ -8,16 +8,20 @@ interface CardHeaderSectionProps {
 
 /**
  * fetches the selected credit card and renders `CardShowcase`
+ *
+ * renders nothing if the user has no card yet (no "add a card" flow exists yet)
  */
 export async function CardHeaderSection({
   selectedCardId,
   locale,
 }: CardHeaderSectionProps) {
-  const card = await getCreditCard(selectedCardId);
-  const cards = [
-    { id: card.id, name: card.name },
-    { id: "itau-1", name: "ITAÚ" },
-  ];
+  const [card, cards] = await Promise.all([
+    getCreditCard(selectedCardId),
+    getCreditCards(),
+  ]);
+
+  if (!card) return null;
+
   return (
     <CardShowcase
       card={card}

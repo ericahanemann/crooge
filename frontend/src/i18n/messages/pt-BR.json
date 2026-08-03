@@ -57,7 +57,8 @@
       "addCategory": "Adicionar categoria",
       "newCategoryPlaceholder": "Nome da categoria",
       "errorRequired": "Obrigatório",
-      "errorPositive": "Deve ser um número positivo"
+      "errorPositive": "Deve ser um número positivo",
+      "errorGeneric": "Algo deu errado. Tente novamente."
     },
     "income": {
       "title": "ADICIONAR RENDA"
@@ -77,7 +78,8 @@
       "frequency": "FREQUÊNCIA",
       "frequencyMonthly": "MENSAL",
       "frequencyAnnual": "ANUAL",
-      "errorMinInstallments": "Deve ser no mínimo 2"
+      "errorMinInstallments": "Deve ser no mínimo 2",
+      "errorNoCard": "Adicione um cartão de crédito antes de lançar gastos nele"
     }
   },
   "creditCards": {
@@ -101,7 +103,8 @@
     "dialogExpenseTitle": "ADICIONAR AO CARTÃO",
     "dialogAnteciparTitle": "ANTECIPAR PAGAMENTO",
     "selectStatements": "SELECIONAR FATURAS",
-    "confirm": "CONFIRMAR"
+    "confirm": "CONFIRMAR",
+    "noCards": "NENHUM CARTÃO AINDA"
   },
   "notFound": {
     "title": "PÁGINA NÃO ENCONTRADA",
