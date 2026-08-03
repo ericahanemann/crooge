@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { CategorySelect } from "@/components/monthly/category-select";
@@ -15,7 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import type { CategoryDef } from "@/lib/categories";
+import { payCreditCardBillAction } from "@/lib/credit-card-actions";
 import { todayISO } from "@/lib/format";
+import { createTransactionAction } from "@/lib/transaction-actions";
 import { cn } from "@/lib/utils";
 
 type Mode = "expense" | "pay";
@@ -28,11 +31,15 @@ interface FormErrors {
 }
 
 /**
+ * @prop cardId - the card this expense/payment applies to
+ * @prop billMonth - the bill's `month` key to pay in "pay" mode (always the current bill at both call sites)
  * @prop defaultMode - initial `SegmentedControl` value; user can still switch modes after opening
  * @prop compact - auto-width trigger (used inline in `StatementChartCard`'s header) vs. the default full-width card cta
  * @prop triggerLabel - overrides the default trigger text (both call sites pass `t("addTransaction")`)
  */
 interface AddCardExpenseDialogProps {
+  cardId: string;
+  billMonth: string;
   defaultMode?: Mode;
   compact?: boolean;
   triggerLabel?: string;
@@ -42,16 +49,17 @@ interface AddCardExpenseDialogProps {
  * combined "add card expense" / "pay bill" dialog
  *
  * `mode` toggles which fields render: "expense" shows description + category, "pay" only needs amount + date
- *
- * no backend yet, submission is a stub — validation and reset both branch on `mode`
  */
 export function AddCardExpenseDialog({
+  cardId,
+  billMonth,
   defaultMode = "expense",
   compact = false,
   triggerLabel,
 }: AddCardExpenseDialogProps) {
   const t = useTranslations("creditCards");
   const tc = useTranslations("dialogs.common");
+  const router = useRouter();
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>(defaultMode);
@@ -62,6 +70,8 @@ export function AddCardExpenseDialog({
   const [category, setCategory] = useState<string | null>(null);
   const [customCategories, setCustomCategories] = useState<CategoryDef[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function resetForm() {
     setMode(defaultMode);
@@ -71,6 +81,7 @@ export function AddCardExpenseDialog({
     setCategory(null);
     setCustomCategories([]);
     setErrors({});
+    setSubmitError(null);
   }
 
   function validate(): boolean {
@@ -86,8 +97,39 @@ export function AddCardExpenseDialog({
     return Object.keys(next).length === 0;
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!validate()) return;
+
+    let result: { ok: boolean };
+
+    if (mode === "expense") {
+      if (!category) return;
+      setSubmitting(true);
+      setSubmitError(null);
+      result = await createTransactionAction({
+        type: "expense",
+        description,
+        category,
+        amount: Number(amount),
+        date,
+        paymentMethod: "credit",
+        creditCardId: cardId,
+        timing: "one_time",
+      });
+    } else {
+      setSubmitting(true);
+      setSubmitError(null);
+      result = await payCreditCardBillAction(cardId, billMonth, Number(amount));
+    }
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError(tc("errorGeneric"));
+      return;
+    }
+
+    router.refresh();
     setOpen(false);
     resetForm();
   }
@@ -212,6 +254,10 @@ export function AddCardExpenseDialog({
           )}
         </div>
 
+        {submitError && (
+          <p className="text-xs text-destructive">{submitError}</p>
+        )}
+
         <div className="flex justify-end gap-3">
           <DialogSecondaryButton
             onClick={() => {
@@ -221,7 +267,7 @@ export function AddCardExpenseDialog({
           >
             {tc("cancel")}
           </DialogSecondaryButton>
-          <DialogPrimaryButton onClick={handleSubmit}>
+          <DialogPrimaryButton onClick={handleSubmit} disabled={submitting}>
             {tc("add")}
           </DialogPrimaryButton>
         </div>

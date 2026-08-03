@@ -10,7 +10,7 @@ import {
   XAxis,
 } from "recharts";
 import { fmtCurrency, toIntlLocale } from "@/lib/format";
-import type { CreditCardBill } from "@/lib/mock-credit-card";
+import type { CreditCardBill } from "@/lib/types";
 
 interface BillsChartProps {
   bills: CreditCardBill[];

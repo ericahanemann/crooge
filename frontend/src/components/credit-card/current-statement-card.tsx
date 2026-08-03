@@ -1,15 +1,17 @@
 import { getTranslations } from "next-intl/server";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
-import type { CreditCardBill } from "@/lib/mock-credit-card";
+import type { CreditCardBill } from "@/lib/types";
 import { AddCardExpenseDialog } from "./add-card-expense-dialog";
 
 interface CurrentStatementCardProps {
+  cardId: string;
   bill: CreditCardBill;
   locale: string;
 }
 
 /** bento tile showing the current open statement (amount + closing/due dates) plus an "add transaction" cta, used on the current bill page */
 export async function CurrentStatementCard({
+  cardId,
   bill,
   locale,
 }: CurrentStatementCardProps) {
@@ -50,7 +52,11 @@ export async function CurrentStatementCard({
         </p>
       </div>
       <div className="mt-auto">
-        <AddCardExpenseDialog triggerLabel={t("addTransaction")} />
+        <AddCardExpenseDialog
+          cardId={cardId}
+          billMonth={bill.month}
+          triggerLabel={t("addTransaction")}
+        />
       </div>
     </div>
   );

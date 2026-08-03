@@ -57,7 +57,8 @@
       "addCategory": "Add category",
       "newCategoryPlaceholder": "Category name",
       "errorRequired": "Required",
-      "errorPositive": "Must be a positive number"
+      "errorPositive": "Must be a positive number",
+      "errorGeneric": "Something went wrong. Please try again."
     },
     "income": {
       "title": "ADD INCOME"
@@ -77,7 +78,8 @@
       "frequency": "FREQUENCY",
       "frequencyMonthly": "MONTHLY",
       "frequencyAnnual": "ANNUAL",
-      "errorMinInstallments": "Must be at least 2"
+      "errorMinInstallments": "Must be at least 2",
+      "errorNoCard": "Add a credit card before charging expenses to it"
     }
   },
   "creditCards": {
@@ -101,7 +103,8 @@
     "dialogExpenseTitle": "ADD TO CARD",
     "dialogAnteciparTitle": "ANTICIPATE PAYMENT",
     "selectStatements": "SELECT STATEMENTS",
-    "confirm": "CONFIRM"
+    "confirm": "CONFIRM",
+    "noCards": "NO CARDS YET"
   },
   "notFound": {
     "title": "PAGE NOT FOUND",

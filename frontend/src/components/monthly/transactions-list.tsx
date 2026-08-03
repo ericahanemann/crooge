@@ -1,9 +1,9 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import {
-  TransactionsFilterClient,
   type ResolvedCategoryOption,
   type ResolvedTransactionGroup,
   type ResolvedTransactionItem,
+  TransactionsFilterClient,
 } from "@/components/common/transactions-filter-client";
 import { getMonthlyTransactions } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
@@ -18,12 +18,12 @@ import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
  * rather than receiving props, so the monthly page can wrap it in `<Suspense>`
  * independently of the other sections
  */
-export async function TransactionsList() {
+export async function TransactionsList({ month }: { month: string }) {
   const t = await getTranslations("monthly");
   const tCatExp = await getTranslations("categories.expense");
   const tCatInc = await getTranslations("categories.income");
   const locale = await getLocale();
-  const transactions = await getMonthlyTransactions();
+  const transactions = await getMonthlyTransactions(month);
 
   const grouped: Record<string, ResolvedTransactionItem[]> = {};
   const seenCategories = new Set<string>();

@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, CreditCard, Wallet } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import type { CategoryDef } from "@/lib/categories";
 import { fmtCurrency, todayISO } from "@/lib/format";
+import { createTransactionAction } from "@/lib/transaction-actions";
 import { cn } from "@/lib/utils";
 import { CategorySelect } from "./category-select";
 
@@ -51,6 +53,7 @@ interface FormErrors {
  */
 export function AddExpenseDialog() {
   const t = useTranslations();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   const [paymentMethod, setPaymentMethod] =
@@ -68,6 +71,8 @@ export function AddExpenseDialog() {
   const [keepAdding, setKeepAdding] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [justAdded, setJustAdded] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const descriptionRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -99,6 +104,7 @@ export function AddExpenseDialog() {
     setKeepAdding(false);
     setErrors({});
     setJustAdded(false);
+    setSubmitError(null);
   }
 
   function validate(): boolean {
@@ -120,8 +126,36 @@ export function AddExpenseDialog() {
     return Object.keys(nextErrors).length === 0;
   }
 
-  function handleSubmit() {
-    if (!validate()) return;
+  async function handleSubmit() {
+    if (!validate() || !category) return;
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const result = await createTransactionAction({
+      type: "expense",
+      description,
+      amount: parsedAmount,
+      date,
+      category,
+      paymentMethod,
+      timing,
+      installments: timing === "installments" ? parsedInstallments : undefined,
+      frequency: timing === "recurring" ? frequency : undefined,
+    });
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setSubmitError(
+        result.code === "no_credit_card"
+          ? t("dialogs.expense.errorNoCard")
+          : t("dialogs.common.errorGeneric"),
+      );
+      return;
+    }
+
+    router.refresh();
 
     if (keepAdding) {
       setDescription("");
@@ -433,6 +467,10 @@ export function AddExpenseDialog() {
           </p>
         )}
 
+        {submitError && (
+          <p className="text-xs text-destructive">{submitError}</p>
+        )}
+
         <div className="flex items-center justify-between gap-3">
           {/* biome-ignore lint/a11y/noLabelWithoutControl: Checkbox renders a native input under the hood */}
           <label className="flex items-center gap-2 font-sans text-sm text-muted-foreground cursor-pointer">
@@ -448,7 +486,7 @@ export function AddExpenseDialog() {
             >
               {t("dialogs.common.cancel")}
             </DialogSecondaryButton>
-            <DialogPrimaryButton onClick={handleSubmit}>
+            <DialogPrimaryButton onClick={handleSubmit} disabled={submitting}>
               {t("dialogs.common.add")}
             </DialogPrimaryButton>
           </div>

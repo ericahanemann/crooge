@@ -8,8 +8,8 @@ import { SpendingCard } from "./spending-card";
  *
  * pairs with `MonthlySummarySkeleton` as the Monthly page's `<Suspense>` fallback
  * */
-export async function MonthlySummaryCards() {
-  const { balance, income, spent } = await getMonthlySummary();
+export async function MonthlySummaryCards({ month }: { month: string }) {
+  const { balance, income, spent } = await getMonthlySummary(month);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
       <BalanceCard balance={balance} income={income} />

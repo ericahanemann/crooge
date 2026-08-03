@@ -33,7 +33,8 @@ export function CardSelector({
   return (
     <Select
       value={selectedCard}
-      onValueChange={(value: string) => {
+      onValueChange={(value) => {
+        if (!value) return;
         const params = new URLSearchParams({ card: value });
         if (selectedMonth) params.set("month", selectedMonth);
         router.push(`${pathname}?${params.toString()}`, { scroll: false });

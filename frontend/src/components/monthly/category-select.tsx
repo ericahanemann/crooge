@@ -114,10 +114,7 @@ export function CategorySelect({
 
   return (
     <div className="flex items-center gap-2">
-      <Select
-        value={value ?? undefined}
-        onValueChange={(v) => onChange(v as string)}
-      >
+      <Select value={value ?? ""} onValueChange={(v) => onChange(v as string)}>
         <SelectTrigger className="flex-1">
           {selected && SelectedIcon ? (
             <span className="flex min-w-0 items-center gap-2">

@@ -17,15 +17,20 @@ export async function StatementCardsSection({
   locale,
 }: StatementCardsSectionProps) {
   const card = await getCreditCard(cardId);
-  const currentBill = card.bills.find((b) => b.status === "current");
-  const futureBills = card.bills.filter((b) => b.status === "future");
+  const currentBill = card?.bills.find((b) => b.status === "current");
+  const futureBills = card?.bills.filter((b) => b.status === "future") ?? [];
 
-  if (!currentBill) return null;
+  if (!card || !currentBill) return null;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-      <CurrentStatementCard bill={currentBill} locale={locale} />
+      <CurrentStatementCard
+        cardId={cardId}
+        bill={currentBill}
+        locale={locale}
+      />
       <NextStatementsCard
+        cardId={cardId}
         available={card.available}
         futureBills={futureBills}
       />

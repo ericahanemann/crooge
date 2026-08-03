@@ -29,13 +29,13 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import type { Category } from "@/lib/mock-monthly";
 
 // pre-formatted transaction data ready for client-side rendering
 
 export type ResolvedTransactionItem = {
-  id: number;
+  id: string;
   category: Category;
   categoryLabel: string;
   description: string;
@@ -74,7 +74,7 @@ interface TransactionsFilterClientProps {
   emptyLabel: string;
 }
 
-const categoryIcons: Record<Category, LucideIcon> = {
+const categoryIcons: Record<string, LucideIcon> = {
   food: Utensils,
   groceries: ShoppingCart,
   transport: Car,
