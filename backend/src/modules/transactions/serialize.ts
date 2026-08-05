@@ -1,4 +1,4 @@
-import type { Transaction } from "../generated/prisma/client.ts";
+import type { Transaction } from "../../generated/prisma/client.ts";
 
 const TIMING_TO_API = {
   ONE_TIME: "oneTime",
@@ -6,7 +6,7 @@ const TIMING_TO_API = {
   RECURRING: "recurring",
 } as const;
 
-/** API responses mirror the frontend's `Transaction` shape (`lib/mock-monthly.ts`): a single signed `amount`, no separate `type` field. */
+/** API responses mirror the frontend's `Transaction` shape (`frontend/src/lib/types.ts`): a single signed `amount`, no separate `type` field. */
 export function serializeTransaction(row: Transaction) {
   return {
     id: row.id,

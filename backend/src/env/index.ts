@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+/** Validated once at boot, so a missing/malformed env var fails fast with a clear message instead of surfacing later as a confusing runtime error. */
 const envSchema = z.object({
   NODE_ENV: z.enum(["dev", "test", "production"]).default("dev"),
   PORT: z.coerce.number().default(3333),

@@ -1,22 +1,34 @@
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
-import { getCycleForDate } from "../../lib/billing-cycle.ts";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
-  billStatus,
-  getAvailableCredit,
-  getBillAmount,
-} from "../../lib/credit-card-bill.ts";
-import { prisma } from "../../lib/prisma.ts";
-import { serializeCreditCardSummary } from "../../lib/serialize-credit-card.ts";
+  errorResponseSchema,
+  idParamSchema,
+} from "../../../http/schemas/common.ts";
+import { prisma } from "../../../lib/prisma.ts";
+import { billStatus, getAvailableCredit, getBillAmount } from "../bill.ts";
+import { getCycleForDate } from "../billing-cycle.ts";
+import { creditCardDetailResponseSchema } from "../schemas.ts";
+import { serializeCreditCardSummary } from "../serialize.ts";
 
-const paramsSchema = z.object({ id: z.uuid() });
-
+/** A single card's detail: summary fields plus its currently open bill and how many unpaid future bills exist. */
 export async function getCreditCard(app: FastifyInstance) {
-  app.get(
+  app.withTypeProvider<ZodTypeProvider>().get(
     "/credit-cards/:id",
-    { onRequest: [app.authenticate] },
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        tags: ["credit-cards"],
+        summary: "Get a credit card",
+        security: [{ bearerAuth: [] }],
+        params: idParamSchema,
+        response: {
+          200: creditCardDetailResponseSchema,
+          404: errorResponseSchema,
+        },
+      },
+    },
     async (request, reply) => {
-      const { id } = paramsSchema.parse(request.params);
+      const { id } = request.params;
 
       const card = await prisma.creditCard.findFirst({
         where: { id, userId: request.user.sub },

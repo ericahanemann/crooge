@@ -10,7 +10,8 @@ interface StatementCardsSectionProps {
 /**
  * fetches the card and renders `CurrentStatementCard` + `NextStatementsCard` side by side
  *
- * renders nothing if the card has no "current"-status bill — defensive for real data, the mock card always has one
+ * renders nothing if the card has no bill row for the current cycle yet — e.g. a brand-new card with no
+ * transactions, since a bill row is only created once a transaction lands in that cycle
  */
 export async function StatementCardsSection({
   cardId,
