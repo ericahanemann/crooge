@@ -1,18 +1,24 @@
 import type { FastifyInstance } from "fastify";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { ensureBill } from "../../lib/billing-cycle.ts";
+import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import { prisma } from "../../../lib/prisma.ts";
+import { ensureBill } from "../../credit-cards/billing-cycle.ts";
 import {
   generateInstallments,
   generateRecurring,
   type Occurrence,
-} from "../../lib/generate-occurrences.ts";
-import { prisma } from "../../lib/prisma.ts";
-import { serializeTransaction } from "../../lib/serialize-transaction.ts";
+} from "../generate-occurrences.ts";
+import { transactionResponseSchema } from "../schemas.ts";
+import { serializeTransaction } from "../serialize.ts";
 
 const incomeBodySchema = z.object({
   type: z.literal("income"),
   description: z.string().trim().min(1),
-  amount: z.number().positive(),
+  amount: z
+    .number()
+    .positive()
+    .describe("Always positive; sign is implied by `type`."),
   date: z.iso.date(),
   category: z.string().trim().min(1),
 });
@@ -20,14 +26,36 @@ const incomeBodySchema = z.object({
 const expenseBodySchema = z.object({
   type: z.literal("expense"),
   description: z.string().trim().min(1),
-  amount: z.number().positive(),
-  date: z.iso.date(),
+  amount: z
+    .number()
+    .positive()
+    .describe(
+      "Always positive. For installments, this is the *total* purchase amount — it gets split across `installments` occurrences.",
+    ),
+  date: z.iso.date().describe("Date of the first (or only) occurrence."),
   category: z.string().trim().min(1),
   paymentMethod: z.enum(["debit_pix", "credit"]),
-  creditCardId: z.uuid().optional(),
+  creditCardId: z
+    .uuid()
+    .optional()
+    .describe(
+      'Required, and must belong to the caller, when paymentMethod is "credit".',
+    ),
   timing: z.enum(["one_time", "installments", "recurring"]).default("one_time"),
-  installments: z.number().int().min(2).optional(),
-  frequency: z.enum(["monthly", "annual"]).optional(),
+  installments: z
+    .number()
+    .int()
+    .min(2)
+    .optional()
+    .describe(
+      'Number of installments. Required when timing is "installments".',
+    ),
+  frequency: z
+    .enum(["monthly", "annual"])
+    .optional()
+    .describe(
+      'Required when timing is "recurring". Materializes 12 occurrences for "monthly", 3 for "annual".',
+    ),
 });
 
 const createTransactionBodySchema = z
@@ -58,14 +86,45 @@ const createTransactionBodySchema = z
         message: "required when timing is recurring",
       });
     }
-  });
+  })
+  .describe(
+    "Either an income (always one-time) or an expense (one-time, installment, or recurring; debit/pix or credit). " +
+      "Installment and recurring expenses materialize one Transaction row per occurrence immediately — see " +
+      "`backend/README.md` for why there's no virtual projection or cron job.",
+  );
 
+/**
+ * Creates a transaction. For income, or a one-time expense, this creates
+ * exactly one row. For an installment or recurring expense it creates one
+ * row per occurrence (see `generate-occurrences.ts`), all sharing a
+ * `groupId`; every occurrence charged to a credit card also gets its
+ * billing-cycle `CreditCardBill` row ensured to exist via
+ * `modules/credit-cards/billing-cycle.ts#ensureBill`.
+ */
 export async function createTransaction(app: FastifyInstance) {
-  app.post(
+  app.withTypeProvider<ZodTypeProvider>().post(
     "/transactions",
-    { onRequest: [app.authenticate] },
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        tags: ["transactions"],
+        summary: "Create a transaction",
+        security: [{ bearerAuth: [] }],
+        body: createTransactionBodySchema,
+        response: {
+          201: z
+            .array(transactionResponseSchema)
+            .describe(
+              "The created row(s) — more than one for installment/recurring expenses.",
+            ),
+          404: errorResponseSchema.describe(
+            "creditCardId doesn't exist or doesn't belong to the caller.",
+          ),
+        },
+      },
+    },
     async (request, reply) => {
-      const body = createTransactionBodySchema.parse(request.body);
+      const body = request.body;
       const userId = request.user.sub;
       const startDate = new Date(body.date);
 

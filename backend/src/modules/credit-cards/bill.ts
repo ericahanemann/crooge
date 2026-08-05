@@ -1,6 +1,6 @@
-import type { CreditCard } from "../generated/prisma/client.ts";
+import type { CreditCard } from "../../generated/prisma/client.ts";
+import { prisma } from "../../lib/prisma.ts";
 import { getCycleForDate, previousClosingDate } from "./billing-cycle.ts";
-import { prisma } from "./prisma.ts";
 
 /** A bill's amount is always computed from its transactions rather than stored, so it can never drift out of sync. */
 export async function getBillAmount(
