@@ -1,4 +1,4 @@
-import type { CreditCard } from "../generated/prisma/client.ts";
+import type { CreditCard } from "../../generated/prisma/client.ts";
 import { getCycleForDate } from "./billing-cycle.ts";
 
 const BRAND_TO_API = {

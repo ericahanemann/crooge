@@ -1,4 +1,4 @@
-import type { Prisma } from "../generated/prisma/client.ts";
+import type { Prisma } from "../../generated/prisma/client.ts";
 
 export interface BillingCycle {
   cycleMonth: string;
@@ -9,8 +9,8 @@ export interface BillingCycle {
 /**
  * A purchase made on or before `closingDay` of a month belongs to the cycle
  * that closes that month; made after it, it rolls into next month's cycle.
- * `cycleMonth` is keyed by the closing month (matches the mock data's
- * `bills[].month` convention).
+ * `cycleMonth` is keyed by the closing month (this becomes the API's
+ * `CreditCardBill.month` field).
  */
 export function getCycleForDate(
   closingDay: number,
