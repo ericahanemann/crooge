@@ -36,7 +36,9 @@ export async function CardShowcase({
 }: CardShowcaseProps) {
   const t = await getTranslations("creditCards");
 
-  // biome-ignore lint/style/noNonNullAssertion: mock data always has a current bill
+  // Every card here always has a current bill today — there's no "add card" UI yet, so cards only exist via
+  // direct API calls that immediately add a transaction. Revisit once card creation ships standalone (see TODO.md).
+  // biome-ignore lint/style/noNonNullAssertion: see comment above
   const currentBill = card.bills.find((b) => b.status === "current")!;
   const localeStr = toIntlLocale(locale);
 
