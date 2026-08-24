@@ -1,8 +1,9 @@
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { CreditCardDetail } from "@/lib/types";
+import { AddCreditCardDialog } from "./add-credit-card-dialog";
 import { CardSelector } from "./card-selector";
 import { CardVisual } from "./card-visual";
 
@@ -36,17 +37,20 @@ export async function CardShowcase({
 }: CardShowcaseProps) {
   const t = await getTranslations("creditCards");
 
-  // Every card here always has a current bill today — there's no "add card" UI yet, so cards only exist via
-  // direct API calls that immediately add a transaction. Revisit once card creation ships standalone (see TODO.md).
-  // biome-ignore lint/style/noNonNullAssertion: see comment above
-  const currentBill = card.bills.find((b) => b.status === "current")!;
+  // `getCreditCard` (lib/data.ts) always splices a synthesized current bill
+  // into `bills` even for a brand-new card with no persisted bill row yet,
+  // but guard here too rather than trust that invariant with a non-null
+  // assertion — a missing current bill degrades to "—" instead of crashing.
+  const currentBill = card.bills.find((b) => b.status === "current");
   const localeStr = toIntlLocale(locale);
 
-  const fmt = (dateStr: string) =>
-    parseLocalDate(dateStr).toLocaleDateString(localeStr, {
-      month: "short",
-      day: "numeric",
-    });
+  const fmt = (dateStr?: string) =>
+    dateStr
+      ? parseLocalDate(dateStr).toLocaleDateString(localeStr, {
+          month: "short",
+          day: "numeric",
+        })
+      : "—";
 
   const usedPct = Math.round(
     ((card.limit - card.available) / card.limit) * 100,
@@ -69,13 +73,8 @@ export async function CardShowcase({
         <div className="flex-1 flex flex-col gap-3.5">
           <div className="flex items-center gap-3">
             <CardSelector cards={cards} selectedCard={selectedCard} />
-            <button
-              type="button"
-              title={t("addCard")}
-              className="flex items-center justify-center size-10 rounded-lg bg-muted text-foreground border border-border hover:brightness-125 transition-[filter]"
-            >
-              <Plus size={20} strokeWidth={1.5} />
-            </button>
+            <AddCreditCardDialog key={card.id} card={card} />
+            <AddCreditCardDialog variant="icon" />
           </div>
           <div className="h-px bg-border" />
           <div className="grid grid-cols-2 gap-4">
@@ -84,7 +83,7 @@ export async function CardShowcase({
                 {t("closingDate")}
               </p>
               <p className="font-sans text-xl font-semibold text-foreground">
-                {fmt(currentBill.closingDate)}
+                {fmt(currentBill?.closingDate)}
               </p>
             </div>
             <div>
@@ -92,7 +91,7 @@ export async function CardShowcase({
                 {t("dueDate")}
               </p>
               <p className="font-sans text-xl font-semibold text-foreground">
-                {fmt(currentBill.dueDate)}
+                {fmt(currentBill?.dueDate)}
               </p>
             </div>
           </div>

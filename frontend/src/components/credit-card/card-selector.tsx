@@ -6,7 +6,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 
 interface CardOption {
@@ -30,6 +29,8 @@ export function CardSelector({
   const router = useRouter();
   const pathname = usePathname();
 
+  const selected = cards.find((c) => c.id === selectedCard);
+
   return (
     <Select
       value={selectedCard}
@@ -41,7 +42,7 @@ export function CardSelector({
       }}
     >
       <SelectTrigger className="w-48 font-karantina text-2xl tracking-wide uppercase">
-        <SelectValue />
+        <span className="truncate">{selected?.name}</span>
       </SelectTrigger>
       <SelectContent>
         {cards.map((card) => (
