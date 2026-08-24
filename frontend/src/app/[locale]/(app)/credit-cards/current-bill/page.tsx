@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/common/page-header";
 import { TransactionsSkeleton } from "@/components/common/transactions-skeleton";
+import { AddCreditCardDialog } from "@/components/credit-card/add-credit-card-dialog";
 import { CardHeaderSection } from "@/components/credit-card/card-header-section";
 import { CardShowcaseSkeleton } from "@/components/credit-card/card-showcase-skeleton";
 import { CreditCardTransactionsList } from "@/components/credit-card/credit-card-transactions-list";
@@ -34,10 +35,11 @@ export default async function CurrentBillPage({
     return (
       <div className="flex flex-col flex-1 overflow-hidden">
         <PageHeader title={t("currentStatement")} />
-        <div className="flex-1 overflow-auto p-4 sm:p-7 flex items-center justify-center">
+        <div className="flex-1 overflow-auto p-4 sm:p-7 flex flex-col items-center justify-center gap-5">
           <span className="font-karantina text-2xl tracking-wide text-muted-foreground">
             {t("noCards")}
           </span>
+          <AddCreditCardDialog />
         </div>
       </div>
     );

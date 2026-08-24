@@ -58,7 +58,8 @@
       "newCategoryPlaceholder": "Category name",
       "errorRequired": "Required",
       "errorPositive": "Must be a positive number",
-      "errorGeneric": "Something went wrong. Please try again."
+      "errorGeneric": "Something went wrong. Please try again.",
+      "save": "SAVE"
     },
     "income": {
       "title": "ADD INCOME"
@@ -80,6 +81,17 @@
       "frequencyAnnual": "ANNUAL",
       "errorMinInstallments": "Must be at least 2",
       "errorNoCard": "Add a credit card before charging expenses to it"
+    },
+    "creditCard": {
+      "title": "ADD CREDIT CARD",
+      "name": "CARD NAME",
+      "namePlaceholder": "e.g. Itaú Black",
+      "brand": "BRAND",
+      "limit": "LIMIT",
+      "closingDay": "CLOSING DAY",
+      "dueDay": "DUE DAY",
+      "errorDayRange": "Must be between 1 and 28",
+      "editTitle": "EDIT CREDIT CARD"
     }
   },
   "creditCards": {
@@ -104,7 +116,8 @@
     "dialogAnteciparTitle": "ANTICIPATE PAYMENT",
     "selectStatements": "SELECT STATEMENTS",
     "confirm": "CONFIRM",
-    "noCards": "NO CARDS YET"
+    "noCards": "NO CARDS YET",
+    "editCard": "EDIT CARD"
   },
   "notFound": {
     "title": "PAGE NOT FOUND",

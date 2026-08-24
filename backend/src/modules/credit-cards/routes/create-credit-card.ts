@@ -9,7 +9,7 @@ import {
 } from "../schemas.ts";
 import { serializeCreditCardSummary } from "../serialize.ts";
 
-const createCreditCardBodySchema = z.object({
+export const createCreditCardBodySchema = z.object({
   name: z.string().trim().min(1),
   brand: creditCardBrandSchema,
   limit: z.number().positive(),
@@ -29,7 +29,7 @@ const createCreditCardBodySchema = z.object({
     .describe("Day of month the following month payment is due (1-28)."),
 });
 
-const BRAND_TO_DB = {
+export const BRAND_TO_DB = {
   visa: "VISA",
   mastercard: "MASTERCARD",
   amex: "AMEX",

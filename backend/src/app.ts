@@ -25,6 +25,7 @@ import { listCreditCardBills } from "./modules/credit-cards/routes/list-credit-c
 import { listCreditCardTransactions } from "./modules/credit-cards/routes/list-credit-card-transactions.ts";
 import { listCreditCards } from "./modules/credit-cards/routes/list-credit-cards.ts";
 import { payCreditCardBill } from "./modules/credit-cards/routes/pay-credit-card-bill.ts";
+import { updateCreditCard } from "./modules/credit-cards/routes/update-credit-card.ts";
 import { createTransaction } from "./modules/transactions/routes/create-transaction.ts";
 import { getTransactionsSummary } from "./modules/transactions/routes/get-transactions-summary.ts";
 import { listTransactions } from "./modules/transactions/routes/list-transactions.ts";
@@ -104,6 +105,7 @@ app.register(createTransaction);
 app.register(listTransactions);
 app.register(getTransactionsSummary);
 app.register(createCreditCard);
+app.register(updateCreditCard);
 app.register(listCreditCards);
 app.register(getCreditCard);
 app.register(listCreditCardBills);

@@ -28,6 +28,8 @@ export function serializeCreditCardSummary(
     name: card.name,
     brand: apiBrand(card.brand),
     limit: Number(card.limit),
+    closingDay: card.closingDay,
+    dueDay: card.dueDay,
     available,
     currentMonth: cycleMonth,
   };
