@@ -59,6 +59,25 @@ npm run dev                   # http://localhost:3000
 
 If frontend and backend are exposed on different hosts (e.g. separate forwarded ports in Codespaces), update `NEXT_PUBLIC_API_URL` above and the backend's `FRONTEND_URL` (step 2) to match each other's actual origins — the backend's CORS check and the frontend's auth cookie both depend on these matching reality.
 
+## Day-to-day: running everything at once
+
+Once both `.env` files exist (one-time setup above), install the root tooling and use the root `dev` script instead of starting Postgres/backend/frontend by hand:
+
+```bash
+npm install            # installs concurrently, used to run both dev servers
+npm run dev             # starts Postgres, waits for it, then runs backend + frontend together
+```
+
+This runs `docker compose up`, waits for Postgres to accept connections, then runs the backend and frontend dev servers together (via `concurrently`) — backend at `http://localhost:3333`, frontend at `http://localhost:3000`. `Ctrl+C` stops both dev servers; Postgres keeps running in the background (`npm run services:stop` or `services:down` to also stop it).
+
+Other root scripts:
+
+```bash
+npm run services:up     # start Postgres only (docker compose up -d)
+npm run services:stop   # stop the Postgres container, keep it around
+npm run services:down   # stop and remove the Postgres container + network
+```
+
 ## Other useful commands (run inside `backend/` or `frontend/`)
 
 ```bash
