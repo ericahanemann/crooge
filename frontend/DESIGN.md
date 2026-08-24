@@ -49,7 +49,7 @@ Every page has a `<PageHeader title="PAGE NAME" />` that renders a single row:
 Below `lg` (1024px), the sidebar is hidden (`hidden lg:flex` on `SidebarShell`). A **burger menu button** appears in the `PageHeader` on the left, next to the page title. Tapping it opens a full-screen overlay (`MobileMenu`) that covers the entire viewport.
 
 The mobile menu overlay:
-- **Header:** Crooge logo (left) + X close button (right), same `py-7 border-b` as the desktop page header
+- **Header:** cow icon + Crooge logo, side by side (left) + X close button (right), same `py-7 border-b` as the desktop page header. Icon `width=44 height=44` (decorative, `alt=""`) + wordmark `width=120 height=40`, `flex items-center gap-1`, both `className="invert dark:invert-0"` — same treatment as the sidebar's expanded logo, scaled up to match this header's larger wordmark size.
 - **Nav links:** Full-width rows with icon + Karantina label. Same active/inactive states as desktop (`bg-muted text-foreground` / `text-muted-foreground`). Sub-links (e.g. under Credit Cards) are always expanded and indented to align with the parent label (`pl-16`)
 - **Footer:** LanguageToggle, ColorThemeToggle, ThemeToggle, and UserAvatar — the 4 icons that are hidden from the page header on mobile
 - **Closing:** X button, tapping any nav link, or pressing Escape
@@ -67,8 +67,9 @@ On mobile, the `PageHeader` shows only the burger button + page title. The 4 act
 - **Collapsible:** `w-56` expanded ↔ `w-14` collapsed, `transition-[width] duration-300`.
   - State persisted in `localStorage` key `"sidebar-collapsed"`.
   - Toggle button at bottom uses `PanelLeftClose` / `PanelLeftOpen` icons (Lucide).
-- **Collapsed logo:** `public/cow-icon.svg` (minimalist white cow silhouette, `width=32 height=32`), same `className="invert dark:invert-0"` treatment as the main logo.
-- **Expanded logo:** `public/logo.svg`, `width=120 height=40`, `className="invert dark:invert-0"`.
+- **Collapsed logo:** `public/cow-icon.svg` (white cow silhouette, `width=36 height=36`), `className="invert dark:invert-0"`.
+- **Expanded logo:** `public/cow-icon.svg` (`width=36 height=36`, decorative — `alt=""`) + `public/logo.svg` wordmark (`width=90 height=31`) side by side, `flex items-center gap-1`, both with `className="invert dark:invert-0"`.
+- **`cow-icon.svg` internals:** a solid white silhouette (fill, not stroke) — details like ears, horns, and hooves read as thin negative-space gaps rather than drawn lines. Since there's no `stroke-width` to adjust, the linework is bolded with an inline SVG filter (`<filter id="thicken"><feMorphology operator="dilate" radius="3"/></filter>` applied via `<g filter="url(#thicken)">` wrapping all shapes) that expands the filled regions, narrowing those gaps. Renders correctly through `<img src="cow-icon.svg">`/`next/image` since the filter is self-contained within the file. `viewBox` is padded to `-8 -8 528 528` (vs. the artwork's native `0 0 512 512`) because the ear flaps touch the original canvas edges exactly — without the padding, the dilate's outward expansion got clipped by the SVG's own bounds.
 - **Collapsed nav items:** icon only, centered (`justify-center px-0`). Label span fades with `transition-[opacity,max-width] duration-200`. Tooltip appears to the right on hover (absolute, `left-full ml-2 z-50`, styled `bg-card border border-border shadow-md font-karantina text-xl`). Tooltip is only rendered when collapsed.
 - **NavGroup when collapsed:** renders as a Link to the first sub-link, icon only, tooltip shows the group label. Sub-links are hidden.
 - Nav items: icon (Lucide `size={17} strokeWidth={1.5}`) + label `font-karantina text-2xl tracking-wide`
@@ -246,7 +247,7 @@ Subtitles: 6 variants per page per locale, randomly picked server-side with `Mat
 
 ### Logo on auth pages
 
-`<Image src="/logo.svg" width={120} height={40} className="invert dark:invert-0" />` — same treatment as the sidebar. Works on `bg-background` in both themes.
+Cow icon + wordmark, same combo as the sidebar/mobile menu — the two together are the logo, so every place the wordmark appears, the icon appears next to it. `public/cow-icon.svg` (`width=44 height=44`, decorative — `alt=""`) + `public/logo.svg` (`width=120 height=40`), `flex items-center justify-center gap-1`, both `className="invert dark:invert-0"`. Works on `bg-background` in both themes.
 
 ### Monthly page layout
 

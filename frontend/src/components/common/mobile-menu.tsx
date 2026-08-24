@@ -186,14 +186,23 @@ export function MobileMenu() {
       )}
     >
       <div className="flex items-center justify-between px-7 py-7 border-b border-border shrink-0">
-        <Image
-          src="/logo.svg"
-          alt="Crooge"
-          width={120}
-          height={40}
-          priority
-          className="invert dark:invert-0"
-        />
+        <div className="flex items-center gap-1">
+          <Image
+            src="/cow-icon.svg"
+            alt=""
+            width={44}
+            height={44}
+            className="invert dark:invert-0"
+          />
+          <Image
+            src="/logo.svg"
+            alt="Crooge"
+            width={120}
+            height={40}
+            priority
+            className="invert dark:invert-0"
+          />
+        </div>
         <button
           ref={closeButtonRef}
           type="button"

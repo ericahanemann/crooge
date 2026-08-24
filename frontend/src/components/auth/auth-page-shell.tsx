@@ -22,7 +22,14 @@ export function AuthPageShell({
 
       <div className="flex flex-1 flex-col items-center justify-center p-7">
         <div className="w-full max-w-sm flex flex-col gap-7">
-          <div className="flex justify-center">
+          <div className="flex items-center justify-center gap-1">
+            <Image
+              src="/cow-icon.svg"
+              alt=""
+              width={44}
+              height={44}
+              className="invert dark:invert-0"
+            />
             <Image
               src="/logo.svg"
               alt="Crooge"

@@ -1,0 +1,13 @@
+{
+  "name": "crooge",
+  "private": true,
+  "scripts": {
+    "dev": "npm run services:up && node scripts/wait-for-postgres.js && concurrently -n backend,frontend -c blue,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "services:up": "docker compose -f backend/docker-compose.yml up -d",
+    "services:stop": "docker compose -f backend/docker-compose.yml stop",
+    "services:down": "docker compose -f backend/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "concurrently": "10.0.5"
+  }
+}
