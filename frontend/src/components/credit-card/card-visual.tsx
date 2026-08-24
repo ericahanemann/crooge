@@ -27,7 +27,7 @@ export function CardVisual({ name, brand }: CardVisualProps) {
 
       <div className="relative z-10 flex justify-end items-center">
         {brand === "visa" && (
-          <span className="font-bold italic text-white text-xl tracking-widest select-none">
+          <span className="font-bold italic text-white text-xl tracking-tight select-none">
             VISA
           </span>
         )}
