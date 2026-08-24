@@ -13,6 +13,14 @@ export const creditCardSummaryResponseSchema = z
     name: z.string(),
     brand: creditCardBrandSchema,
     limit: z.number(),
+    closingDay: z
+      .number()
+      .int()
+      .describe("Day of month the billing cycle closes (1-28)."),
+    dueDay: z
+      .number()
+      .int()
+      .describe("Day of month the following month payment is due (1-28)."),
     available: z
       .number()
       .describe(
