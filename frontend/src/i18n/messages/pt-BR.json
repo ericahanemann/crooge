@@ -58,7 +58,8 @@
       "newCategoryPlaceholder": "Nome da categoria",
       "errorRequired": "Obrigatório",
       "errorPositive": "Deve ser um número positivo",
-      "errorGeneric": "Algo deu errado. Tente novamente."
+      "errorGeneric": "Algo deu errado. Tente novamente.",
+      "save": "SALVAR"
     },
     "income": {
       "title": "ADICIONAR RENDA"
@@ -80,6 +81,17 @@
       "frequencyAnnual": "ANUAL",
       "errorMinInstallments": "Deve ser no mínimo 2",
       "errorNoCard": "Adicione um cartão de crédito antes de lançar gastos nele"
+    },
+    "creditCard": {
+      "title": "ADICIONAR CARTÃO",
+      "name": "NOME DO CARTÃO",
+      "namePlaceholder": "ex: Itaú Black",
+      "brand": "BANDEIRA",
+      "limit": "LIMITE",
+      "closingDay": "DIA DE FECHAMENTO",
+      "dueDay": "DIA DE VENCIMENTO",
+      "errorDayRange": "Deve ser entre 1 e 28",
+      "editTitle": "EDITAR CARTÃO"
     }
   },
   "creditCards": {
@@ -104,7 +116,8 @@
     "dialogAnteciparTitle": "ANTECIPAR PAGAMENTO",
     "selectStatements": "SELECIONAR FATURAS",
     "confirm": "CONFIRMAR",
-    "noCards": "NENHUM CARTÃO AINDA"
+    "noCards": "NENHUM CARTÃO AINDA",
+    "editCard": "EDITAR CARTÃO"
   },
   "notFound": {
     "title": "PÁGINA NÃO ENCONTRADA",

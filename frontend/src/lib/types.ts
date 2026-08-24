@@ -24,6 +24,8 @@ export interface CreditCardSummary {
   name: string;
   brand: CreditCardBrand;
   limit: number;
+  closingDay: number;
+  dueDay: number;
   available: number;
   currentMonth: string;
 }
