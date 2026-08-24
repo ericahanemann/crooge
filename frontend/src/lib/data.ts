@@ -28,6 +28,24 @@ export async function getCreditCards(): Promise<CreditCardSummary[]> {
   return backendFetchJson<CreditCardSummary[]>("/credit-cards");
 }
 
+/**
+ * A card only has a persisted `CreditCardBill` row for cycles a transaction
+ * or an early payment has already touched — a brand-new card has none yet.
+ * `/credit-cards/:id`'s `currentBill` is always synthesized on the fly even
+ * then, so if `/bills` came back without one, splice that synthesized bill
+ * in (sorted by month, matching `/bills`' own ordering) rather than leaving
+ * every `bills.find((b) => b.status === "current")` caller with nothing.
+ */
+function withCurrentBill(
+  bills: CreditCardBill[],
+  currentBill: CreditCardBill,
+): CreditCardBill[] {
+  if (bills.some((b) => b.status === "current")) return bills;
+  const insertAt = bills.findIndex((b) => b.month > currentBill.month);
+  const index = insertAt === -1 ? bills.length : insertAt;
+  return [...bills.slice(0, index), currentBill, ...bills.slice(index)];
+}
+
 /** Without `id`, uses the user's first card (the app only ever shows one card's worth of UI at a time, and there's no "add a card" flow yet). Returns `null` if the user has no cards, or the given `id` doesn't belong to them. */
 export async function getCreditCard(
   id?: string,
@@ -41,11 +59,14 @@ export async function getCreditCard(
 
   try {
     const [detail, bills] = await Promise.all([
-      backendFetchJson<CreditCardSummary>(`/credit-cards/${cardId}`),
+      backendFetchJson<CreditCardSummary & { currentBill: CreditCardBill }>(
+        `/credit-cards/${cardId}`,
+      ),
       backendFetchJson<CreditCardBill[]>(`/credit-cards/${cardId}/bills`),
     ]);
+    const { currentBill, ...summary } = detail;
 
-    return { ...detail, bills };
+    return { ...summary, bills: withCurrentBill(bills, currentBill) };
   } catch (error) {
     if (error instanceof BackendError && error.status === 404) return null;
     throw error;
