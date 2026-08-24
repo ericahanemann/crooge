@@ -28,19 +28,28 @@ export function SidebarShell({ children }: { children: ReactNode }) {
           <Image
             src="/cow-icon.svg"
             alt="Crooge"
-            width={32}
-            height={32}
+            width={36}
+            height={36}
             className="invert dark:invert-0"
           />
         ) : (
-          <Image
-            src="/logo.svg"
-            alt="Crooge"
-            width={120}
-            height={40}
-            priority
-            className="invert dark:invert-0"
-          />
+          <div className="flex items-center gap-1">
+            <Image
+              src="/cow-icon.svg"
+              alt=""
+              width={36}
+              height={36}
+              className="invert dark:invert-0"
+            />
+            <Image
+              src="/logo.svg"
+              alt="Crooge"
+              width={90}
+              height={31}
+              priority
+              className="invert dark:invert-0"
+            />
+          </div>
         )}
       </div>
       <nav className="flex-1 px-3 space-y-0.5">{children}</nav>
