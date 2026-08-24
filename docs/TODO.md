@@ -1,19 +1,18 @@
 # TODO
 
-## Backend
-
+- [ ] Enforce password complexity (number + symbol), not just a minimum length
+- [ ] Enforce that a credit card purchase can't exceed the card's available credit
+- [ ] Allow editing/deleting a custom category after creation
+- [ ] Add an "edit profile" endpoint
+- [ ] Paginate `GET /transactions` and `GET /credit-cards/:id/bills`
+- [ ] Include the current month's open credit card bill in `/transactions/summary`'s `balance`/`spent`
 - [ ] Add edit/delete for transactions and credit cards
+- [ ] Add account/profile settings page
 - [ ] Add a way to keep recurring transactions going past their initial horizon
 - [ ] Add automated tests
-
-## Frontend
-
-- [ ] Add "add credit card" dialog
-- [ ] Design and build the dashboard page
+- [ ] Add Google sign-in (OAuth) — frontend already has the button, no handler wired up yet
 - [ ] Add password recovery
 - [ ] Add email verification
-- [ ] Add account/profile settings page
+- [ ] Design and build the dashboard page
 
-## Known limitations
-
-- [ ] Harden `CardShowcase` against a card with no current bill yet
+- [x] Add "add credit card" dialog (also grew an edit dialog for the same fields)
