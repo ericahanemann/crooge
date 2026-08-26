@@ -80,7 +80,8 @@
       "frequencyMonthly": "MONTHLY",
       "frequencyAnnual": "ANNUAL",
       "errorMinInstallments": "Must be at least 2",
-      "errorNoCard": "Add a credit card before charging expenses to it"
+      "errorNoCard": "Add a credit card before charging expenses to it",
+      "errorCreditLimitExceeded": "This purchase exceeds the card's available credit"
     },
     "creditCard": {
       "title": "ADD CREDIT CARD",

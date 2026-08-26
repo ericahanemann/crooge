@@ -80,7 +80,8 @@
       "frequencyMonthly": "MENSAL",
       "frequencyAnnual": "ANUAL",
       "errorMinInstallments": "Deve ser no mínimo 2",
-      "errorNoCard": "Adicione um cartão de crédito antes de lançar gastos nele"
+      "errorNoCard": "Adicione um cartão de crédito antes de lançar gastos nele",
+      "errorCreditLimitExceeded": "Esta compra excede o limite de crédito disponível do cartão"
     },
     "creditCard": {
       "title": "ADICIONAR CARTÃO",
