@@ -53,7 +53,7 @@ Each user has exactly one implicit account/balance — it isn't a modeled "bank 
 ### Authentication and user
 
 - [x] The user must not be able to sign up with a duplicate email
-- [ ] The password must meet minimum security requirements: a minimum length, plus at least one number and one symbol (currently only a minimum length of 8 is enforced — the number/symbol requirement isn't implemented yet)
+- [x] The password must meet minimum security requirements: a minimum length, plus at least one number and one symbol (minimum length 8, at least one digit, at least one symbol)
 
 ### Income and expenses
 
@@ -74,7 +74,7 @@ Each user has exactly one implicit account/balance — it isn't a modeled "bank 
 
 ### Credit cards
 
-- [ ] A purchase on a card must not exceed the available credit limit (not enforced yet — a credit purchase is accepted regardless of available credit; see TODO.md)
+- [x] A purchase on a card must not exceed the available credit limit (checked against `getAvailableCredit` — the same figure exposed as `available` on the card summary; a purchase whose total amount, including all future installments, would exceed it is rejected with `422`)
 - [x] A user can have multiple credit cards
 - [x] A user can only see/edit their own cards, transactions, and categories (per-user isolation — every query is scoped by `userId`)
 - [x] Paying the current bill and paying future bills early are the same underlying action — settling a bill. Implemented as `POST /credit-cards/:id/bills/:month/pay`, one bill per call (an optional `amount` overrides the computed default). Only future bills can be paid ahead of their due date; the current bill can always be paid. The front-end's "pay" and "antecipar" dialogs are two entry points into this same endpoint — "antecipar" calls it once per selected future bill rather than in one batched request.
