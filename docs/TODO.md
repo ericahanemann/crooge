@@ -1,7 +1,5 @@
 # TODO
 
-- [ ] Enforce password complexity (number + symbol), not just a minimum length
-- [ ] Enforce that a credit card purchase can't exceed the card's available credit
 - [ ] Allow editing/deleting a custom category after creation
 - [ ] Add an "edit profile" endpoint
 - [ ] Paginate `GET /transactions` and `GET /credit-cards/:id/bills`
@@ -16,3 +14,5 @@
 - [ ] Design and build the dashboard page
 
 - [x] Add "add credit card" dialog (also grew an edit dialog for the same fields)
+- [x] Enforce password complexity (number + symbol), not just a minimum length
+- [x] Enforce that a credit card purchase can't exceed the card's available credit

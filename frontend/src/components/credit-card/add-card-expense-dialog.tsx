@@ -59,6 +59,7 @@ export function AddCardExpenseDialog({
 }: AddCardExpenseDialogProps) {
   const t = useTranslations("creditCards");
   const tc = useTranslations("dialogs.common");
+  const te = useTranslations("dialogs.expense");
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
@@ -100,7 +101,7 @@ export function AddCardExpenseDialog({
   async function handleSubmit() {
     if (!validate()) return;
 
-    let result: { ok: boolean };
+    let result: { ok: true } | { ok: false; code?: string };
 
     if (mode === "expense") {
       if (!category) return;
@@ -125,7 +126,11 @@ export function AddCardExpenseDialog({
     setSubmitting(false);
 
     if (!result.ok) {
-      setSubmitError(tc("errorGeneric"));
+      setSubmitError(
+        result.code === "credit_limit_exceeded"
+          ? te("errorCreditLimitExceeded")
+          : tc("errorGeneric"),
+      );
       return;
     }
 

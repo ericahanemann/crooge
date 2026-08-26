@@ -16,7 +16,15 @@ const registerUserBodySchema = z.object({
   password: z
     .string()
     .min(8)
-    .describe("Minimum 8 characters. Hashed with argon2 before storage."),
+    .refine((value) => /\d/.test(value), {
+      message: "must contain at least one number",
+    })
+    .refine((value) => /[^A-Za-z0-9]/.test(value), {
+      message: "must contain at least one symbol",
+    })
+    .describe(
+      "Minimum 8 characters, with at least one number and one symbol. Hashed with argon2 before storage.",
+    ),
 });
 
 /**

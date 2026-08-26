@@ -150,7 +150,9 @@ export function AddExpenseDialog() {
       setSubmitError(
         result.code === "no_credit_card"
           ? t("dialogs.expense.errorNoCard")
-          : t("dialogs.common.errorGeneric"),
+          : result.code === "credit_limit_exceeded"
+            ? t("dialogs.expense.errorCreditLimitExceeded")
+            : t("dialogs.common.errorGeneric"),
       );
       return;
     }

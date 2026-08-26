@@ -18,7 +18,11 @@ export interface CreateTransactionInput {
 
 type ActionResult =
   | { ok: true }
-  | { ok: false; code: "no_credit_card" | "unknown"; message: string };
+  | {
+      ok: false;
+      code: "no_credit_card" | "credit_limit_exceeded" | "unknown";
+      message: string;
+    };
 
 /**
  * `input.creditCardId` is only needed if the caller already knows which
@@ -51,7 +55,7 @@ export async function createTransactionAction(
     const body = await response.json().catch(() => null);
     return {
       ok: false,
-      code: "unknown",
+      code: response.status === 422 ? "credit_limit_exceeded" : "unknown",
       message: body?.message ?? "request failed",
     };
   }

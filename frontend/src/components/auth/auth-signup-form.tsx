@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -17,23 +18,43 @@ export function AuthSignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const hasMinLength = password.length >= 8;
+  const hasNumber = /\d/.test(password);
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
+  const passwordValid = hasMinLength && hasNumber && hasSymbol;
+
+  const passwordRequirements = [
+    { met: hasMinLength, label: t("passwordReqLength") },
+    { met: hasNumber, label: t("passwordReqNumber") },
+    { met: hasSymbol, label: t("passwordReqSymbol") },
+  ];
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!passwordValid) {
+      setError(t("errorWeakPassword"));
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       await register(name, email, password);
       router.push("/");
     } catch (err) {
-      setError(
-        err instanceof ApiError && err.status === 409
-          ? t("errorEmailTaken")
-          : t("errorGeneric"),
-      );
+      if (err instanceof ApiError && err.status === 409) {
+        setError(t("errorEmailTaken"));
+      } else if (err instanceof ApiError && err.issues?.password) {
+        setError(t("errorWeakPassword"));
+      } else {
+        setError(t("errorGeneric"));
+      }
       setSubmitting(false);
     }
   }
@@ -96,11 +117,28 @@ export function AuthSignupForm() {
             placeholder={t("passwordPlaceholder")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
             autoComplete="new-password"
             required
             minLength={8}
             disabled={submitting}
           />
+          {passwordFocused && (
+            <ul aria-live="polite" className="flex flex-col gap-1">
+              {passwordRequirements.map((req) => (
+                <li
+                  key={req.label}
+                  className={`flex items-center gap-1.5 font-sans text-xs ${
+                    req.met ? "text-highlight" : "text-muted-foreground"
+                  }`}
+                >
+                  {req.met ? <Check size={12} /> : <X size={12} />}
+                  {req.label}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {error && <p className="text-xs text-destructive">{error}</p>}

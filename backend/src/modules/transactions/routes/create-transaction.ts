@@ -1,8 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import type { CreditCard } from "../../../generated/prisma/client.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import { getAvailableCredit } from "../../credit-cards/bill.ts";
 import { ensureBill } from "../../credit-cards/billing-cycle.ts";
 import {
   generateInstallments,
@@ -120,6 +122,9 @@ export async function createTransaction(app: FastifyInstance) {
           404: errorResponseSchema.describe(
             "creditCardId doesn't exist or doesn't belong to the caller.",
           ),
+          422: errorResponseSchema.describe(
+            "The purchase's total amount exceeds the card's currently available credit.",
+          ),
         },
       },
     },
@@ -144,14 +149,24 @@ export async function createTransaction(app: FastifyInstance) {
         return reply.status(201).send([serializeTransaction(transaction)]);
       }
 
-      let card: { closingDay: number; dueDay: number } | null = null;
+      let card: Pick<
+        CreditCard,
+        "id" | "limit" | "closingDay" | "dueDay"
+      > | null = null;
       if (body.paymentMethod === "credit") {
         card = await prisma.creditCard.findFirst({
           where: { id: body.creditCardId, userId },
-          select: { closingDay: true, dueDay: true },
+          select: { id: true, limit: true, closingDay: true, dueDay: true },
         });
         if (!card) {
           return reply.status(404).send({ message: "credit card not found" });
+        }
+
+        const available = await getAvailableCredit(card);
+        if (body.amount > available) {
+          return reply
+            .status(422)
+            .send({ message: "purchase exceeds available credit" });
         }
       }
 
