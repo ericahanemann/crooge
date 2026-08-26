@@ -252,6 +252,10 @@ Subtitles: 6 variants per page per locale, randomly picked server-side with `Mat
 
 Cow icon + wordmark, same combo as the sidebar/mobile menu — the two together are the logo, so every place the wordmark appears, the icon appears next to it. `public/cow-icon.svg` (`width=44 height=44`, decorative — `alt=""`) + `public/logo.svg` (`width=120 height=40`), `flex items-center justify-center gap-1`, both `className="invert dark:invert-0"`. Works on `bg-background` in both themes.
 
+### Live password requirements (signup)
+
+The password field has no static hint text. On focus, a live checklist of the three requirements (8+ characters, a number, a symbol) appears below the field and hides again on blur; while visible, it's re-evaluated on every keystroke — no debounce, since these are cheap string checks and React already re-renders on each keystroke for a controlled input. Each row: `flex items-center gap-1.5 font-sans text-xs`, unmet = `X` icon (Lucide, `size={12}`) + `text-muted-foreground`, met = `Check` icon + `text-highlight` — reusing the same Check/highlight "confirmed" pattern as the dialogs' "keep adding" acknowledgment. The list wrapper has `aria-live="polite"` so screen readers announce progress as requirements are met.
+
 ### Monthly page layout
 
 Four stacked sections inside a scrollable `p-7 space-y-5` container:
