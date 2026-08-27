@@ -18,6 +18,7 @@ export async function BalanceCard({ balance, income }: BalanceCardProps) {
           {t("balance")}
         </p>
         <p className="font-sans text-5xl font-bold text-highlight mt-1">
+          {balance < 0 ? "-" : ""}
           {fmtCurrency(balance)}
         </p>
       </div>

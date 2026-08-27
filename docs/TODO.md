@@ -1,12 +1,12 @@
 # TODO
 
 - [ ] Allow editing/deleting a custom category after creation
-- [ ] Add an "edit profile" endpoint
 - [ ] Paginate `GET /transactions` and `GET /credit-cards/:id/bills`
 - [ ] Include the current month's open credit card bill in `/transactions/summary`'s `balance`/`spent`
 - [ ] Add edit/delete for transactions and credit cards
-- [ ] Add account/profile settings page
 - [ ] Add a way to keep recurring transactions going past their initial horizon
+- [ ] Add an "edit profile" endpoint
+- [ ] Add account/profile settings page
 - [ ] Add automated tests
 - [ ] Add Google sign-in (OAuth) — frontend already has the button, no handler wired up yet
 - [ ] Add password recovery
