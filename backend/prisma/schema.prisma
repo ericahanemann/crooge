@@ -17,6 +17,7 @@ model User {
   refreshTokens RefreshToken[]
   transactions  Transaction[]
   creditCards   CreditCard[]
+  categories    Category[]
 
   @@map("users")
 }
@@ -121,4 +122,25 @@ model CreditCardBill {
   @@unique([creditCardId, cycleMonth])
   @@index([creditCardId])
   @@map("credit_card_bills")
+}
+
+enum CategoryKind {
+  EXPENSE
+  INCOME
+}
+
+model Category {
+  id         String       @id @default(uuid())
+  userId     String       @map("user_id")
+  user       User         @relation(fields: [userId], references: [id])
+  kind       CategoryKind
+  label      String
+  icon       String       @default("tag")
+  isFallback Boolean      @default(false) @map("is_fallback")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  @@unique([userId, kind, label])
+  @@index([userId])
+  @@map("categories")
 }

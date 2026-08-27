@@ -19,6 +19,10 @@ import { getMe } from "./modules/auth/routes/get-me.ts";
 import { logout } from "./modules/auth/routes/logout.ts";
 import { refreshSession } from "./modules/auth/routes/refresh-session.ts";
 import { registerUser } from "./modules/auth/routes/register-user.ts";
+import { createCategory } from "./modules/categories/routes/create-category.ts";
+import { deleteCategory } from "./modules/categories/routes/delete-category.ts";
+import { listCategories } from "./modules/categories/routes/list-categories.ts";
+import { updateCategory } from "./modules/categories/routes/update-category.ts";
 import { createCreditCard } from "./modules/credit-cards/routes/create-credit-card.ts";
 import { getCreditCard } from "./modules/credit-cards/routes/get-credit-card.ts";
 import { listCreditCardBills } from "./modules/credit-cards/routes/list-credit-card-bills.ts";
@@ -77,6 +81,11 @@ app.register(swagger, {
         name: "credit-cards",
         description: "Credit cards and their billing cycles.",
       },
+      {
+        name: "categories",
+        description:
+          "User-defined custom categories, on top of the built-in ones.",
+      },
     ],
     components: {
       securitySchemes: {
@@ -111,6 +120,10 @@ app.register(getCreditCard);
 app.register(listCreditCardBills);
 app.register(listCreditCardTransactions);
 app.register(payCreditCardBill);
+app.register(listCategories);
+app.register(createCategory);
+app.register(updateCategory);
+app.register(deleteCategory);
 
 app.setErrorHandler<FastifyError>((error, _request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {

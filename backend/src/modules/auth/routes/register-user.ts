@@ -5,6 +5,11 @@ import { z } from "zod";
 import { Prisma } from "../../../generated/prisma/client.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import {
+  categoryKindSchema,
+  iconKeySchema,
+  KIND_TO_DB,
+} from "../../categories/schemas.ts";
 
 const registerUserBodySchema = z.object({
   name: z.string().trim().min(1).describe("Full display name."),
@@ -24,6 +29,19 @@ const registerUserBodySchema = z.object({
     })
     .describe(
       "Minimum 8 characters, with at least one number and one symbol. Hashed with argon2 before storage.",
+    ),
+  categories: z
+    .array(
+      z.object({
+        kind: categoryKindSchema,
+        label: z.string().trim().min(1),
+        icon: iconKeySchema,
+        isFallback: z.boolean().optional(),
+      }),
+    )
+    .optional()
+    .describe(
+      "Starter categories to seed for the new account, pre-localized by the caller — the backend has no translation content of its own.",
     ),
 });
 
@@ -48,14 +66,16 @@ export async function registerUser(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, email, password } = request.body;
+      const { name, email, password, categories } = request.body;
 
       const passwordHash = await hash(password);
 
+      let userId: string;
       try {
-        await prisma.user.create({
+        const user = await prisma.user.create({
           data: { name, email, password: passwordHash },
         });
+        userId = user.id;
       } catch (error) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -65,6 +85,18 @@ export async function registerUser(app: FastifyInstance) {
         }
 
         throw error;
+      }
+
+      if (categories?.length) {
+        await prisma.category.createMany({
+          data: categories.map((c) => ({
+            userId,
+            kind: KIND_TO_DB[c.kind],
+            label: c.label,
+            icon: c.icon,
+            isFallback: c.isFallback ?? false,
+          })),
+        });
       }
 
       return reply.status(201).send();
