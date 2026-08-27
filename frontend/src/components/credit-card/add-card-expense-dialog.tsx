@@ -3,7 +3,7 @@
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CategorySelect } from "@/components/monthly/category-select";
 import {
   Dialog,
@@ -15,10 +15,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
-import type { CategoryDef } from "@/lib/categories";
+import {
+  createCategoryAction,
+  deleteCategoryAction,
+  listCategoriesAction,
+  updateCategoryAction,
+} from "@/lib/category-actions";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
 import { todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
+import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Mode = "expense" | "pay";
@@ -69,10 +75,45 @@ export function AddCardExpenseDialog({
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(todayISO());
   const [category, setCategory] = useState<string | null>(null);
-  const [customCategories, setCustomCategories] = useState<CategoryDef[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    listCategoriesAction("expense").then(setCategories);
+  }, [open]);
+
+  async function handleAddCategory(
+    label: string,
+    icon: string,
+  ): Promise<Category | null> {
+    const result = await createCategoryAction("expense", label, icon);
+    if (!result.ok) return null;
+    setCategories((prev) => [...prev, result.category]);
+    return result.category;
+  }
+
+  async function handleEditCategory(
+    id: string,
+    label: string,
+    icon: string,
+  ): Promise<boolean> {
+    const result = await updateCategoryAction(id, label, icon);
+    if (!result.ok) return false;
+    setCategories((prev) =>
+      prev.map((c) => (c.id === id ? result.category : c)),
+    );
+    return true;
+  }
+
+  async function handleDeleteCategory(id: string): Promise<void> {
+    const result = await deleteCategoryAction(id);
+    if (!result.ok) return;
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    setCategory((prev) => (prev === id ? null : prev));
+  }
 
   function resetForm() {
     setMode(defaultMode);
@@ -80,7 +121,7 @@ export function AddCardExpenseDialog({
     setAmount("");
     setDate(todayISO());
     setCategory(null);
-    setCustomCategories([]);
+    setCategories([]);
     setErrors({});
     setSubmitError(null);
   }
@@ -244,13 +285,12 @@ export function AddCardExpenseDialog({
                 {tc("category")}
               </span>
               <CategorySelect
-                kind="expense"
                 value={category}
                 onChange={setCategory}
-                customCategories={customCategories}
-                onAddCustomCategory={(c) =>
-                  setCustomCategories((prev) => [...prev, c])
-                }
+                categories={categories}
+                onAdd={handleAddCategory}
+                onEdit={handleEditCategory}
+                onDelete={handleDeleteCategory}
               />
               {errors.category && (
                 <p className="text-xs text-destructive">{errors.category}</p>

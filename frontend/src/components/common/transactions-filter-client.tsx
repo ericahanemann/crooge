@@ -1,26 +1,6 @@
 "use client";
 
-import {
-  Banknote,
-  Briefcase,
-  Car,
-  Coffee,
-  Gamepad2,
-  Gift,
-  HeartPulse,
-  Home,
-  type LucideIcon,
-  MonitorPlay,
-  Music,
-  Navigation,
-  Search,
-  ShoppingBag,
-  ShoppingCart,
-  Tag,
-  TrendingUp,
-  Utensils,
-  Zap,
-} from "lucide-react";
+import { Search, Tag } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,15 +9,17 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import type { Category } from "@/lib/types";
+import { CATEGORY_ICONS } from "@/lib/category-icons";
+import type { CategoryId } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // pre-formatted transaction data ready for client-side rendering
 
 export type ResolvedTransactionItem = {
   id: string;
-  category: Category;
+  category: CategoryId;
   categoryLabel: string;
+  categoryIcon: string;
   description: string;
   formattedAmount: string;
   isIncome: boolean;
@@ -73,26 +55,6 @@ interface TransactionsFilterClientProps {
   noResultsLabel: string;
   emptyLabel: string;
 }
-
-const categoryIcons: Record<string, LucideIcon> = {
-  food: Utensils,
-  groceries: ShoppingCart,
-  transport: Car,
-  rideshare: Navigation,
-  streaming: MonitorPlay,
-  music: Music,
-  health: HeartPulse,
-  shopping: ShoppingBag,
-  utilities: Zap,
-  housing: Home,
-  entertainment: Gamepad2,
-  coffee: Coffee,
-  other: Tag,
-  salary: Banknote,
-  freelance: Briefcase,
-  gift: Gift,
-  investment: TrendingUp,
-};
 
 /**
  * client-side search + category filter over an already-formatted transaction list
@@ -219,7 +181,7 @@ export function TransactionsFilterClient({
 }
 
 function TransactionRow({ item }: { item: ResolvedTransactionItem }) {
-  const Icon = categoryIcons[item.category] ?? Tag;
+  const Icon = CATEGORY_ICONS[item.categoryIcon] ?? Tag;
   return (
     <div className="flex items-start gap-3 py-1.5 sm:py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors">
       <div className="size-9 rounded-lg bg-highlight/10 flex items-center justify-center shrink-0 mt-0.5">

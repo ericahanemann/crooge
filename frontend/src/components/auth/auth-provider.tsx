@@ -14,7 +14,7 @@ import {
   signOutAction,
   signUpAction,
 } from "@/lib/auth-actions";
-import { ApiError, type AuthUser } from "@/lib/auth-api";
+import { ApiError, type AuthUser, type SignupCategory } from "@/lib/auth-api";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -27,7 +27,12 @@ interface AuthContextValue {
   status: AuthStatus;
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    categories?: SignupCategory[],
+  ) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -88,8 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      const result = await signUpAction(name, email, password);
+    async (
+      name: string,
+      email: string,
+      password: string,
+      categories?: SignupCategory[],
+    ) => {
+      const result = await signUpAction(name, email, password, categories);
       if (!result.ok) throw new ApiError(result.status, result.message);
       await login(email, password);
     },

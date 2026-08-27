@@ -172,7 +172,10 @@ Used for the "Add Income" / "Add Expense" forms (triggered from the Balance/Spen
 - **Side-by-side fields:** fields with short, fixed-width values (amount, date, installment count) pair up in a `grid grid-cols-2 gap-3` row instead of stacking full-width. Fields that need more horizontal room to stay legible (description, category) always get their own full-width row.
 - **Footer buttons:** New **auto-width** Primary/Secondary treatment for dialog footers — same Karantina `text-2xl tracking-wide uppercase` + `hover:brightness-110`/`125` convention as the full-width card CTAs, but `px-5 py-2` instead of `w-full py-3` (a dialog footer has two buttons side by side, so full-width doesn't apply). Exposed as `DialogPrimaryButton` / `DialogSecondaryButton` in `src/components/ui/dialog.tsx`.
 - **"Keep adding":** a checkbox in the footer, left of Cancel/Add, so a user doing rapid entry (e.g. bulk-adding transactions from a receipt) doesn't have to reopen the dialog. When checked, submitting clears `description`/`amount` (and `installments` count, for expenses) but **keeps** `date`, `category`, payment method/timing/frequency, and any custom categories added this session — those are the fields consecutive entries tend to share. The dialog stays open, refocuses the description field, and shows a brief inline acknowledgment (`Check` icon + "Added", auto-fades after ~1.5s). Unchecked (default), Add validates, submits, and closes.
-- **Category picker:** `CategorySelect` (`src/components/monthly/category-select.tsx`) — a `Select` listing category icon + Karantina `text-2xl uppercase` label (`size-6 rounded-md bg-highlight/10` icon bubble, smaller than the `size-9` used in the transactions list since it sits inline in a form row), plus a trailing "+" ghost icon button. Clicking "+" swaps the row for an inline text input with confirm/cancel icon buttons; confirming appends a session-local custom category (generic `Tag` icon, no i18n — it's the user's own typed text) and selects it immediately. Custom categories persist across "keep adding" resets but not across closing and reopening the dialog.
+- **Category picker:** `CategorySelect` (`src/components/monthly/category-select.tsx`) — a `Select` listing category icon + Karantina `text-2xl uppercase` label (`size-6 rounded-md bg-highlight/10` icon bubble, smaller than the `size-9` used in the transactions list since it sits inline in a form row), plus a trailing "+" ghost icon button. Every category — the seeded starter set and anything the user creates — is the same kind of row, fetched from the backend; there's no built-in/custom split in the UI (see Categories below). Each dialog fetches the caller's categories, scoped to the relevant kind, on open.
+  - **Add:** clicking "+" swaps the whole control (Select + "+") for an inline panel: a text input with confirm/cancel icon buttons, plus an icon grid below it (`grid grid-cols-8 gap-1` of `size-7` icon buttons over the curated set — see Categories) for picking the category's icon, defaulting to the generic `Tag`. Confirming creates the category server-side with both label and icon, and selects it immediately. A duplicate label shows an inline error and keeps the panel open.
+  - **Rename/delete:** every row in the open dropdown gets small `Pencil`/`Trash2` icon buttons, revealed on hover/focus at the row's trailing edge — except the seeded "Other" category (one per kind), which only gets the pencil: it's the delete-protected fallback a deleted category's transactions get reassigned to, so there's always somewhere for them to land. Rename opens the same inline panel as "add" (pre-filled with the current label + icon) rather than editing in place inside the open listbox — nesting interactive controls inside a Base UI `Select`'s listbox risks the listbox's own keyboard handling (arrow nav, typeahead) fighting the nested controls. Delete is immediate, no confirmation step; if the deleted category was selected, the field clears.
+  - **Selected-icon state** in the grid uses the same `border-highlight bg-highlight/10 text-highlight` treatment as the payment-method option cards elsewhere in this dialog — the one other place a grid of selectable visual options exists.
 - **Segmented control:** `SegmentedControl` (`src/components/ui/segmented-control.tsx`) — hand-rolled pill toggle (not a Base UI primitive; a plain button group is simpler than fighting `toggle-group`/`tabs` APIs for a 2–3 option single-select). Style: `flex gap-1 rounded-lg bg-muted p-1`, active pill `bg-card text-foreground shadow-sm`, inactive `text-muted-foreground hover:text-foreground`. Used for Add Expense's timing (One-time / Installments / Recurring). Uses `text-xl` (not the usual `text-2xl` floor) because three long labels ("INSTALLMENTS", "RECURRING") must fit horizontally on mobile without wrapping.
 - **Option cards** (payment method): Debit/Pix vs Credit is a bigger decision than timing and benefits from more explanation, so it's two side-by-side cards (`grid grid-cols-2 gap-3`) rather than a segmented-control pill — each is `rounded-lg border p-3` with an icon (`Wallet` / `CreditCard`), the Karantina `text-2xl uppercase` label, and a one-line `text-xs text-muted-foreground` explainer ("Straight from your balance" / "On your credit card") so the distinction is unambiguous. Selected state uses the `--highlight` accent (`border-highlight bg-highlight/10`, icon + label in `text-highlight`/`text-foreground`) instead of the segmented control's neutral `bg-card` — this is the one dialog control that gets the brand accent, since it's the most consequential choice in the form (it decides which balance the expense hits).
 - **Frequency (recurring only):** a labeled `Select` (same primitive as the category picker, minus the "+" add affordance), not a segmented control — it's a plain either/or field like category, so it gets the standard field treatment (label above, `Select` below) rather than a pill toggle.
@@ -184,37 +187,15 @@ Used for the "Add Income" / "Add Expense" forms (triggered from the Balance/Spen
 
 ## Categories
 
-All category icons share the app's `--highlight` accent color — no per-category colors. Icon bubble style: `size-9 rounded-lg bg-highlight/10` with icon `text-highlight` (in the transactions list; the in-dialog `CategorySelect` uses a smaller `size-6` bubble for the same icon+color treatment). i18n keys live under `categories.expense.*` / `categories.income.*`.
+Every category is a real per-user database row — id, kind (expense/income), label, icon, and an `isFallback` flag (see below). There's no separate hardcoded "built-in" list: a fresh account is seeded at signup with the same starter set every account used to get for free, and from that point on a seeded category is edited/deleted through the exact same UI and endpoints as one the user creates by hand. All category icons share the app's `--highlight` accent color — no per-category colors. Icon bubble style: `size-9 rounded-lg bg-highlight/10` with icon `text-highlight` (in the transactions list; the in-dialog `CategorySelect` uses a smaller `size-6` bubble for the same icon+color treatment).
 
-### Expense categories
+**Seeding at signup:** `AuthSignupForm` resolves the starter set's labels via `resolveStarterCategories()` (`src/lib/categories.ts`) using the client's already-locale-resolved `useTranslations()` — i.e. the labels come back pre-translated for whichever locale the signup form is rendering in. That resolved `{kind, label, icon, isFallback}[]` array is sent as part of the `POST /users` body and inserted server-side in the same request that creates the account, so an account either has its starter categories or signup failed outright — no partial state. After that moment, the backend has no idea those labels ever came from a translation — they're just stored text, same as anything the user types into the "add category" panel. This does mean a seeded "Food" won't retranslate if the user later switches the app's language, same as a category they typed by hand.
 
-| Key | Icon |
-|-----|------|
-| `food` | `Utensils` |
-| `groceries` | `ShoppingCart` |
-| `transport` | `Car` |
-| `rideshare` | `Navigation` |
-| `streaming` | `MonitorPlay` |
-| `music` | `Music` |
-| `health` | `HeartPulse` |
-| `shopping` | `ShoppingBag` |
-| `utilities` | `Zap` |
-| `housing` | `Home` |
-| `entertainment` | `Gamepad2` |
-| `coffee` | `Coffee` |
-| `other` | `Tag` |
+**The fallback category:** exactly one seeded category per kind (the "Other" entry) carries `isFallback: true`. It can be renamed and re-iconed like any other, but never deleted — deleting any other category reassigns its transactions to that kind's fallback, so it has to always exist. `CategorySelect` reflects this by omitting the delete icon on that one row.
 
-### Income categories
+**Icon set:** a curated ~30-icon palette lives in `src/lib/category-icons.ts` (`CATEGORY_ICON_KEYS`, `CATEGORY_ICONS`, `DEFAULT_ICON_KEY`) — the single source of truth for turning a category's stored `icon` string into a Lucide component, used by both the transactions list and `CategorySelect`'s picker grid. Kept in sync by hand with the backend's `iconKeySchema` (`backend/src/modules/categories/schemas.ts`), which only validates the key and never renders anything. Lucide has no brand icons (no Uber/Netflix logos) — the set leans on generic category/lifestyle icons instead; consistent abstraction reads cleaner than mixed logos anyway.
 
-| Key | Icon |
-|-----|------|
-| `salary` | `Banknote` |
-| `freelance` | `Briefcase` |
-| `gift` | `Gift` |
-| `investment` | `TrendingUp` |
-| `other` | `Tag` |
-
-Lucide has no brand icons (no Uber/Netflix logos). Use generic category icons — consistent abstraction looks cleaner than mixed logos. Both category sets, plus any session-added custom categories, are defined in `src/lib/categories.ts` (`CategoryDef`, `defaultExpenseCategories`, `defaultIncomeCategories`) — intentionally decoupled from `mock-monthly.ts`'s `Category` union, since dialog submissions are stubs and never feed back into the mock transactions.
+The starter set itself (13 expense + 5 income entries, labels + icon key + which one is the fallback) is defined once in `src/lib/categories.ts` (`resolveStarterCategories`) — used only at signup, never fetched or rendered live.
 
 ## Pages
 

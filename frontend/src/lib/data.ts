@@ -1,5 +1,7 @@
 import { BackendError, backendFetchJson } from "./backend-fetch";
 import type {
+  Category,
+  CategoryKind,
   CreditCardBill,
   CreditCardDetail,
   CreditCardSummary,
@@ -79,5 +81,11 @@ export async function getCreditCardTransactions(
 ): Promise<Transaction[]> {
   return backendFetchJson<Transaction[]>(
     `/credit-cards/${cardId}/transactions?month=${month}`,
+  );
+}
+
+export async function getCategories(kind?: CategoryKind): Promise<Category[]> {
+  return backendFetchJson<Category[]>(
+    `/categories${kind ? `?kind=${kind}` : ""}`,
   );
 }
