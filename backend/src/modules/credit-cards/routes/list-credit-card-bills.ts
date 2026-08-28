@@ -1,6 +1,5 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import { z } from "zod";
 import {
   errorResponseSchema,
   idParamSchema,
@@ -8,10 +7,18 @@ import {
 import { prisma } from "../../../lib/prisma.ts";
 import { getBillAmount } from "../bill.ts";
 import { getCycleForDate } from "../billing-cycle.ts";
-import { creditCardBillResponseSchema } from "../schemas.ts";
+import {
+  creditCardBillsPageResponseSchema,
+  listCreditCardBillsQuerySchema,
+} from "../schemas.ts";
 import { serializeCreditCardBill } from "../serialize-bill.ts";
 
-/** All billing cycles the card has ever had a row for (past, current, and any future ones already touched by a transaction or an early payment), oldest first. */
+/**
+ * Paginated billing cycles the card has ever had a row for (past, current,
+ * and any future ones already touched by a transaction or an early
+ * payment), most recent cycle first — so page 1 always covers current +
+ * future + trailing history, the slice every existing UI actually needs.
+ */
 export async function listCreditCardBills(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
     "/credit-cards/:id/bills",
@@ -22,14 +29,16 @@ export async function listCreditCardBills(app: FastifyInstance) {
         summary: "List a card's bills",
         security: [{ bearerAuth: [] }],
         params: idParamSchema,
+        querystring: listCreditCardBillsQuerySchema,
         response: {
-          200: z.array(creditCardBillResponseSchema),
+          200: creditCardBillsPageResponseSchema,
           404: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
       const { id } = request.params;
+      const { page, pageSize } = request.query;
 
       const card = await prisma.creditCard.findFirst({
         where: { id, userId: request.user.sub },
@@ -44,19 +53,24 @@ export async function listCreditCardBills(app: FastifyInstance) {
         new Date(),
       );
 
-      const bills = await prisma.creditCardBill.findMany({
-        where: { creditCardId: card.id },
-        orderBy: { cycleMonth: "asc" },
-      });
+      const [bills, total] = await Promise.all([
+        prisma.creditCardBill.findMany({
+          where: { creditCardId: card.id },
+          orderBy: { cycleMonth: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.creditCardBill.count({ where: { creditCardId: card.id } }),
+      ]);
 
-      const serialized = await Promise.all(
+      const items = await Promise.all(
         bills.map(async (bill) => {
           const amount = await getBillAmount(card.id, bill.closingDate);
           return serializeCreditCardBill(bill, amount, currentCycleMonth);
         }),
       );
 
-      return reply.status(200).send(serialized);
+      return reply.status(200).send({ items, total, page, pageSize });
     },
   );
 }

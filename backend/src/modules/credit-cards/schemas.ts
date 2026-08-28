@@ -68,3 +68,22 @@ export const creditCardDetailResponseSchema = creditCardSummaryResponseSchema
 z.globalRegistry.add(creditCardDetailResponseSchema, {
   id: "CreditCardDetail",
 });
+
+export const listCreditCardBillsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(60).default(12),
+});
+
+/** One page of a card's bills, most recent cycle first (mirrors `GET /transactions`' newest-first convention). */
+export const creditCardBillsPageResponseSchema = z
+  .object({
+    items: z.array(creditCardBillResponseSchema),
+    total: z.number().int().describe("Total bills the card has ever had."),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+  })
+  .describe("A page of a card's bills.");
+
+z.globalRegistry.add(creditCardBillsPageResponseSchema, {
+  id: "CreditCardBillsPage",
+});
