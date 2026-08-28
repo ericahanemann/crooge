@@ -38,6 +38,13 @@ export interface CreditCardBill {
   dueDate: string;
 }
 
+export interface CreditCardBillsPage {
+  items: CreditCardBill[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface CreditCardDetail extends CreditCardSummary {
   bills: CreditCardBill[];
 }

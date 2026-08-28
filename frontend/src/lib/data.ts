@@ -3,10 +3,21 @@ import type {
   Category,
   CategoryKind,
   CreditCardBill,
+  CreditCardBillsPage,
   CreditCardDetail,
   CreditCardSummary,
   Transaction,
 } from "./types";
+
+/**
+ * `GET /credit-cards/:id/bills` is paginated server-side (max page size 60 —
+ * 5 years of monthly cycles). Every current UI (chart, current/future bill
+ * lookups) wants the whole history in one shot, so this always asks for the
+ * max page rather than the smaller default. Known limit: a card older than
+ * 5 years would need real "load more" pagination here, which nothing in the
+ * UI does yet.
+ */
+const MAX_BILLS_PAGE_SIZE = 60;
 
 // Data-fetching seam for the whole app: every server component that needs
 // account/transaction/card data calls through here instead of calling the
@@ -60,13 +71,19 @@ export async function getCreditCard(
   }
 
   try {
-    const [detail, bills] = await Promise.all([
+    const [detail, billsPage] = await Promise.all([
       backendFetchJson<CreditCardSummary & { currentBill: CreditCardBill }>(
         `/credit-cards/${cardId}`,
       ),
-      backendFetchJson<CreditCardBill[]>(`/credit-cards/${cardId}/bills`),
+      backendFetchJson<CreditCardBillsPage>(
+        `/credit-cards/${cardId}/bills?pageSize=${MAX_BILLS_PAGE_SIZE}`,
+      ),
     ]);
     const { currentBill, ...summary } = detail;
+
+    // backend returns most-recent-first; every consumer here (chart x-axis,
+    // `withCurrentBill`'s insertion logic) expects oldest-first.
+    const bills = [...billsPage.items].reverse();
 
     return { ...summary, bills: withCurrentBill(bills, currentBill) };
   } catch (error) {

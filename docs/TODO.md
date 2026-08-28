@@ -1,7 +1,7 @@
 # TODO
 
 - [ ] Allow editing/deleting a custom category after creation
-- [ ] Paginate `GET /transactions` and `GET /credit-cards/:id/bills`
+- [x] Paginate `GET /credit-cards/:id/bills` (`GET /transactions` stayed unpaginated — see `docs/next-steps.md`)
 - [ ] Include the current month's open credit card bill in `/transactions/summary`'s `balance`/`spent`
 - [ ] Add edit/delete for transactions and credit cards
 - [ ] Add a way to keep recurring transactions going past their initial horizon
