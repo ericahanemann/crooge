@@ -1,15 +1,13 @@
 // shared shapes returned by lib/data.ts, sourced from the real backend API.
-// `Category` is a plain string (not a closed union): built-in keys are
-// defined in lib/categories.ts, but a transaction's category can also be a
-// user-typed custom category, which has no fixed key.
 
-export type Category = string;
+/** Every category, seeded or user-created, is a real per-user row — see `Category` below. This is just that row's id. */
+export type CategoryId = string;
 export type TransactionTiming = "oneTime" | "installment" | "recurring";
 
 export interface Transaction {
   id: string;
   date: string;
-  category: Category;
+  category: CategoryId;
   description: string;
   amount: number;
   timing: TransactionTiming;
@@ -42,4 +40,14 @@ export interface CreditCardBill {
 
 export interface CreditCardDetail extends CreditCardSummary {
   bills: CreditCardBill[];
+}
+
+export type CategoryKind = "expense" | "income";
+
+export interface Category {
+  id: string;
+  kind: CategoryKind;
+  label: string;
+  icon: string;
+  isFallback: boolean;
 }

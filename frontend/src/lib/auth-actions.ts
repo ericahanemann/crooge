@@ -5,6 +5,7 @@ import {
   type AuthUser,
   getMe,
   refreshSession as refreshBackendSession,
+  type SignupCategory,
   signIn,
   signOut,
   signUp,
@@ -28,9 +29,10 @@ export async function signUpAction(
   name: string,
   email: string,
   password: string,
+  categories?: SignupCategory[],
 ): Promise<{ ok: true } | ActionError> {
   try {
-    await signUp({ name, email, password });
+    await signUp({ name, email, password, categories });
     return { ok: true };
   } catch (error) {
     return fromApiError(error);

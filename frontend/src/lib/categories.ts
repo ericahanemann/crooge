@@ -1,115 +1,115 @@
-import {
-  Banknote,
-  Briefcase,
-  Car,
-  Coffee,
-  Gamepad2,
-  Gift,
-  HeartPulse,
-  Home,
-  type LucideIcon,
-  MonitorPlay,
-  Music,
-  Navigation,
-  ShoppingBag,
-  ShoppingCart,
-  Tag,
-  TrendingUp,
-  Utensils,
-  Zap,
-} from "lucide-react";
+import { DEFAULT_ICON_KEY } from "./category-icons";
+import type { Category, CategoryKind } from "./types";
 
 /**
- * A selectable transaction category (expense or income) as shown in
- * `CategorySelect` and the transactions list. Built-in categories set
- * `labelKey` (resolved via next-intl); custom categories added inline in a
- * dialog set `customLabel` instead, since user-typed text has no i18n key.
+ * The starter category set, seeded as real per-user `Category` rows at
+ * signup (see `resolveStarterCategories` + `AuthSignupForm`) — there's no
+ * separate hardcoded "built-in" list live in the app anymore. `icon` values
+ * must be keys from `CATEGORY_ICON_KEYS` (`lib/category-icons.ts`).
+ * `isFallback: true` marks the one row per kind that's the delete-protected
+ * reassignment target (see `backend/src/modules/categories/routes/delete-category.ts`).
  */
-export interface CategoryDef {
-  key: string;
-  icon: LucideIcon;
-  labelKey?: string;
-  customLabel?: string;
+interface StarterCategory {
+  kind: CategoryKind;
+  labelKey: string;
+  icon: string;
+  isFallback?: boolean;
 }
 
-export const defaultExpenseCategories: CategoryDef[] = [
-  { key: "food", icon: Utensils, labelKey: "categories.expense.food" },
+const starterCategories: StarterCategory[] = [
+  { kind: "expense", labelKey: "categories.expense.food", icon: "utensils" },
   {
-    key: "groceries",
-    icon: ShoppingCart,
+    kind: "expense",
     labelKey: "categories.expense.groceries",
+    icon: "shopping-cart",
   },
+  { kind: "expense", labelKey: "categories.expense.transport", icon: "car" },
   {
-    key: "transport",
-    icon: Car,
-    labelKey: "categories.expense.transport",
-  },
-  {
-    key: "rideshare",
-    icon: Navigation,
+    kind: "expense",
     labelKey: "categories.expense.rideshare",
+    icon: "navigation",
   },
   {
-    key: "streaming",
-    icon: MonitorPlay,
+    kind: "expense",
     labelKey: "categories.expense.streaming",
+    icon: "monitor-play",
   },
-  { key: "music", icon: Music, labelKey: "categories.expense.music" },
+  { kind: "expense", labelKey: "categories.expense.music", icon: "music" },
   {
-    key: "health",
-    icon: HeartPulse,
+    kind: "expense",
     labelKey: "categories.expense.health",
+    icon: "heart-pulse",
   },
   {
-    key: "shopping",
-    icon: ShoppingBag,
+    kind: "expense",
     labelKey: "categories.expense.shopping",
+    icon: "shopping-bag",
   },
+  { kind: "expense", labelKey: "categories.expense.utilities", icon: "zap" },
+  { kind: "expense", labelKey: "categories.expense.housing", icon: "home" },
   {
-    key: "utilities",
-    icon: Zap,
-    labelKey: "categories.expense.utilities",
-  },
-  { key: "housing", icon: Home, labelKey: "categories.expense.housing" },
-  {
-    key: "entertainment",
-    icon: Gamepad2,
+    kind: "expense",
     labelKey: "categories.expense.entertainment",
+    icon: "gamepad-2",
   },
-  { key: "coffee", icon: Coffee, labelKey: "categories.expense.coffee" },
-  { key: "other", icon: Tag, labelKey: "categories.expense.other" },
-];
-
-export const defaultIncomeCategories: CategoryDef[] = [
-  { key: "salary", icon: Banknote, labelKey: "categories.income.salary" },
+  { kind: "expense", labelKey: "categories.expense.coffee", icon: "coffee" },
   {
-    key: "freelance",
-    icon: Briefcase,
+    kind: "expense",
+    labelKey: "categories.expense.other",
+    icon: "tag",
+    isFallback: true,
+  },
+  { kind: "income", labelKey: "categories.income.salary", icon: "banknote" },
+  {
+    kind: "income",
     labelKey: "categories.income.freelance",
+    icon: "briefcase",
   },
-  { key: "gift", icon: Gift, labelKey: "categories.income.gift" },
+  { kind: "income", labelKey: "categories.income.gift", icon: "gift" },
   {
-    key: "investment",
-    icon: TrendingUp,
+    kind: "income",
     labelKey: "categories.income.investment",
+    icon: "trending-up",
   },
-  { key: "other", icon: Tag, labelKey: "categories.income.other" },
+  {
+    kind: "income",
+    labelKey: "categories.income.other",
+    icon: "tag",
+    isFallback: true,
+  },
 ];
 
-/** Resolves the display label for a category: translated for built-ins, verbatim for custom ones. */
-export function categoryLabel(
-  category: CategoryDef,
-  t: (key: string) => string,
-): string {
-  return category.customLabel ?? t(category.labelKey ?? "");
+/** Resolves the starter set into signup-ready seed data, labels translated via `t` for the signup locale. */
+export function resolveStarterCategories(t: (key: string) => string): Array<{
+  kind: CategoryKind;
+  label: string;
+  icon: string;
+  isFallback?: boolean;
+}> {
+  return starterCategories.map((c) => ({
+    kind: c.kind,
+    label: t(c.labelKey),
+    icon: c.icon,
+    isFallback: c.isFallback,
+  }));
 }
 
-/** Turns a user-typed custom category label into a unique `CategoryDef.key` (slug + timestamp, since there's no backend id yet). */
-export function slugifyCategoryKey(label: string): string {
-  const base = label
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-  return `${base || "category"}-${Date.now()}`;
+/**
+ * Resolves a transaction's stored `category` id into a display label + icon
+ * key, given the caller's fetched categories (any kind — a transaction's
+ * category id is a specific row, so kind doesn't matter for the lookup).
+ * Falls back to `unknownLabel`/the default icon if the id isn't found —
+ * happens only when a category was deleted with no fallback category to
+ * reassign to (accounts created before per-account seeding existed have
+ * none), so the transaction is left pointing at a since-deleted id.
+ */
+export function resolveCategory(
+  categoryId: string,
+  categories: Category[],
+  unknownLabel: string,
+): { label: string; icon: string } {
+  const found = categories.find((c) => c.id === categoryId);
+  return found
+    ? { label: found.label, icon: found.icon }
+    : { label: unknownLabel, icon: DEFAULT_ICON_KEY };
 }

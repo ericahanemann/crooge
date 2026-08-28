@@ -8,11 +8,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/auth-api";
+import { resolveStarterCategories } from "@/lib/categories";
 import { GoogleIcon } from "./google-icon";
 
 /** sign-up form (name + email + password + google button); wired to `useAuth().register`, no google handler yet */
 export function AuthSignupForm() {
   const t = useTranslations("auth.signup");
+  // untranslated root translator — `resolveStarterCategories` needs the
+  // full dotted `categories.expense.*`/`categories.income.*` keys, not a
+  // namespace-scoped one, since it's shared with server components that
+  // resolve the same keys from different namespaces.
+  const tRoot = useTranslations();
   const router = useRouter();
   const { register } = useAuth();
   const [name, setName] = useState("");
@@ -45,7 +51,7 @@ export function AuthSignupForm() {
     setSubmitting(true);
 
     try {
-      await register(name, email, password);
+      await register(name, email, password, resolveStarterCategories(tRoot));
       router.push("/");
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {

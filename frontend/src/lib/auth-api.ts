@@ -30,10 +30,18 @@ export interface AuthUser {
   email: string;
 }
 
+export interface SignupCategory {
+  kind: "expense" | "income";
+  label: string;
+  icon: string;
+  isFallback?: boolean;
+}
+
 export async function signUp(input: {
   name: string;
   email: string;
   password: string;
+  categories?: SignupCategory[];
 }): Promise<void> {
   const response = await fetch(`${API_URL}/users`, {
     method: "POST",

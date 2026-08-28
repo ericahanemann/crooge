@@ -23,7 +23,7 @@ export const transactionResponseSchema = z
     category: z
       .string()
       .describe(
-        "Free-text category key. Built-in keys are defined client-side; users may also type a custom one, which is stored verbatim.",
+        "Either a built-in category key (defined client-side) or the id of one of the caller's custom categories (see GET /categories).",
       ),
     description: z.string(),
     amount: z

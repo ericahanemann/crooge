@@ -5,7 +5,8 @@ import {
   type ResolvedTransactionItem,
   TransactionsFilterClient,
 } from "@/components/common/transactions-filter-client";
-import { getMonthlyTransactions } from "@/lib/data";
+import { resolveCategory } from "@/lib/categories";
+import { getCategories, getMonthlyTransactions } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
 /**
@@ -20,23 +21,27 @@ import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
  */
 export async function TransactionsList({ month }: { month: string }) {
   const t = await getTranslations("monthly");
-  const tCatExp = await getTranslations("categories.expense");
-  const tCatInc = await getTranslations("categories.income");
+  const tCommon = await getTranslations("dialogs.common");
   const locale = await getLocale();
-  const transactions = await getMonthlyTransactions(month);
+  const [transactions, categories] = await Promise.all([
+    getMonthlyTransactions(month),
+    getCategories(),
+  ]);
+  const unknownLabel = tCommon("unknownCategory");
 
   const grouped: Record<string, ResolvedTransactionItem[]> = {};
   const seenCategories = new Set<string>();
-  const categories: ResolvedCategoryOption[] = [];
+  const categoryOptions: ResolvedCategoryOption[] = [];
 
   for (const tx of transactions) {
     const isIncome = tx.amount > 0;
-    const tCat = isIncome ? tCatInc : tCatExp;
+    const resolved = resolveCategory(tx.category, categories, unknownLabel);
 
     const item: ResolvedTransactionItem = {
       id: tx.id,
       category: tx.category,
-      categoryLabel: tCat(tx.category),
+      categoryLabel: resolved.label,
+      categoryIcon: resolved.icon,
       description: tx.description,
       formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount)}`,
       isIncome,
@@ -61,7 +66,7 @@ export async function TransactionsList({ month }: { month: string }) {
 
     if (!seenCategories.has(tx.category)) {
       seenCategories.add(tx.category);
-      categories.push({ key: tx.category, label: tCat(tx.category) });
+      categoryOptions.push({ key: tx.category, label: item.categoryLabel });
     }
   }
 
@@ -79,7 +84,7 @@ export async function TransactionsList({ month }: { month: string }) {
   return (
     <TransactionsFilterClient
       groups={groups}
-      categories={categories}
+      categories={categoryOptions}
       title={t("transactions")}
       searchPlaceholder={t("searchPlaceholder")}
       allCategoriesLabel={t("allCategories")}
