@@ -82,6 +82,8 @@ model Transaction {
   groupId            String?             @map("group_id")
   creditCardId       String?             @map("credit_card_id")
   creditCard         CreditCard?         @relation(fields: [creditCardId], references: [id])
+  creditCardBillId   String?             @unique @map("credit_card_bill_id")
+  creditCardBill     CreditCardBill?     @relation(fields: [creditCardBillId], references: [id])
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
 
@@ -110,14 +112,15 @@ model CreditCard {
 }
 
 model CreditCardBill {
-  id           String     @id @default(uuid())
-  creditCardId String     @map("credit_card_id")
-  creditCard   CreditCard @relation(fields: [creditCardId], references: [id])
-  cycleMonth   String     @map("cycle_month")
-  closingDate  DateTime   @map("closing_date") @db.Date
-  dueDate      DateTime   @map("due_date") @db.Date
-  paidAt       DateTime?  @map("paid_at")
-  paidAmount   Decimal?   @map("paid_amount") @db.Decimal(12, 2)
+  id           String       @id @default(uuid())
+  creditCardId String       @map("credit_card_id")
+  creditCard   CreditCard   @relation(fields: [creditCardId], references: [id])
+  cycleMonth   String       @map("cycle_month")
+  closingDate  DateTime     @map("closing_date") @db.Date
+  dueDate      DateTime     @map("due_date") @db.Date
+  paidAt       DateTime?    @map("paid_at")
+  paidAmount   Decimal?     @map("paid_amount") @db.Decimal(12, 2)
+  transaction  Transaction?
 
   @@unique([creditCardId, cycleMonth])
   @@index([creditCardId])
@@ -137,6 +140,7 @@ model Category {
   label      String
   icon       String       @default("tag")
   isFallback Boolean      @default(false) @map("is_fallback")
+  isSystem   Boolean      @default(false) @map("is_system")
   createdAt  DateTime     @default(now()) @map("created_at")
   updatedAt  DateTime     @updatedAt @map("updated_at")
 

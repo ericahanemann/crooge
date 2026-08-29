@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { monthQuerySchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import { materializeOverdueBills } from "../../credit-cards/materialize-bill-transaction.ts";
 import { monthRange } from "../month-range.ts";
 import { transactionResponseSchema } from "../schemas.ts";
 import { serializeTransaction } from "../serialize.ts";
@@ -24,6 +25,8 @@ export async function listTransactions(app: FastifyInstance) {
     async (request, reply) => {
       const { month } = request.query;
       const { start, end } = monthRange(month);
+
+      await materializeOverdueBills(request.user.sub);
 
       const transactions = await prisma.transaction.findMany({
         where: {

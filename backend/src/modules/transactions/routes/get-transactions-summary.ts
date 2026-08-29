@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { monthQuerySchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import { materializeOverdueBills } from "../../credit-cards/materialize-bill-transaction.ts";
 import { monthRange } from "../month-range.ts";
 
 const summaryResponseSchema = z
@@ -24,7 +25,7 @@ const summaryResponseSchema = z
       ),
   })
   .describe(
-    "Credit card spend is intentionally excluded from all three fields: it hits the card's bill, not the account balance, until the bill is paid.",
+    "A card purchase itself is excluded from all three fields: it hits the card's bill, not the account balance. Once the bill's due date arrives (or it's paid early), the bill materializes into a real, read-only, non-card Transaction — see `credit-cards/materialize-bill-transaction.ts` — and from that point on IS counted here like any other expense.",
   );
 
 /** Balance + this month's income/spent, for the Monthly page's summary cards. */
@@ -45,6 +46,8 @@ export async function getTransactionsSummary(app: FastifyInstance) {
       const { month } = request.query;
       const userId = request.user.sub;
       const { start, end } = monthRange(month);
+
+      await materializeOverdueBills(userId);
 
       const [monthIncome, monthExpense, allIncome, allExpense] =
         await Promise.all([

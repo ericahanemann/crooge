@@ -64,6 +64,11 @@ export const categoryResponseSchema = z
       .describe(
         'True for exactly one category per kind (seeded at signup as "Other") — the reassignment target when another category is deleted. Can\'t itself be deleted.',
       ),
+    isSystem: z
+      .boolean()
+      .describe(
+        'True for backend-managed categories (currently just the lazily-created "Credit Card Bill" expense category used by materialized bill transactions — see `credit-cards/materialize-bill-transaction.ts`). Can\'t be deleted, and hidden from the manual category picker in the expense dialogs.',
+      ),
   })
   .describe("A category.");
 

@@ -39,7 +39,9 @@ interface CategorySelectProps {
 /**
  * category dropdown used inside add income/expense dialogs. Every row gets
  * hover-revealed rename/delete icons (delete omitted for the seeded
- * "Other" category — it's the delete-protected fallback target). Both
+ * "Other" category — it's the delete-protected fallback target — and for
+ * any backend-managed `isSystem` category, though callers currently filter
+ * those out of the list entirely before it reaches here). Both
  * close the dropdown and swap the whole control into an inline panel
  * (label input + icon grid + confirm/cancel) rather than editing in place
  * inside the open listbox — nesting interactive controls inside a Base UI
@@ -260,7 +262,7 @@ export function CategorySelect({
                   >
                     <Pencil size={12} />
                   </Button>
-                  {!category.isFallback && (
+                  {!category.isFallback && !category.isSystem && (
                     <Button
                       type="button"
                       variant="ghost"

@@ -10,5 +10,6 @@ export function serializeCategory(category: Category) {
     // `iconKeySchema` only at write time — trusted here, not re-checked.
     icon: category.icon as IconKey,
     isFallback: category.isFallback,
+    isSystem: category.isSystem,
   };
 }
