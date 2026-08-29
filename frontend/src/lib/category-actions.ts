@@ -72,11 +72,20 @@ export async function deleteCategoryAction(
  * A read, but exposed as a server action (not a `lib/data.ts` fetch) so it's
  * directly callable from the client-side dialog components that own the
  * category picker's local state.
+ *
+ * Filters out `isSystem` categories (currently just the backend-managed
+ * "Credit Card Bill" category materialized bill transactions use) — this
+ * feeds the manual category picker in the add income/expense dialogs, and a
+ * user manually filing a transaction under it would defeat the point of
+ * having it. `lib/data.ts`'s `getCategories()` (used to *resolve/display* a
+ * transaction's existing category, including on synthetic rows) is
+ * unaffected — this filtering is specific to the picker.
  */
 export async function listCategoriesAction(
   kind: CategoryKind,
 ): Promise<Category[]> {
   const response = await backendFetch(`/categories?kind=${kind}`);
   if (!response.ok) return [];
-  return response.json();
+  const categories: Category[] = await response.json();
+  return categories.filter((c) => !c.isSystem);
 }

@@ -57,4 +57,5 @@ export interface Category {
   label: string;
   icon: string;
   isFallback: boolean;
+  isSystem: boolean;
 }
