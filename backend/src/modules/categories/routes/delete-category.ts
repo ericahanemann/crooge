@@ -10,7 +10,10 @@ import { prisma } from "../../../lib/prisma.ts";
 /**
  * Deletes a category. The seeded "Other" category (`isFallback`) can't be
  * deleted — it's the reassignment target below, and without it there'd be
- * nothing to fall back to.
+ * nothing to fall back to. Backend-managed categories (`isSystem`, e.g. the
+ * "Credit Card Bill" category materialized bill transactions use) can't be
+ * deleted either — deleting it wouldn't stop those transactions from
+ * existing, just orphan their category reference.
  *
  * Any transactions still using the deleted category are reassigned to the
  * caller's `isFallback` category for that kind. Accounts with no fallback
@@ -51,6 +54,11 @@ export async function deleteCategory(app: FastifyInstance) {
         return reply
           .status(409)
           .send({ message: "can't delete the default category" });
+      }
+      if (existing.isSystem) {
+        return reply
+          .status(409)
+          .send({ message: "can't delete a system category" });
       }
 
       const fallback = await prisma.category.findFirst({

@@ -23,7 +23,7 @@ export const transactionResponseSchema = z
     category: z
       .string()
       .describe(
-        "Either a built-in category key (defined client-side) or the id of one of the caller's custom categories (see GET /categories).",
+        "The id of one of the caller's categories (see GET /categories) — every category, seeded or user-created, is a real per-user row.",
       ),
     description: z.string(),
     amount: z

@@ -8,6 +8,7 @@ import {
 import { prisma } from "../../../lib/prisma.ts";
 import { getBillAmount } from "../bill.ts";
 import { getCycleForDate } from "../billing-cycle.ts";
+import { materializeBillTransaction } from "../materialize-bill-transaction.ts";
 import { creditCardBillResponseSchema } from "../schemas.ts";
 import { serializeCreditCardBill } from "../serialize-bill.ts";
 
@@ -29,6 +30,10 @@ const bodySchema = z
  * frontend does by calling this once per selected future bill. Keyed by
  * `month` (the cycle key) rather than a bill ID, since bills have no ID in
  * the frontend's existing data shape and `month` is already unique per card.
+ *
+ * Also materializes (or, if the due date already auto-materialized it,
+ * corrects the amount of) the read-only account-side Transaction this bill
+ * turns into once it hits the balance — see `materialize-bill-transaction.ts`.
  */
 export async function payCreditCardBill(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -50,13 +55,15 @@ export async function payCreditCardBill(app: FastifyInstance) {
     async (request, reply) => {
       const { id, month } = request.params;
       const { amount } = request.body;
+      const userId = request.user.sub;
 
       const bill = await prisma.creditCardBill.findFirst({
         where: {
           cycleMonth: month,
           creditCardId: id,
-          creditCard: { userId: request.user.sub },
+          creditCard: { userId },
         },
+        include: { creditCard: true },
       });
       if (!bill) {
         return reply.status(404).send({ message: "bill not found" });
@@ -65,17 +72,26 @@ export async function payCreditCardBill(app: FastifyInstance) {
       const paidAmount =
         amount ?? (await getBillAmount(bill.creditCardId, bill.closingDate));
 
-      const updated = await prisma.creditCardBill.update({
-        where: { id: bill.id },
-        data: { paidAt: new Date(), paidAmount },
+      const updated = await prisma.$transaction(async (tx) => {
+        const updatedBill = await tx.creditCardBill.update({
+          where: { id: bill.id },
+          data: { paidAt: new Date(), paidAmount },
+        });
+
+        await materializeBillTransaction(tx, {
+          userId,
+          card: bill.creditCard,
+          bill: updatedBill,
+          amount: paidAmount,
+          date: new Date(),
+        });
+
+        return updatedBill;
       });
 
-      const card = await prisma.creditCard.findUniqueOrThrow({
-        where: { id: updated.creditCardId },
-      });
       const { cycleMonth: currentCycleMonth } = getCycleForDate(
-        card.closingDay,
-        card.dueDay,
+        bill.creditCard.closingDay,
+        bill.creditCard.dueDay,
         new Date(),
       );
       const amountDue = await getBillAmount(
