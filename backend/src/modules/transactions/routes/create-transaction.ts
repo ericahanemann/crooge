@@ -155,7 +155,7 @@ export async function createTransaction(app: FastifyInstance) {
       > | null = null;
       if (body.paymentMethod === "credit") {
         card = await prisma.creditCard.findFirst({
-          where: { id: body.creditCardId, userId },
+          where: { id: body.creditCardId, userId, archivedAt: null },
           select: { id: true, limit: true, closingDay: true, dueDay: true },
         });
         if (!card) {

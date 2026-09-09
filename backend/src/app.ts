@@ -24,6 +24,7 @@ import { deleteCategory } from "./modules/categories/routes/delete-category.ts";
 import { listCategories } from "./modules/categories/routes/list-categories.ts";
 import { updateCategory } from "./modules/categories/routes/update-category.ts";
 import { createCreditCard } from "./modules/credit-cards/routes/create-credit-card.ts";
+import { deleteCreditCard } from "./modules/credit-cards/routes/delete-credit-card.ts";
 import { getCreditCard } from "./modules/credit-cards/routes/get-credit-card.ts";
 import { listCreditCardBills } from "./modules/credit-cards/routes/list-credit-card-bills.ts";
 import { listCreditCardTransactions } from "./modules/credit-cards/routes/list-credit-card-transactions.ts";
@@ -31,8 +32,10 @@ import { listCreditCards } from "./modules/credit-cards/routes/list-credit-cards
 import { payCreditCardBill } from "./modules/credit-cards/routes/pay-credit-card-bill.ts";
 import { updateCreditCard } from "./modules/credit-cards/routes/update-credit-card.ts";
 import { createTransaction } from "./modules/transactions/routes/create-transaction.ts";
+import { deleteTransaction } from "./modules/transactions/routes/delete-transaction.ts";
 import { getTransactionsSummary } from "./modules/transactions/routes/get-transactions-summary.ts";
 import { listTransactions } from "./modules/transactions/routes/list-transactions.ts";
+import { updateTransaction } from "./modules/transactions/routes/update-transaction.ts";
 
 export const app = fastify();
 
@@ -113,8 +116,11 @@ app.register(getMe);
 app.register(createTransaction);
 app.register(listTransactions);
 app.register(getTransactionsSummary);
+app.register(updateTransaction);
+app.register(deleteTransaction);
 app.register(createCreditCard);
 app.register(updateCreditCard);
+app.register(deleteCreditCard);
 app.register(listCreditCards);
 app.register(getCreditCard);
 app.register(listCreditCardBills);
