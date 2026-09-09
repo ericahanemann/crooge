@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { CreditCardDetail } from "@/lib/types";
 import { AddCreditCardDialog } from "./add-credit-card-dialog";
+import { ArchiveCreditCardButton } from "./archive-credit-card-button";
 import { CardSelector } from "./card-selector";
 import { CardVisual } from "./card-visual";
 
@@ -74,6 +75,10 @@ export async function CardShowcase({
           <div className="flex items-center gap-3">
             <CardSelector cards={cards} selectedCard={selectedCard} />
             <AddCreditCardDialog key={card.id} card={card} />
+            <ArchiveCreditCardButton
+              key={`archive-${card.id}`}
+              cardId={card.id}
+            />
             <AddCreditCardDialog variant="icon" />
           </div>
           <div className="h-px bg-border" />

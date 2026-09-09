@@ -1,7 +1,13 @@
 "use client";
 
-import { Search, Tag } from "lucide-react";
+import { Pencil, Search, Tag, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import {
+  type EditableTransaction,
+  EditTransactionDialog,
+} from "@/components/common/edit-transaction-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,19 +16,32 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
-import type { CategoryId } from "@/lib/types";
+import { deleteTransactionAction } from "@/lib/transaction-actions";
+import type {
+  CategoryId,
+  TransactionPaymentMethod,
+  TransactionTiming,
+} from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // pre-formatted transaction data ready for client-side rendering
 
 export type ResolvedTransactionItem = {
   id: string;
+  date: string;
   category: CategoryId;
   categoryLabel: string;
   categoryIcon: string;
   description: string;
+  /** Unsigned — sign is implied by `isIncome`, same convention as the create/edit dialogs. */
+  amount: number;
   formattedAmount: string;
   isIncome: boolean;
+  timing: TransactionTiming;
+  paymentMethod?: TransactionPaymentMethod;
+  /** Only present when paymentMethod is "credit". */
+  creditCardId?: string;
+  readOnly: boolean;
   badge?: {
     label: string;
     highlight: boolean;
@@ -45,6 +64,10 @@ export type ResolvedCategoryOption = {
  * @prop categories - categories present in `groups`, for the filter `Select` (not the full category list — only ones with at least one transaction).
  * @prop emptyLabel - shown when `groups` itself is empty (no transactions at all).
  * @prop noResultsLabel - shown when `groups` has data but the current search/category filter matches nothing.
+ * @prop fixedCreditCardId - passed through to `EditTransactionDialog` — set
+ *   from the credit-card page's transaction list, where every row is
+ *   implicitly on this one card and the payment-method toggle should stay
+ *   hidden (mirrors `AddCardExpenseDialog`).
  */
 interface TransactionsFilterClientProps {
   groups: ResolvedTransactionGroup[];
@@ -54,12 +77,16 @@ interface TransactionsFilterClientProps {
   allCategoriesLabel: string;
   noResultsLabel: string;
   emptyLabel: string;
+  fixedCreditCardId?: string;
 }
 
 /**
  * client-side search + category filter over an already-formatted transaction list
  *
- * shared by the Monthly and Credit Card transaction sections
+ * shared by the Monthly and Credit Card transaction sections. Also owns the
+ * edit/delete dialogs — a single `EditTransactionDialog`/`ConfirmDialog`
+ * pair shared across every row, driven by `editingId`/`deletingId` rather
+ * than one dialog instance per row.
  */
 export function TransactionsFilterClient({
   groups,
@@ -69,9 +96,18 @@ export function TransactionsFilterClient({
   allCategoriesLabel,
   noResultsLabel,
   emptyLabel,
+  fixedCreditCardId,
 }: TransactionsFilterClientProps) {
+  const t = useTranslations("dialogs.editTransaction");
+  const tc = useTranslations("dialogs.common");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const allItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
+  const editingItem = allItems.find((i) => i.id === editingId) ?? null;
+  const deletingItem = allItems.find((i) => i.id === deletingId) ?? null;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -169,21 +205,75 @@ export function TransactionsFilterClient({
               </p>
               <div className="space-y-1">
                 {group.items.map((item) => (
-                  <TransactionRow key={item.id} item={item} />
+                  <TransactionRow
+                    key={item.id}
+                    item={item}
+                    onEdit={() => setEditingId(item.id)}
+                    onDelete={() => setDeletingId(item.id)}
+                  />
                 ))}
               </div>
             </div>
           ))}
         </div>
       )}
+
+      <EditTransactionDialog
+        transaction={
+          editingItem &&
+          ({
+            id: editingItem.id,
+            description: editingItem.description,
+            amount: editingItem.amount,
+            date: editingItem.date,
+            category: editingItem.category,
+            isIncome: editingItem.isIncome,
+            timing: editingItem.timing,
+            paymentMethod: editingItem.paymentMethod,
+            creditCardId: editingItem.creditCardId,
+          } satisfies EditableTransaction)
+        }
+        open={editingId != null}
+        onOpenChange={(next) => {
+          if (!next) setEditingId(null);
+        }}
+        fixedCreditCardId={fixedCreditCardId}
+      />
+
+      <ConfirmDialog
+        open={deletingId != null}
+        onOpenChange={(next) => {
+          if (!next) setDeletingId(null);
+        }}
+        title={t("deleteTitle")}
+        description={
+          deletingItem?.timing !== "oneTime"
+            ? t("deleteSeriesDescription")
+            : t("deleteDescription")
+        }
+        confirmLabel={tc("delete")}
+        cancelLabel={tc("cancel")}
+        onConfirm={async () => {
+          if (!deletingId) return { ok: true };
+          return deleteTransactionAction(deletingId);
+        }}
+      />
     </div>
   );
 }
 
-function TransactionRow({ item }: { item: ResolvedTransactionItem }) {
+function TransactionRow({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: ResolvedTransactionItem;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const Icon = CATEGORY_ICONS[item.categoryIcon] ?? Tag;
   return (
-    <div className="flex items-start gap-3 py-1.5 sm:py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+    <div className="group flex items-start gap-3 py-1.5 sm:py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors">
       <div className="size-9 rounded-lg bg-highlight/10 flex items-center justify-center shrink-0 mt-0.5">
         <Icon size={16} className="text-highlight" strokeWidth={1.5} />
       </div>
@@ -209,14 +299,34 @@ function TransactionRow({ item }: { item: ResolvedTransactionItem }) {
           {item.description}
         </p>
       </div>
-      <p
-        className={cn(
-          "font-sans font-semibold text-sm shrink-0",
-          item.isIncome ? "text-highlight" : "text-foreground",
+      <div className="flex items-center gap-2 shrink-0">
+        <p
+          className={cn(
+            "font-sans font-semibold text-sm",
+            item.isIncome ? "text-highlight" : "text-foreground",
+          )}
+        >
+          {item.formattedAmount}
+        </p>
+        {!item.readOnly && (
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+            <button
+              type="button"
+              onClick={onEdit}
+              className="flex items-center justify-center size-6 rounded text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+            >
+              <Pencil size={13} strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              className="flex items-center justify-center size-6 rounded text-muted-foreground hover:text-destructive hover:bg-muted cursor-pointer"
+            >
+              <Trash2 size={13} strokeWidth={1.5} />
+            </button>
+          </div>
         )}
-      >
-        {item.formattedAmount}
-      </p>
+      </div>
     </div>
   );
 }

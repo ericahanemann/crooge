@@ -1,9 +1,9 @@
 # TODO
 
-- [ ] Allow editing/deleting a custom category after creation
+- [x] Allow editing/deleting a custom category after creation (already shipped with the unified-categories work — `update-category.ts`/`delete-category.ts` — checkbox was just stale)
 - [x] Paginate `GET /credit-cards/:id/bills` (`GET /transactions` stayed unpaginated — see `docs/next-steps.md`)
 - [x] Include the current month's open credit card bill in `/transactions/summary`'s `balance`/`spent`
-- [ ] Add edit/delete for transactions and credit cards
+- [x] Add edit/delete for transactions and credit cards
 - [ ] Add a way to keep recurring transactions going past their initial horizon
 - [ ] Add an "edit profile" endpoint
 - [ ] Add account/profile settings page

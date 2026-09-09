@@ -43,12 +43,18 @@ export async function CreditCardTransactionsList({
 
     const item: ResolvedTransactionItem = {
       id: tx.id,
+      date: tx.date,
       category: tx.category,
       categoryLabel: resolved.label,
       categoryIcon: resolved.icon,
       description: tx.description,
+      amount: Math.abs(tx.amount),
       formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount)}`,
       isIncome,
+      timing: tx.timing,
+      paymentMethod: tx.paymentMethod,
+      creditCardId: tx.creditCardId,
+      readOnly: tx.readOnly,
       badge:
         tx.timing === "installment"
           ? {
@@ -94,6 +100,7 @@ export async function CreditCardTransactionsList({
       allCategoriesLabel={t("allCategories")}
       noResultsLabel={t("noResults")}
       emptyLabel={t("emptyTransactions")}
+      fixedCreditCardId={cardId}
     />
   );
 }

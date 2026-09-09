@@ -63,7 +63,8 @@
       "errorRequired": "Obrigatório",
       "errorPositive": "Deve ser um número positivo",
       "errorGeneric": "Algo deu errado. Tente novamente.",
-      "save": "SALVAR"
+      "save": "SALVAR",
+      "delete": "EXCLUIR"
     },
     "income": {
       "title": "ADICIONAR RENDA"
@@ -97,6 +98,13 @@
       "dueDay": "DIA DE VENCIMENTO",
       "errorDayRange": "Deve ser entre 1 e 28",
       "editTitle": "EDITAR CARTÃO"
+    },
+    "editTransaction": {
+      "title": "EDITAR TRANSAÇÃO",
+      "seriesNotice": "Esta transação faz parte de uma série parcelada ou recorrente — aqui só é possível editar o nome e a categoria.",
+      "deleteTitle": "EXCLUIR TRANSAÇÃO",
+      "deleteDescription": "Tem certeza que deseja excluir esta transação? Essa ação não pode ser desfeita.",
+      "deleteSeriesDescription": "Esta transação faz parte de uma série parcelada ou recorrente. Excluí-la cancela esta ocorrência e todas as seguintes — as ocorrências anteriores permanecem no seu histórico. Essa ação não pode ser desfeita."
     }
   },
   "creditCards": {
@@ -122,7 +130,11 @@
     "selectStatements": "SELECIONAR FATURAS",
     "confirm": "CONFIRMAR",
     "noCards": "NENHUM CARTÃO AINDA",
-    "editCard": "EDITAR CARTÃO"
+    "editCard": "EDITAR CARTÃO",
+    "archiveCard": "ARQUIVAR CARTÃO",
+    "archiveTitle": "ARQUIVAR CARTÃO",
+    "archiveDescription": "Arquivar oculta este cartão do seletor de cartões, mas mantém todas as suas transações e faturas no seu histórico. Não é possível arquivar um cartão com saldo em aberto na fatura atual.",
+    "archiveErrorBalance": "Este cartão tem saldo em aberto na fatura atual — pague-a antes de arquivar."
   },
   "notFound": {
     "title": "PÁGINA NÃO ENCONTRADA",
