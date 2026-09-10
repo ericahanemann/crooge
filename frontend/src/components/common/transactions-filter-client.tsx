@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Search, Tag, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
@@ -100,6 +101,7 @@ export function TransactionsFilterClient({
 }: TransactionsFilterClientProps) {
   const t = useTranslations("dialogs.editTransaction");
   const tc = useTranslations("dialogs.common");
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -255,7 +257,10 @@ export function TransactionsFilterClient({
         cancelLabel={tc("cancel")}
         onConfirm={async () => {
           if (!deletingId) return { ok: true };
-          return deleteTransactionAction(deletingId);
+          const result = await deleteTransactionAction(deletingId);
+          if (!result.ok) return result;
+          router.refresh();
+          return { ok: true };
         }}
       />
     </div>
@@ -273,8 +278,8 @@ function TransactionRow({
 }) {
   const Icon = CATEGORY_ICONS[item.categoryIcon] ?? Tag;
   return (
-    <div className="group flex items-start gap-3 py-1.5 sm:py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors">
-      <div className="size-9 rounded-lg bg-highlight/10 flex items-center justify-center shrink-0 mt-0.5">
+    <div className="flex items-center gap-3 py-1.5 sm:py-2.5 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+      <div className="size-9 rounded-lg bg-highlight/10 flex items-center justify-center shrink-0">
         <Icon size={16} className="text-highlight" strokeWidth={1.5} />
       </div>
       <div className="flex-1 min-w-0">
@@ -309,7 +314,7 @@ function TransactionRow({
           {item.formattedAmount}
         </p>
         {!item.readOnly && (
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+          <div className="flex items-center gap-0.5">
             <button
               type="button"
               onClick={onEdit}
