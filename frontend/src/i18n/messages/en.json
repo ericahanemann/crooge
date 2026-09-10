@@ -63,7 +63,8 @@
       "errorRequired": "Required",
       "errorPositive": "Must be a positive number",
       "errorGeneric": "Something went wrong. Please try again.",
-      "save": "SAVE"
+      "save": "SAVE",
+      "delete": "DELETE"
     },
     "income": {
       "title": "ADD INCOME"
@@ -97,6 +98,13 @@
       "dueDay": "DUE DAY",
       "errorDayRange": "Must be between 1 and 28",
       "editTitle": "EDIT CREDIT CARD"
+    },
+    "editTransaction": {
+      "title": "EDIT TRANSACTION",
+      "seriesNotice": "This is part of an installment or recurring series — only the name and category can be edited here.",
+      "deleteTitle": "DELETE TRANSACTION",
+      "deleteDescription": "Are you sure you want to delete this transaction? This can't be undone.",
+      "deleteSeriesDescription": "This is part of an installment or recurring series. Deleting it cancels this occurrence and every one after it — earlier occurrences stay in your history. This can't be undone."
     }
   },
   "creditCards": {
@@ -122,7 +130,11 @@
     "selectStatements": "SELECT STATEMENTS",
     "confirm": "CONFIRM",
     "noCards": "NO CARDS YET",
-    "editCard": "EDIT CARD"
+    "editCard": "EDIT CARD",
+    "archiveCard": "ARCHIVE CARD",
+    "archiveTitle": "ARCHIVE CARD",
+    "archiveDescription": "Archiving hides this card from the card picker, but keeps all its transactions and bills in your history. You can't archive a card with an unpaid balance on its current bill.",
+    "archiveErrorBalance": "This card has an unpaid balance on its current bill — pay it off first."
   },
   "notFound": {
     "title": "PAGE NOT FOUND",

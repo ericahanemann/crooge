@@ -4,6 +4,8 @@
 export type CategoryId = string;
 export type TransactionTiming = "oneTime" | "installment" | "recurring";
 
+export type TransactionPaymentMethod = "debit_pix" | "credit";
+
 export interface Transaction {
   id: string;
   date: string;
@@ -13,6 +15,12 @@ export interface Transaction {
   timing: TransactionTiming;
   installmentCurrent?: number;
   installmentTotal?: number;
+  /** Expense only — absent for income. */
+  paymentMethod?: TransactionPaymentMethod;
+  /** Only present when paymentMethod is "credit". */
+  creditCardId?: string;
+  /** True for a row materialized from a credit card bill — read-only, can't be edited/deleted. */
+  readOnly: boolean;
 }
 
 export type CreditCardBrand = "visa" | "mastercard" | "amex" | "elo";

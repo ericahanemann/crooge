@@ -47,6 +47,30 @@ export async function updateCreditCardAction(
   return { ok: true };
 }
 
+type DeleteCreditCardResult =
+  | { ok: true }
+  | { ok: false; code: "has_balance" | "unknown"; message: string };
+
+/** Archives (soft-deletes) a card — see `DELETE /credit-cards/:id`. */
+export async function deleteCreditCardAction(
+  cardId: string,
+): Promise<DeleteCreditCardResult> {
+  const response = await backendFetch(`/credit-cards/${cardId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    return {
+      ok: false,
+      code: response.status === 409 ? "has_balance" : "unknown",
+      message: body?.message ?? "request failed",
+    };
+  }
+
+  return { ok: true };
+}
+
 export async function payCreditCardBillAction(
   cardId: string,
   month: string,

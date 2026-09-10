@@ -11,7 +11,7 @@ const summaryResponseSchema = z
     balance: z
       .number()
       .describe(
-        "Running total as of now across all non-card transactions (not scoped to the requested month) — there's no separate Account model, so this is always SUM(amount).",
+        "This month's net (income − expenses) across all non-card transactions — resets every month, same date range as income/spent. Not a carried-forward running total.",
       ),
     income: z
       .number()
@@ -49,41 +49,30 @@ export async function getTransactionsSummary(app: FastifyInstance) {
 
       await materializeOverdueBills(userId);
 
-      const [monthIncome, monthExpense, allIncome, allExpense] =
-        await Promise.all([
-          prisma.transaction.aggregate({
-            _sum: { amount: true },
-            where: {
-              userId,
-              creditCardId: null,
-              type: "INCOME",
-              date: { gte: start, lt: end },
-            },
-          }),
-          prisma.transaction.aggregate({
-            _sum: { amount: true },
-            where: {
-              userId,
-              creditCardId: null,
-              type: "EXPENSE",
-              date: { gte: start, lt: end },
-            },
-          }),
-          prisma.transaction.aggregate({
-            _sum: { amount: true },
-            where: { userId, creditCardId: null, type: "INCOME" },
-          }),
-          prisma.transaction.aggregate({
-            _sum: { amount: true },
-            where: { userId, creditCardId: null, type: "EXPENSE" },
-          }),
-        ]);
+      const [monthIncome, monthExpense] = await Promise.all([
+        prisma.transaction.aggregate({
+          _sum: { amount: true },
+          where: {
+            userId,
+            creditCardId: null,
+            type: "INCOME",
+            date: { gte: start, lt: end },
+          },
+        }),
+        prisma.transaction.aggregate({
+          _sum: { amount: true },
+          where: {
+            userId,
+            creditCardId: null,
+            type: "EXPENSE",
+            date: { gte: start, lt: end },
+          },
+        }),
+      ]);
 
       const income = Number(monthIncome._sum.amount ?? 0);
       const spent = Number(monthExpense._sum.amount ?? 0);
-      const balance =
-        Number(allIncome._sum.amount ?? 0) -
-        Number(allExpense._sum.amount ?? 0);
+      const balance = income - spent;
 
       return reply.status(200).send({ balance, income, spent });
     },

@@ -102,6 +102,7 @@ model CreditCard {
   limit        Decimal          @db.Decimal(12, 2)
   closingDay   Int              @map("closing_day")
   dueDay       Int              @map("due_day")
+  archivedAt   DateTime?        @map("archived_at")
   transactions Transaction[]
   bills        CreditCardBill[]
   createdAt    DateTime         @default(now()) @map("created_at")

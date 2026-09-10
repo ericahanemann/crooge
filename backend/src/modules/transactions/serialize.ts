@@ -6,6 +6,11 @@ const TIMING_TO_API = {
   RECURRING: "recurring",
 } as const;
 
+const PAYMENT_METHOD_TO_API = {
+  DEBIT_PIX: "debit_pix",
+  CREDIT: "credit",
+} as const;
+
 /** API responses mirror the frontend's `Transaction` shape (`frontend/src/lib/types.ts`): a single signed `amount`, no separate `type` field. */
 export function serializeTransaction(row: Transaction) {
   return {
@@ -17,5 +22,10 @@ export function serializeTransaction(row: Transaction) {
     timing: TIMING_TO_API[row.timing],
     installmentCurrent: row.installmentCurrent ?? undefined,
     installmentTotal: row.installmentTotal ?? undefined,
+    paymentMethod: row.paymentMethod
+      ? PAYMENT_METHOD_TO_API[row.paymentMethod]
+      : undefined,
+    creditCardId: row.creditCardId ?? undefined,
+    readOnly: row.creditCardBillId !== null,
   };
 }

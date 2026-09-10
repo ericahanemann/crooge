@@ -6,7 +6,7 @@ import { getAvailableCredit } from "../bill.ts";
 import { creditCardSummaryResponseSchema } from "../schemas.ts";
 import { serializeCreditCardSummary } from "../serialize.ts";
 
-/** Lists the caller's credit cards, oldest first (matches creation order for the card picker). */
+/** Lists the caller's non-archived credit cards, oldest first (matches creation order for the card picker). Archived cards stay reachable via `GET /credit-cards/:id` for historical viewing. */
 export async function listCreditCards(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
     "/credit-cards",
@@ -21,7 +21,7 @@ export async function listCreditCards(app: FastifyInstance) {
     },
     async (request, reply) => {
       const cards = await prisma.creditCard.findMany({
-        where: { userId: request.user.sub },
+        where: { userId: request.user.sub, archivedAt: null },
         orderBy: { createdAt: "asc" },
       });
 

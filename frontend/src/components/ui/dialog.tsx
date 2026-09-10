@@ -163,6 +163,23 @@ function DialogPrimaryButton({
   );
 }
 
+function DialogDestructiveButton({
+  className,
+  ...props
+}: React.ComponentProps<"button">) {
+  return (
+    <button
+      type="button"
+      data-slot="dialog-destructive-button"
+      className={cn(
+        "cursor-pointer rounded-lg bg-destructive px-5 py-2 font-karantina text-2xl tracking-wide text-white uppercase transition-[filter] hover:brightness-110 disabled:pointer-events-none disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 function DialogSecondaryButton({
   className,
   ...props
@@ -185,6 +202,7 @@ export {
   DialogClose,
   DialogContent,
   DialogDescription,
+  DialogDestructiveButton,
   DialogFooter,
   DialogHeader,
   DialogOverlay,
