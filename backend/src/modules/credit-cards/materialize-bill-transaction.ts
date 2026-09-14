@@ -1,6 +1,6 @@
-import type {
-  CreditCard,
-  CreditCardBill,
+import {
+  type CreditCard,
+  type CreditCardBill,
   Prisma,
 } from "../../generated/prisma/client.ts";
 import { prisma } from "../../lib/prisma.ts";
@@ -94,7 +94,17 @@ export async function materializeBillTransaction(
  * inline at the top of the read endpoints whose response depends on it
  * (`GET /transactions`, `GET /transactions/summary`) instead, the same
  * "compute on next read" pattern already used for recurring transactions
- * (see `transactions/generate-occurrences.ts`).
+ * (see `transactions/materialize-recurring-occurrences.ts`).
+ *
+ * Both of those endpoints call this for the same user, and the Monthly
+ * page's RSC streaming fetches each section's data independently, so two
+ * calls can genuinely race on separate connections. `materializeBillTransaction`'s
+ * upsert guards against ending up with two rows, but Prisma's `upsert` isn't
+ * a single atomic statement — under a tight enough race the loser's insert
+ * can still raise a P2002 unique-violation instead of transparently
+ * becoming an update. Caught below and treated as a no-op: both sides would
+ * have computed the same `amount` for the same bill, so whichever call won
+ * the race already left the right row behind.
  */
 export async function materializeOverdueBills(
   userId: string,
@@ -112,12 +122,23 @@ export async function materializeOverdueBills(
 
   for (const bill of overdueBills) {
     const amount = await getBillAmount(bill.creditCardId, bill.closingDate);
-    await materializeBillTransaction(prisma, {
-      userId,
-      card: bill.creditCard,
-      bill,
-      amount,
-      date: bill.dueDate,
-    });
+    try {
+      await materializeBillTransaction(prisma, {
+        userId,
+        card: bill.creditCard,
+        bill,
+        amount,
+        date: bill.dueDate,
+      });
+    } catch (error) {
+      if (
+        !(
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === "P2002"
+        )
+      ) {
+        throw error;
+      }
+    }
   }
 }

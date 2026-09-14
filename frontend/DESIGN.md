@@ -120,6 +120,7 @@ Theme preference persisted via `color-theme` cookie. Server reads it and sets `d
 
 - **Scrollbar:** thin (`8px`), neutral gray thumb on a transparent track, fully rounded. Colors are theme-aware via `--scrollbar-thumb` / `--scrollbar-thumb-hover` CSS variables (light: light gray `oklch(0.87 0 0)`, dark: dark gray `oklch(0.32 0 0)`) — same "subtle variation from the background" logic as `--border`. Applied globally via `scrollbar-width`/`scrollbar-color` (Firefox) and `::-webkit-scrollbar*` (Chromium/WebKit) in `globals.css`.
 - **Text selection:** `::selection` uses `--highlight` as background with white foreground text, instead of the browser default blue.
+- **Native form control chrome:** `color-scheme: light` on `:root` / `color-scheme: dark` on `.dark` (`globals.css`) — tells the browser to draw its own unstyled UI (a `type="date"` input's calendar-picker icon, autofill affordances, etc.) in a palette matching the active theme, instead of always assuming light mode. Without this, e.g. the date input's calendar icon renders black even in dark mode.
 
 ## Internationalisation (i18n)
 

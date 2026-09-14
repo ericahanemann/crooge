@@ -4,6 +4,7 @@ import { z } from "zod";
 import { monthQuerySchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { materializeOverdueBills } from "../../credit-cards/materialize-bill-transaction.ts";
+import { materializeRecurringOccurrences } from "../materialize-recurring-occurrences.ts";
 import { monthRange } from "../month-range.ts";
 
 const summaryResponseSchema = z
@@ -48,6 +49,7 @@ export async function getTransactionsSummary(app: FastifyInstance) {
       const { start, end } = monthRange(month);
 
       await materializeOverdueBills(userId);
+      await materializeRecurringOccurrences(userId, start, end);
 
       const [monthIncome, monthExpense] = await Promise.all([
         prisma.transaction.aggregate({

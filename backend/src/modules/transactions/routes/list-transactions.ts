@@ -4,6 +4,7 @@ import { z } from "zod";
 import { monthQuerySchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { materializeOverdueBills } from "../../credit-cards/materialize-bill-transaction.ts";
+import { materializeRecurringOccurrences } from "../materialize-recurring-occurrences.ts";
 import { monthRange } from "../month-range.ts";
 import { transactionResponseSchema } from "../schemas.ts";
 import { serializeTransaction } from "../serialize.ts";
@@ -27,6 +28,7 @@ export async function listTransactions(app: FastifyInstance) {
       const { start, end } = monthRange(month);
 
       await materializeOverdueBills(request.user.sub);
+      await materializeRecurringOccurrences(request.user.sub, start, end);
 
       const transactions = await prisma.transaction.findMany({
         where: {

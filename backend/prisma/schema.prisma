@@ -18,6 +18,7 @@ model User {
   transactions  Transaction[]
   creditCards   CreditCard[]
   categories    Category[]
+  recurringSeries RecurringSeries[]
 
   @@map("users")
 }
@@ -76,21 +77,58 @@ model Transaction {
   date               DateTime            @db.Date
   timing             TransactionTiming   @default(ONE_TIME)
   paymentMethod      PaymentMethod?      @map("payment_method")
-  frequency          RecurringFrequency?
   installmentCurrent Int?                @map("installment_current")
   installmentTotal   Int?                @map("installment_total")
+  /// Installments only, going forward — shared by every row of one installment purchase. Recurring series use `recurringSeriesId` instead.
   groupId            String?             @map("group_id")
   creditCardId       String?             @map("credit_card_id")
   creditCard         CreditCard?         @relation(fields: [creditCardId], references: [id])
   creditCardBillId   String?             @unique @map("credit_card_bill_id")
   creditCardBill     CreditCardBill?     @relation(fields: [creditCardBillId], references: [id])
+  recurringSeriesId  String?             @map("recurring_series_id")
+  recurringSeries    RecurringSeries?    @relation(fields: [recurringSeriesId], references: [id])
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")
 
+  @@unique([recurringSeriesId, date])
   @@index([userId, date])
   @@index([creditCardId, date])
   @@index([groupId])
   @@map("transactions")
+}
+
+/**
+ * The rule behind a recurring transaction (rent, a subscription, ...) — amount,
+ * category, cadence, and an optional end. Occurrences are never pre-generated
+ * in bulk; each is a real `Transaction` row materialized lazily, snapshotting
+ * this series' fields at the moment it's created (see
+ * `transactions/materialize-recurring-occurrences.ts`). Editing this row's
+ * `amount`/`category`/etc. therefore only affects occurrences materialized
+ * afterward — anything already materialized stays as history.
+ *
+ * No `type` field: only expenses can be recurring today (see
+ * `incomeBodySchema` in `routes/create-transaction.ts`).
+ */
+model RecurringSeries {
+  id            String              @id @default(uuid())
+  userId        String              @map("user_id")
+  user          User                @relation(fields: [userId], references: [id])
+  category      String
+  description   String
+  amount        Decimal             @db.Decimal(12, 2)
+  frequency     RecurringFrequency
+  paymentMethod PaymentMethod?      @map("payment_method")
+  creditCardId  String?             @map("credit_card_id")
+  creditCard    CreditCard?         @relation(fields: [creditCardId], references: [id])
+  startDate     DateTime            @db.Date @map("start_date")
+  /// Null while active. Once set, no occurrence on or after this date is ever materialized — set by "delete from here forward" on a recurring occurrence.
+  endDate       DateTime?           @db.Date @map("end_date")
+  transactions  Transaction[]
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("recurring_series")
 }
 
 model CreditCard {
@@ -105,6 +143,7 @@ model CreditCard {
   archivedAt   DateTime?        @map("archived_at")
   transactions Transaction[]
   bills        CreditCardBill[]
+  recurringSeries RecurringSeries[]
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
 

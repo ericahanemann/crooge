@@ -85,9 +85,11 @@
   --highlight: oklch(77.034% 0.14569 1.964);
   --scrollbar-thumb: oklch(0.87 0 0);
   --scrollbar-thumb-hover: oklch(0.78 0 0);
+  color-scheme: light;
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { RecurringFrequency } from "../../generated/prisma/client.ts";
 
 export interface Occurrence {
   date: Date;
@@ -46,27 +47,42 @@ export function generateInstallments(
   return { groupId, occurrences };
 }
 
+const STEP_MONTHS: Record<RecurringFrequency, number> = {
+  MONTHLY: 1,
+  ANNUAL: 12,
+};
+
 /**
- * No cron infra yet, so a recurring transaction materializes a fixed
- * horizon of future occurrences upfront instead of one row + a scheduled
- * job. Known limit: the series stops appearing once the horizon is
- * exhausted, until a follow-up "top up recurring series" job exists.
+ * Whether a recurring series starting at `startDate` (with the given
+ * `frequency`) has an occurrence landing in `[rangeStart, rangeEnd)`,
+ * computed directly from the rule rather than iterating month by month from
+ * `startDate` — cheap regardless of how old the series is or how far out
+ * `rangeStart` is. Returns that occurrence's date, or `null` if the range
+ * has none.
+ *
+ * Reuses the exact same `k * stepMonths` step `RecurringSeries` occurrences
+ * have always used (see `routes/create-transaction.ts`), so day-of-month
+ * drift on short months (e.g. a series starting the 31st) is identical to
+ * what direct generation would have produced — not a new quirk.
  */
-const RECURRING_HORIZON = { MONTHLY: 12, ANNUAL: 3 } as const;
-
-export function generateRecurring(
-  amount: number,
-  frequency: keyof typeof RECURRING_HORIZON,
+export function occurrenceInRange(
   startDate: Date,
-): { groupId: string; occurrences: Occurrence[] } {
-  const groupId = randomUUID();
-  const count = RECURRING_HORIZON[frequency];
-  const stepMonths = frequency === "MONTHLY" ? 1 : 12;
+  frequency: RecurringFrequency,
+  rangeStart: Date,
+  rangeEnd: Date,
+): Date | null {
+  const stepMonths = STEP_MONTHS[frequency];
+  const monthsToRangeStart =
+    (rangeStart.getUTCFullYear() - startDate.getUTCFullYear()) * 12 +
+    (rangeStart.getUTCMonth() - startDate.getUTCMonth());
+  const kEstimate = Math.floor(monthsToRangeStart / stepMonths);
 
-  const occurrences: Occurrence[] = Array.from({ length: count }, (_, i) => ({
-    date: addMonths(startDate, i * stepMonths),
-    amount,
-  }));
-
-  return { groupId, occurrences };
+  // addMonths can land a candidate a little earlier/later than the naive
+  // estimate expects (day-of-month overflow on short months), so check a
+  // small window around it instead of trusting kEstimate exactly.
+  for (let k = Math.max(kEstimate - 1, 0); k <= kEstimate + 2; k++) {
+    const candidate = addMonths(startDate, k * stepMonths);
+    if (candidate >= rangeStart && candidate < rangeEnd) return candidate;
+  }
+  return null;
 }
