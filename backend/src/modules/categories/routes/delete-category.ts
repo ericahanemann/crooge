@@ -16,7 +16,9 @@ import { prisma } from "../../../lib/prisma.ts";
  * existing, just orphan their category reference.
  *
  * Any transactions still using the deleted category are reassigned to the
- * caller's `isFallback` category for that kind. Accounts with no fallback
+ * caller's `isFallback` category for that kind, and so is any `RecurringSeries`
+ * still using it — otherwise every occurrence that series materializes later
+ * would keep inheriting the deleted category id. Accounts with no fallback
  * (created before per-account category seeding existed) skip the
  * reassignment — their affected transactions keep pointing at the deleted
  * id, and the frontend renders a generic "unknown category" for those.
@@ -69,6 +71,10 @@ export async function deleteCategory(app: FastifyInstance) {
         ...(fallback
           ? [
               prisma.transaction.updateMany({
+                where: { userId, category: id },
+                data: { category: fallback.id },
+              }),
+              prisma.recurringSeries.updateMany({
                 where: { userId, category: id },
                 data: { category: fallback.id },
               }),

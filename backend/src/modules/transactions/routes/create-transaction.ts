@@ -8,7 +8,6 @@ import { getAvailableCredit } from "../../credit-cards/bill.ts";
 import { ensureBill } from "../../credit-cards/billing-cycle.ts";
 import {
   generateInstallments,
-  generateRecurring,
   type Occurrence,
 } from "../generate-occurrences.ts";
 import { transactionResponseSchema } from "../schemas.ts";
@@ -56,7 +55,8 @@ const expenseBodySchema = z.object({
     .enum(["monthly", "annual"])
     .optional()
     .describe(
-      'Required when timing is "recurring". Materializes 12 occurrences for "monthly", 3 for "annual".',
+      'Required when timing is "recurring". Creates a RecurringSeries rule plus its first occurrence; ' +
+        "later occurrences materialize lazily as the months they fall in are read.",
     ),
 });
 
@@ -91,17 +91,21 @@ const createTransactionBodySchema = z
   })
   .describe(
     "Either an income (always one-time) or an expense (one-time, installment, or recurring; debit/pix or credit). " +
-      "Installment and recurring expenses materialize one Transaction row per occurrence immediately — see " +
-      "`backend/README.md` for why there's no virtual projection or cron job.",
+      "Installment expenses materialize one Transaction row per occurrence immediately, all sharing a groupId — see " +
+      "`backend/README.md` for why there's no virtual projection or cron job. Recurring expenses instead create a " +
+      "RecurringSeries rule plus one row for the first occurrence; later occurrences materialize lazily as they're " +
+      "read, see `transactions/materialize-recurring-occurrences.ts`.",
   );
 
 /**
  * Creates a transaction. For income, or a one-time expense, this creates
- * exactly one row. For an installment or recurring expense it creates one
- * row per occurrence (see `generate-occurrences.ts`), all sharing a
- * `groupId`; every occurrence charged to a credit card also gets its
- * billing-cycle `CreditCardBill` row ensured to exist via
- * `modules/credit-cards/billing-cycle.ts#ensureBill`.
+ * exactly one row. For an installment expense it creates one row per
+ * occurrence (see `generate-occurrences.ts`), all sharing a `groupId`. For a
+ * recurring expense it creates a `RecurringSeries` rule plus one row for the
+ * first occurrence only — later occurrences materialize lazily, see
+ * `materialize-recurring-occurrences.ts`. Every occurrence charged to a
+ * credit card also gets its billing-cycle `CreditCardBill` row ensured to
+ * exist via `modules/credit-cards/billing-cycle.ts#ensureBill`.
  */
 export async function createTransaction(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -117,7 +121,8 @@ export async function createTransaction(app: FastifyInstance) {
           201: z
             .array(transactionResponseSchema)
             .describe(
-              "The created row(s) — more than one for installment/recurring expenses.",
+              "The created row(s) — more than one for installment expenses. Recurring expenses always return " +
+                "exactly one row (the first occurrence); later occurrences materialize lazily on read.",
             ),
           404: errorResponseSchema.describe(
             "creditCardId doesn't exist or doesn't belong to the caller.",
@@ -170,6 +175,61 @@ export async function createTransaction(app: FastifyInstance) {
         }
       }
 
+      const resolvedPaymentMethod =
+        body.paymentMethod === "credit"
+          ? ("CREDIT" as const)
+          : ("DEBIT_PIX" as const);
+      const resolvedCreditCardId =
+        body.paymentMethod === "credit" ? body.creditCardId : undefined;
+
+      if (body.timing === "recurring") {
+        const frequency = body.frequency === "monthly" ? "MONTHLY" : "ANNUAL";
+
+        const created = await prisma.$transaction(async (tx) => {
+          const series = await tx.recurringSeries.create({
+            data: {
+              userId,
+              category: body.category,
+              description: body.description,
+              amount: body.amount,
+              frequency,
+              paymentMethod: resolvedPaymentMethod,
+              creditCardId: resolvedCreditCardId,
+              startDate,
+            },
+          });
+
+          if (resolvedCreditCardId && card) {
+            await ensureBill(
+              tx,
+              resolvedCreditCardId,
+              card.closingDay,
+              card.dueDay,
+              startDate,
+            );
+          }
+
+          const row = await tx.transaction.create({
+            data: {
+              userId,
+              type: "EXPENSE",
+              category: body.category,
+              description: body.description,
+              amount: body.amount,
+              date: startDate,
+              timing: "RECURRING",
+              paymentMethod: resolvedPaymentMethod,
+              creditCardId: resolvedCreditCardId,
+              recurringSeriesId: series.id,
+            },
+          });
+
+          return [row];
+        });
+
+        return reply.status(201).send(created.map(serializeTransaction));
+      }
+
       let occurrences: Occurrence[];
       let groupId: string | undefined;
 
@@ -181,14 +241,6 @@ export async function createTransaction(app: FastifyInstance) {
         );
         occurrences = generated.occurrences;
         groupId = generated.groupId;
-      } else if (body.timing === "recurring") {
-        const generated = generateRecurring(
-          body.amount,
-          body.frequency === "monthly" ? "MONTHLY" : "ANNUAL",
-          startDate,
-        );
-        occurrences = generated.occurrences;
-        groupId = generated.groupId;
       } else {
         occurrences = [{ date: startDate, amount: body.amount }];
       }
@@ -196,17 +248,15 @@ export async function createTransaction(app: FastifyInstance) {
       const timing =
         body.timing === "installments"
           ? ("INSTALLMENT" as const)
-          : body.timing === "recurring"
-            ? ("RECURRING" as const)
-            : ("ONE_TIME" as const);
+          : ("ONE_TIME" as const);
 
       const created = await prisma.$transaction(async (tx) => {
         const rows = [];
         for (const occurrence of occurrences) {
-          if (body.paymentMethod === "credit" && body.creditCardId && card) {
+          if (resolvedCreditCardId && card) {
             await ensureBill(
               tx,
-              body.creditCardId,
+              resolvedCreditCardId,
               card.closingDay,
               card.dueDay,
               occurrence.date,
@@ -222,19 +272,11 @@ export async function createTransaction(app: FastifyInstance) {
               amount: occurrence.amount,
               date: occurrence.date,
               timing,
-              paymentMethod:
-                body.paymentMethod === "credit" ? "CREDIT" : "DEBIT_PIX",
-              frequency:
-                body.timing === "recurring"
-                  ? body.frequency === "monthly"
-                    ? "MONTHLY"
-                    : "ANNUAL"
-                  : undefined,
+              paymentMethod: resolvedPaymentMethod,
               installmentCurrent: occurrence.installmentCurrent,
               installmentTotal: occurrence.installmentTotal,
               groupId,
-              creditCardId:
-                body.paymentMethod === "credit" ? body.creditCardId : undefined,
+              creditCardId: resolvedCreditCardId,
             },
           });
           rows.push(row);

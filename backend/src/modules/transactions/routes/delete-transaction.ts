@@ -8,13 +8,17 @@ import {
 import { prisma } from "../../../lib/prisma.ts";
 
 /**
- * Deletes a transaction. A one-time row just deletes itself. An
- * installment/recurring occurrence instead cancels the series from that
- * occurrence's date forward (inclusive) — every other row sharing its
- * `groupId` dated on or after it is deleted too, while earlier occurrences
- * stay as history. A row materialized from a credit card bill
- * (`creditCardBillId` set) can't be deleted at all — it's a side effect of
- * the bill, not a transaction the user filed directly.
+ * Deletes a transaction. A one-time row just deletes itself. An installment
+ * occurrence cancels the series from that occurrence's date forward
+ * (inclusive) — every other row sharing its `groupId` dated on or after it
+ * is deleted too, while earlier occurrences stay as history. A recurring
+ * occurrence does the same, but "cancel forward" means setting
+ * `RecurringSeries.endDate` to that occurrence's date (so
+ * `materialize-recurring-occurrences.ts` never materializes another one on
+ * or after it) in addition to deleting the already-materialized rows in that
+ * range. A row materialized from a credit card bill (`creditCardBillId` set)
+ * can't be deleted at all — it's a side effect of the bill, not a
+ * transaction the user filed directly.
  */
 export async function deleteTransaction(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().delete(
@@ -55,9 +59,9 @@ export async function deleteTransaction(app: FastifyInstance) {
           .send({ message: "can't delete a bill-materialized transaction" });
       }
 
-      if (existing.timing === "ONE_TIME" || !existing.groupId) {
+      if (existing.timing === "ONE_TIME") {
         await prisma.transaction.delete({ where: { id } });
-      } else {
+      } else if (existing.timing === "INSTALLMENT" && existing.groupId) {
         await prisma.transaction.deleteMany({
           where: {
             userId,
@@ -65,6 +69,25 @@ export async function deleteTransaction(app: FastifyInstance) {
             date: { gte: existing.date },
           },
         });
+      } else if (
+        existing.timing === "RECURRING" &&
+        existing.recurringSeriesId
+      ) {
+        await prisma.$transaction([
+          prisma.recurringSeries.update({
+            where: { id: existing.recurringSeriesId },
+            data: { endDate: existing.date },
+          }),
+          prisma.transaction.deleteMany({
+            where: {
+              userId,
+              recurringSeriesId: existing.recurringSeriesId,
+              date: { gte: existing.date },
+            },
+          }),
+        ]);
+      } else {
+        await prisma.transaction.delete({ where: { id } });
       }
 
       return reply.status(204).send();
