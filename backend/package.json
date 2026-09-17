@@ -13,7 +13,11 @@
     "lint": "biome check",
     "format": "biome format --write",
     "lint:format:check": "biome format .",
-    "lint:lint:check": "biome lint ."
+    "lint:lint:check": "biome lint .",
+    "postinstall": "prisma generate",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e:server": "node tests/e2e-server.ts"
   },
   "dependencies": {
     "@fastify/cookie": "11.1.2",
@@ -31,11 +35,13 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@testcontainers/postgresql": "12.1.0",
     "@types/node": "24.13.3",
     "@types/pg": "8.20.0",
     "dotenv": "17.4.2",
     "prisma": "7.9.1",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "vitest": "5.0.0"
   },
   "allowScripts": {
     "@prisma/engines@7.9.1": true,
