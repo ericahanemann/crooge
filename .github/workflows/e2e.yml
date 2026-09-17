@@ -1,0 +1,29 @@
+name: E2E
+
+on: workflow_dispatch
+
+jobs:
+  frontend-e2e-tests:
+    name: Frontend E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "backend/.nvmrc"
+
+      # The Playwright webServer boots a real backend (tests/e2e-server.ts,
+      # cwd ../backend) against a disposable Testcontainers Postgres, so it
+      # needs backend/node_modules too, not just the frontend's.
+      - run: npm ci
+        working-directory: backend
+
+      - run: npm ci
+        working-directory: frontend
+
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+
+      - run: npm run test:e2e
+        working-directory: frontend
