@@ -1,0 +1,8 @@
+version: 2
+secret:
+  ignored-paths:
+    - "backend/tests/**"
+    - "frontend/tests/**"
+    - "frontend/e2e/**"
+    - "**/*.test.ts"
+    - "**/*.test.tsx"
