@@ -49,6 +49,7 @@ export async function payCreditCardBill(app: FastifyInstance) {
         response: {
           200: creditCardBillResponseSchema,
           404: errorResponseSchema,
+          409: errorResponseSchema.describe("The bill is already paid."),
         },
       },
     },
@@ -67,6 +68,9 @@ export async function payCreditCardBill(app: FastifyInstance) {
       });
       if (!bill) {
         return reply.status(404).send({ message: "bill not found" });
+      }
+      if (bill.paidAt) {
+        return reply.status(409).send({ message: "bill already paid" });
       }
 
       const paidAmount =

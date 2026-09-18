@@ -41,7 +41,7 @@ export async function updateCreditCard(app: FastifyInstance) {
       const body = request.body;
 
       const existing = await prisma.creditCard.findFirst({
-        where: { id, userId: request.user.sub },
+        where: { id, userId: request.user.sub, archivedAt: null },
       });
       if (!existing) {
         return reply.status(404).send({ message: "credit card not found" });

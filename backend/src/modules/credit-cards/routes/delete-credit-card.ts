@@ -18,6 +18,9 @@ import { getAvailableCredit } from "../bill.ts";
  * Already-archived cards stay reachable via `GET /credit-cards/:id` for
  * historical viewing — only `GET /credit-cards` (the picker list) hides
  * them.
+ *
+ * Re-archiving an already-archived card is a no-op (`204`), not a `404` —
+ * archiving is idempotent from the caller's point of view.
  */
 export async function deleteCreditCard(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().delete(
@@ -42,10 +45,13 @@ export async function deleteCreditCard(app: FastifyInstance) {
       const { id } = request.params;
 
       const card = await prisma.creditCard.findFirst({
-        where: { id, userId: request.user.sub, archivedAt: null },
+        where: { id, userId: request.user.sub },
       });
       if (!card) {
         return reply.status(404).send({ message: "credit card not found" });
+      }
+      if (card.archivedAt) {
+        return reply.status(204).send();
       }
 
       const available = await getAvailableCredit(card);
