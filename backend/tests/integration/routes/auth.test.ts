@@ -235,6 +235,20 @@ describe("auth routes", () => {
         email: "erica@example.com",
       });
     });
+
+    it("returns 404 when the token's subject no longer maps to a real user", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+      await prisma.user.delete({ where: { id: user.id } });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
   });
 
   describe("POST /sessions/refresh", () => {
