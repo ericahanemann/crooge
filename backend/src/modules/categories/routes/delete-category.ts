@@ -6,6 +6,7 @@ import {
   idParamSchema,
 } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import { ensureFallbackCategory } from "../ensure-fallback-category.ts";
 
 /**
  * Deletes a category. The seeded "Other" category (`isFallback`) can't be
@@ -19,9 +20,9 @@ import { prisma } from "../../../lib/prisma.ts";
  * caller's `isFallback` category for that kind, and so is any `RecurringSeries`
  * still using it — otherwise every occurrence that series materializes later
  * would keep inheriting the deleted category id. Accounts with no fallback
- * (created before per-account category seeding existed) skip the
- * reassignment — their affected transactions keep pointing at the deleted
- * id, and the frontend renders a generic "unknown category" for those.
+ * yet (created before per-account category seeding existed) get one created
+ * on the fly (`ensureFallbackCategory`) rather than skipping reassignment, so
+ * a deleted category's references are never left orphaned.
  */
 export async function deleteCategory(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().delete(
@@ -63,25 +64,23 @@ export async function deleteCategory(app: FastifyInstance) {
           .send({ message: "can't delete a system category" });
       }
 
-      const fallback = await prisma.category.findFirst({
-        where: { userId, kind: existing.kind, isFallback: true },
-      });
+      await prisma.$transaction(async (tx) => {
+        const fallbackId = await ensureFallbackCategory(
+          tx,
+          userId,
+          existing.kind,
+        );
 
-      await prisma.$transaction([
-        ...(fallback
-          ? [
-              prisma.transaction.updateMany({
-                where: { userId, category: id },
-                data: { category: fallback.id },
-              }),
-              prisma.recurringSeries.updateMany({
-                where: { userId, category: id },
-                data: { category: fallback.id },
-              }),
-            ]
-          : []),
-        prisma.category.delete({ where: { id } }),
-      ]);
+        await tx.transaction.updateMany({
+          where: { userId, category: id },
+          data: { category: fallbackId },
+        });
+        await tx.recurringSeries.updateMany({
+          where: { userId, category: id },
+          data: { category: fallbackId },
+        });
+        await tx.category.delete({ where: { id } });
+      });
 
       return reply.status(204).send();
     },
