@@ -130,7 +130,7 @@ export function AuthSignupForm() {
             minLength={8}
             disabled={submitting}
           />
-          {passwordFocused && (
+          {(passwordFocused || password.length > 0) && (
             <ul aria-live="polite" className="flex flex-col gap-1">
               {passwordRequirements.map((req) => (
                 <li

@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
+  // These specs drive whole journeys (sign up, then several dialog
+  // round-trips against a real backend), so the 30s default is tight.
+  timeout: 60_000,
   webServer: [
     {
       // Real disposable Postgres + real Fastify API — see
@@ -14,6 +17,12 @@ export default defineConfig({
       url: "http://localhost:3333/categories",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
+      // Default (`stdout: "ignore"`) only surfaces this process's output if
+      // it fails to *start* — a request that hangs or errors once the
+      // server is already up and "ready" is otherwise invisible in CI,
+      // where there's no way to attach and watch it live.
+      stdout: "pipe",
+      stderr: "pipe",
     },
     {
       // Building (not `next dev`) catches build-only failures and matches
@@ -24,6 +33,8 @@ export default defineConfig({
       url: "http://localhost:3000",
       reuseExistingServer: !process.env.CI,
       timeout: 240_000,
+      stdout: "pipe",
+      stderr: "pipe",
     },
   ],
   use: {

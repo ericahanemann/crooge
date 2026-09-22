@@ -185,11 +185,20 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
+  // Journey tests (sign up, then several dialog round-trips against a real
+  // backend) don't fit comfortably in the 30s default.
+  timeout: 60_000,
   webServer: {
     command: 'npm run build && npm run start',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Default is 'ignore', which only shows this process's output if it fails
+    // to *start*. Once it's up, anything it logs — including a server-side
+    // error inside a Server Action — is invisible. In CI you can't attach a
+    // debugger to the runner, so pay the log noise and keep the visibility.
+    stdout: 'pipe',
+    stderr: 'pipe',
   },
   use: {
     baseURL: 'http://localhost:3000',
@@ -236,6 +245,94 @@ Reserve Playwright for the journeys where hitting the real backend is the point 
 
 - **Real backend, seeded database.** Point the app under test at a real (test) Fastify instance backed by a disposable Postgres — the same Testcontainers approach as the backend's own test suite, or a dedicated seeded test database. Highest fidelity; use this for the handful of journeys that matter most.
 - **Mocked network, for frontend-only flows.** When a test is really about frontend behavior (routing, layout, client-side state) and not about proving frontend/backend integration, intercept requests with `page.route()` instead of running a real backend. Cheaper and faster, but it's no longer testing the seam between the two — don't reach for it on the journeys where that seam is the point.
+
+## E2E: the failure modes that actually bite
+
+### A spec you haven't run is a draft, not a test
+
+Write a Playwright spec, then *run it* before moving on to the next one. Specs authored from reading the components — never executed — are reliably full of locator bugs, and you won't find them by re-reading the code. Worse, a suite that has never gone green once gives you nothing to bisect against later: when it fails you can't tell a real regression from a spec that was never right.
+
+If the suite can't run where you are (no browser, not enough memory), say so plainly rather than declaring the specs done.
+
+### Locator ambiguity is the most common first failure
+
+Playwright runs locators in **strict mode**: matching two elements is an error, not a silent "take the first". Three recurring causes:
+
+```ts
+// 1. `name` is a case-insensitive SUBSTRING match, so "ADD" also matches
+//    "Add category". Pin it down with exact.
+page.getByRole('button', { name: 'ADD', exact: true })
+
+// 2. Responsive markup renders the same content twice (one per breakpoint,
+//    one hidden). `.first()` can pick the HIDDEN one — filter first.
+page.getByText('Nubank').filter({ visible: true }).first()
+
+// 3. A summary figure and a row can share text. Assert the more specific
+//    string ("+R$1.000,00" for a row) instead of the bare number.
+page.getByText('+R$1.000,00')
+```
+
+When a locator is ambiguous, prefer making the assertion *more specific* over slapping `.first()` on it — `.first()` silences the error but often stops testing the thing you meant.
+
+### A click that lands on nothing looks exactly like a hung backend
+
+This one costs hours if you don't know it. Playwright checks actionability and hit-tests the element *before* clicking. If the click itself changes the layout, the press and release land in different places and the click hits whatever moved into that spot.
+
+The nastiest version: **content that appears on focus and unmounts on blur, positioned above the submit button.** Pressing the mouse on the button blurs the input first, the helper content unmounts, everything below it jumps up, and the click resolves onto the container behind the button. Same shape of bug from late-loading banners, images without `width`/`height`, and layout animations.
+
+What makes it so expensive is the symptom: no console error, no page error, no network request, no visible change. The test just waits for a redirect that will never come, and every log you have looks like the server hung. You can burn a lot of CI runs theorising about CSRF, timeouts and concurrency before suspecting the click.
+
+Diagnose it in one step — ask the browser what was actually clicked:
+
+```ts
+await page.evaluate(() => {
+  document.addEventListener(
+    'click',
+    (e) => console.log('click landed on:', e.target.tagName, e.target.textContent?.slice(0, 40)),
+    true, // capture, so nothing can swallow it
+  )
+})
+```
+
+If that prints an element you didn't aim at, stop reading network logs.
+
+Two defences, and you want both:
+
+- **In the app:** never let a blur handler resize anything above a submit button. Reserve the space, or keep the content mounted while the field has a value. A click that misses in a test is a click that misses for a real user.
+- **In the test:** after clicking submit, assert the app *acknowledged* the click (a pending label, a disabled button, an inline error) before asserting the final state. Then a missed click fails in one second pointing at the button, instead of timing out 30 seconds later pointing at a URL.
+
+### Make failures explain themselves
+
+`waitForURL` timing out tells you only that the URL never changed — the same symptom for a rejected request, a swallowed client error, and a click that missed. In CI you can't attach a debugger, so have shared helpers dump the page's own account of itself on failure:
+
+```ts
+try {
+  await page.waitForURL(/\/dashboard$/, { timeout: 20_000 })
+} catch (error) {
+  console.error([
+    `final url: ${page.url()}`,
+    `console: ${consoleMessages.join('\n') || '<none>'}`,
+    `page errors: ${pageErrors.join('\n') || '<none>'}`,
+    `visible text: ${await page.evaluate(() => document.body.innerText).catch(() => '?')}`,
+  ].join('\n'))
+  throw error
+}
+```
+
+Playwright also writes an `error-context.md` next to each failure containing an accessibility snapshot of the page at the moment it broke — read that file before theorising. It answers "what was actually on screen" immediately.
+
+### Reproduce locally before you theorise
+
+If it only fails in CI, the instinct is to keep pushing commits with more logging. That loop is slow and it invites guessing: parallelism, timeouts, retries, CSRF — all plausible, all cheap to "fix", none verifiable. Prefer standing the app up locally and instrumenting the DOM directly, even if that means running the frontend against no backend at all just to watch what a click does. Minutes instead of round trips.
+
+Reach for the `retries`, `workers` and `timeout` knobs **last**. They're how a reproducible bug gets relabelled as flakiness and stays in the codebase.
+
+## Next.js App Router specifics worth knowing before you debug
+
+- **A Server Action is a POST to the current page's URL**, not to a tidy `/api/...` path. Network assertions or `page.route()` filters written against a REST-ish path will match nothing and look like "the request was never made".
+- **Server Actions have a CSRF origin check.** The request's `Origin` is compared against the `Host`; a mismatch is rejected. If the E2E app is served on a host that differs from what the browser sends, allow it explicitly via `experimental.serverActions.allowedOrigins` in `next.config.ts` — and make sure that allowance isn't accidentally scoped to only one environment.
+- **A `<form onSubmit={...}>` with `e.preventDefault()` has no no-JS fallback.** Clicking it before hydration does a native GET submit to the same URL, which quietly reloads the page and throws the user's input away. `<form action={serverAction}>` is progressively enhanced and doesn't have that hole — prefer it for real submissions.
+- **Controlled inputs filled before hydration keep the DOM value but leave React state empty**, so the form submits blank. If you suspect a hydration race, wait for something only a hydrated page can produce before interacting.
 
 ## What not to test
 
@@ -305,6 +402,28 @@ frontend-e2e-tests:
     - run: npx playwright install --with-deps chromium
 
     - run: npm run test:e2e
+
+    # Set this up on day one, not the first time you need it. Without it, a
+    # failing CI run points at a trace.zip that doesn't exist anywhere you
+    # can reach.
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: frontend/test-results
+        retention-days: 7
 ```
 
-Both jobs live in their own `testing.yml` workflow (`on: pull_request`, matching `linting.yml`) rather than being folded into the lint workflow. Once this is running, consider uploading the Playwright report/trace as a build artifact on failure — a failing PR check with a downloadable trace is far easier to debug than red text alone.
+Both jobs live in their own `testing.yml` workflow (`on: pull_request`, matching `linting.yml`) rather than being folded into the lint workflow.
+
+### Make CI observable before you need it
+
+Debugging a browser test you can't watch is the expensive case, so pay the small setup cost up front:
+
+- **`stdout: 'pipe'` / `stderr: 'pipe'` on every `webServer`** (see the config above) — otherwise the app server's output vanishes the moment it starts successfully.
+- **Upload `test-results/`** as an artifact on failure, as above — that's where traces and each failure's `error-context.md` page snapshot live.
+- **Turn on request logging in the test backend when running under CI** (e.g. Fastify's `logger: !!process.env.CI`). Knowing whether a request ever *arrived* splits the search space in half immediately: it's the difference between "the backend is slow" and "the browser never sent anything".
+
+### Don't promote an E2E job to a required check until it has passed once
+
+Keep a brand-new E2E workflow on `workflow_dispatch` while you get it green, then switch it to `on: pull_request`. Flipping the trigger first means every PR is blocked by a suite nobody has ever seen pass, and there's no known-good run to compare a failure against.

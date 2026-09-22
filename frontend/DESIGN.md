@@ -240,7 +240,11 @@ Cow icon + wordmark, same combo as the sidebar/mobile menu — the two together 
 
 ### Live password requirements (signup)
 
-The password field has no static hint text. On focus, a live checklist of the three requirements (8+ characters, a number, a symbol) appears below the field and hides again on blur; while visible, it's re-evaluated on every keystroke — no debounce, since these are cheap string checks and React already re-renders on each keystroke for a controlled input. Each row: `flex items-center gap-1.5 font-sans text-xs`, unmet = `X` icon (Lucide, `size={12}`) + `text-muted-foreground`, met = `Check` icon + `text-highlight` — reusing the same Check/highlight "confirmed" pattern as the dialogs' "keep adding" acknowledgment. The list wrapper has `aria-live="polite"` so screen readers announce progress as requirements are met.
+The password field has no static hint text. A live checklist of the three requirements (8+ characters, a number, a symbol) appears below the field on focus, and stays visible as long as the field has any content — it only disappears again once the field is both blurred *and* empty.
+
+That "and empty" half matters more than it looks: hiding the list purely on blur made the list unmount the instant the user pressed the mouse down on CREATE ACCOUNT (mousedown blurs the input first), which shifted the button ~31px up the page before the click resolved. The click then landed on the container behind it and the form silently did nothing — the button was effectively unclickable straight after typing a password, and it's what made every signup E2E test hang. Keeping the list mounted while there's content keeps the layout still across the whole click, and as a bonus a user who tabs away from a rejected password can still see which rule they missed. Any future "reveal extra content near a submit button" behaviour needs the same care: never let a blur handler resize the area above a button.
+
+While visible, the list is re-evaluated on every keystroke — no debounce, since these are cheap string checks and React already re-renders on each keystroke for a controlled input. Each row: `flex items-center gap-1.5 font-sans text-xs`, unmet = `X` icon (Lucide, `size={12}`) + `text-muted-foreground`, met = `Check` icon + `text-highlight` — reusing the same Check/highlight "confirmed" pattern as the dialogs' "keep adding" acknowledgment. The list wrapper has `aria-live="polite"` so screen readers announce progress as requirements are met.
 
 ### Monthly page layout
 

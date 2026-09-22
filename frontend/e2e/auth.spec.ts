@@ -22,7 +22,10 @@ test("a user can sign up and reach the authenticated home page", async ({
   await page.getByLabel(/password/i).fill(VALID_PASSWORD);
   await page.getByRole("button", { name: /create account/i }).click();
 
-  await expect(page).toHaveURL(/\/(en|pt-BR)\/?$/);
+  // Signup is a real round trip (argon2 hash + seeding the starter
+  // categories, then an immediate sign-in), so it needs more than the 5s
+  // default `expect` timeout.
+  await expect(page).toHaveURL(/\/(en|pt-BR)\/?$/, { timeout: 20_000 });
 });
 
 test("an invalid sign-in shows an error and keeps the user on the page", async ({
