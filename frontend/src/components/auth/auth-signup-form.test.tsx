@@ -109,6 +109,39 @@ describe("AuthSignupForm", () => {
     ).toBeInTheDocument();
   });
 
+  // Regression: the checklist used to be shown on focus and unmounted on
+  // blur. Pressing the mouse on CREATE ACCOUNT blurs the password field
+  // first, so the checklist disappeared and every control below it jumped up
+  // the page before the click resolved — the click then landed on whatever
+  // took the button's place and the form silently did nothing.
+  it("keeps the password requirements visible after blur while the field has content, so the submit button doesn't move under the cursor", async () => {
+    render(<AuthSignupForm />);
+    const user = userEvent.setup();
+
+    const password = screen.getByLabelText(/password/i);
+    await user.type(password, "correct-horse-1!");
+    expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
+
+    await user.tab();
+
+    expect(password).not.toHaveFocus();
+    expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
+  });
+
+  it("hides the password requirements once the field is blurred and empty", async () => {
+    render(<AuthSignupForm />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByLabelText(/password/i));
+    expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
+
+    await user.tab();
+
+    expect(
+      screen.queryByText(/at least 8 characters/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows a generic error message on any other failure", async () => {
     mockRegister.mockRejectedValue(new Error("network down"));
     render(<AuthSignupForm />);

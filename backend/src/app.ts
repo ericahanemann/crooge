@@ -37,7 +37,10 @@ import { getTransactionsSummary } from "./modules/transactions/routes/get-transa
 import { listTransactions } from "./modules/transactions/routes/list-transactions.ts";
 import { updateTransaction } from "./modules/transactions/routes/update-transaction.ts";
 
-export const app = fastify();
+// Request logging is otherwise off (default) to keep local `npm test` output
+// clean — but in CI, a hung/failed request has no other way to be observed
+// (no attaching a debugger to the runner), so trade the noise for visibility.
+export const app = fastify({ logger: !!process.env.CI });
 
 app.register(cors, { origin: env.FRONTEND_URL, credentials: true });
 app.register(cookie);
