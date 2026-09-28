@@ -6,6 +6,35 @@
 - **Tagline:** Get croogy. Control your finances.
 - **Tone:** Playful but minimal. Not childish — confident and fun. Think Monzo meets a bento box.
 
+### Logo assets
+
+Two files, and only these two:
+
+- **`public/crooge-logo.svg`** — the full logo: cow + "CROOGE" wordmark, already combined into one asset. Use it anywhere the wordmark fits (sidebar expanded, mobile menu header, auth pages).
+- **`public/cow-icon.svg`** — the cow mark alone. Use it only where the wordmark doesn't fit (sidebar collapsed).
+
+Never rebuild the full logo by putting the cow icon next to a separate wordmark image — that's how it used to work, with a wordmark-only `public/logo.svg`, and that file has been deleted. One place, one `<Image>`.
+
+Both files are solid-white fills, so both always carry `className="invert dark:invert-0"` — black on light backgrounds, white on dark.
+
+**Sizing.** Neither file is square, and the `width`/`height` passed to `next/image` must keep the file's own aspect ratio, or the mark letterboxes inside dead space in its layout box:
+
+- `crooge-logo.svg` — `1951×763`, ratio **2.557**
+- `cow-icon.svg` — `706×543`, ratio **1.300**
+
+`crooge-logo.svg` additionally carries empty padding above and below its artwork (its viewBox is `0 0 1951 763`, but the drawing only spans y 119–662), so **the visible mark is only ~71% of whatever height you give it** — a `height=56` box draws a 40px-tall logo. Budget for that when sizing it against neighbouring text; `cow-icon.svg` has no such padding and fills its box.
+
+| Place | Asset | Box | Visible mark height |
+|-------|-------|-----|---------------------|
+| Sidebar collapsed | `cow-icon.svg` | `35×27` | 27 |
+| Sidebar expanded | `crooge-logo.svg` | `143×56` | 40 |
+| Mobile menu header | `crooge-logo.svg` | `159×62` | 44 |
+| Auth pages | `crooge-logo.svg` | `159×62` | 44 |
+
+The collapsed cow is deliberately *smaller* than the cow inside the expanded logo (27 vs 40), so it doesn't crowd the `w-14` rail — the mark does shrink slightly when the sidebar collapses, and that's the intended look, not a mismatch to "fix".
+
+`alt="Crooge"` on every one of them — since the full logo is now a single image, there's no longer a decorative `alt=""` half to pair with a labelled one.
+
 ## Typography
 
 | Font | Variable | Use | Rule |
@@ -42,14 +71,14 @@ Every page has a `<PageHeader title="PAGE NAME" />` that renders a single row:
 - **Left:** Page title in Karantina `text-5xl tracking-wide`
 - **Right (left to right):** `<LanguageToggle />` → `<ColorThemeToggle />` → `<ThemeToggle />` → `<UserAvatar />`
 - Bottom border: `border-b border-border`
-- Padding: `px-7 py-7` — vertical padding matches the sidebar's logo-block top padding (`py-7`), so the header and sidebar content start at the same height
+- Padding: `px-7 py-7` — the top padding matches where the sidebar's logo block centres its expanded logo (28px down from the top of its `h-28` box), so the header and sidebar content start at the same height
 
 ## Mobile Navigation
 
 Below `lg` (1024px), the sidebar is hidden (`hidden lg:flex` on `SidebarShell`). A **burger menu button** appears in the `PageHeader` on the left, next to the page title. Tapping it opens a full-screen overlay (`MobileMenu`) that covers the entire viewport.
 
 The mobile menu overlay:
-- **Header:** cow icon + Crooge logo, side by side (left) + X close button (right), same `py-7 border-b` as the desktop page header. Icon `width=44 height=44` (decorative, `alt=""`) + wordmark `width=120 height=40`, `flex items-center gap-1`, both `className="invert dark:invert-0"` — same treatment as the sidebar's expanded logo, scaled up to match this header's larger wordmark size.
+- **Header:** full Crooge logo on the left + X close button on the right, same `py-7 border-b` as the desktop page header. `public/crooge-logo.svg` at `width=159 height=62` — same asset as the sidebar's expanded logo, scaled up to match this header's larger type. See Logo assets.
 - **Nav links:** Full-width rows with icon + Karantina label. Same active/inactive states as desktop (`bg-muted text-foreground` / `text-muted-foreground`). Sub-links (e.g. under Credit Cards) are always expanded and indented to align with the parent label (`pl-16`)
 - **Footer:** LanguageToggle, ColorThemeToggle, ThemeToggle, and UserAvatar — the 4 icons that are hidden from the page header on mobile
 - **Closing:** X button, tapping any nav link, or pressing Escape
@@ -67,10 +96,11 @@ On mobile, the `PageHeader` shows only the burger button + page title. The 4 act
 - **Collapsible:** `w-56` expanded ↔ `w-14` collapsed, `transition-[width] duration-300`.
   - State persisted in `localStorage` key `"sidebar-collapsed"`.
   - Toggle button at bottom uses `PanelLeftClose` / `PanelLeftOpen` icons (Lucide).
-- **Collapsed logo:** `public/cow-icon.svg` (white cow silhouette, `width=36 height=36`), `className="invert dark:invert-0"`.
-- **Expanded logo:** `public/cow-icon.svg` (`width=36 height=36`, decorative — `alt=""`) + `public/logo.svg` wordmark (`width=90 height=31`) side by side, `flex items-center gap-1`, both with `className="invert dark:invert-0"`.
-- **`cow-icon.svg` internals:** a solid white silhouette (fill, not stroke) — details like ears, horns, and hooves read as thin negative-space gaps rather than drawn lines. Since there's no `stroke-width` to adjust, the linework is bolded with an inline SVG filter (`<filter id="thicken"><feMorphology operator="dilate" radius="3"/></filter>` applied via `<g filter="url(#thicken)">` wrapping all shapes) that expands the filled regions, narrowing those gaps. Renders correctly through `<img src="cow-icon.svg">`/`next/image` since the filter is self-contained within the file. `viewBox` is padded to `-8 -8 528 528` (vs. the artwork's native `0 0 512 512`) because the ear flaps touch the original canvas edges exactly — without the padding, the dilate's outward expansion got clipped by the SVG's own bounds.
-- **Collapsed nav items:** icon only, centered (`justify-center px-0`). Label span fades with `transition-[opacity,max-width] duration-200`. Tooltip appears to the right on hover (absolute, `left-full ml-2 z-50`, styled `bg-card border border-border shadow-md font-karantina text-xl`). Tooltip is only rendered when collapsed.
+- **Collapsed logo:** `public/cow-icon.svg` (`width=35 height=27`) — kept small so it doesn't crowd the `w-14` rail. **Expanded logo:** `public/crooge-logo.svg` (`width=143 height=56`) — a single image, cow and wordmark together. See Logo assets for how those boxes relate to the drawn size.
+- **The logo links to the dashboard** (`/`) in both states — wrapped in the i18n `Link` with `className="flex cursor-pointer"` (`flex` so the anchor adds no line-height above the image; `cursor-pointer` stated explicitly, matching how every other clickable in the app declares it rather than leaning on the browser default). The image's `alt="Crooge"` is the link's accessible name. No hover treatment — the logo is a wayfinding affordance, not a button.
+- **Logo block height is fixed at `h-28` (112px) with `flex items-center`,** not driven by whichever logo is showing. The two logos are different heights (56 vs 27), so letting the block size to its content pushed the whole nav ~29px up the moment the sidebar collapsed. A constant-height block means **nav rows keep the same vertical position through a collapse** — only their width animates. 112px is exactly what the expanded state used to compute to (`py-7` + 56), so the expanded layout is unchanged; the collapsed cow just centres in the taller box.
+- **Nav row heights must match across collapse for the same reason.** `NavLink` gets this for free: its label span stays in flow when collapsed (`max-w-0 overflow-hidden` kills the width, not the 32px line box), so the row is the same height either way. `NavGroup`'s collapsed branch is a *separate* icon-only element with no label span, so it has to be pinned explicitly — `h-12` (48px), matching the expanded row's `py-2` + 32px line box. Without it the group row was 37px and everything below it sat 11px high when collapsed. Any future nav row that renders different children per state needs the same treatment.
+- **Collapsed nav items:** icon only, centered (`justify-center px-0`), same row height as expanded (see above). Label span fades with `transition-[opacity,max-width] duration-200`. Tooltip appears to the right on hover (absolute, `left-full ml-2 z-50`, styled `bg-card border border-border shadow-md font-karantina text-xl`). Tooltip is only rendered when collapsed.
 - **NavGroup when collapsed:** renders as a Link to the first sub-link, icon only, tooltip shows the group label. Sub-links are hidden.
 - Nav items: icon (Lucide `size={17} strokeWidth={1.5}`) + label `font-karantina text-2xl tracking-wide`
 - Active state: `bg-muted text-foreground`; inactive: `text-muted-foreground`
@@ -236,7 +266,7 @@ Subtitles: 6 variants per page per locale, randomly picked server-side with `Mat
 
 ### Logo on auth pages
 
-Cow icon + wordmark, same combo as the sidebar/mobile menu — the two together are the logo, so every place the wordmark appears, the icon appears next to it. `public/cow-icon.svg` (`width=44 height=44`, decorative — `alt=""`) + `public/logo.svg` (`width=120 height=40`), `flex items-center justify-center gap-1`, both `className="invert dark:invert-0"`. Works on `bg-background` in both themes.
+The full logo, same asset and size as the mobile menu header: `public/crooge-logo.svg` at `width=159 height=62`, centered (`flex items-center justify-center`), `className="invert dark:invert-0"`. Works on `bg-background` in both themes. See Logo assets.
 
 ### Live password requirements (signup)
 

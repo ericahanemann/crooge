@@ -42,7 +42,7 @@ export function NavGroup({ icon, label, links }: NavGroupProps) {
         <Link
           href={links[0]?.href ?? "/"}
           className={cn(
-            "flex items-center justify-center rounded-md px-0 py-2.5 transition-colors",
+            "flex h-12 items-center justify-center rounded-md px-0 transition-colors",
             isActive
               ? "bg-muted text-foreground"
               : "text-muted-foreground hover:text-foreground hover:bg-muted",
