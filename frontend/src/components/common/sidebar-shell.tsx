@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-context";
 import { SidebarToggle } from "./sidebar-toggle";
@@ -23,34 +24,33 @@ export function SidebarShell({ children }: { children: ReactNode }) {
         collapsed ? "w-14" : "w-56",
       )}
     >
-      <div className={cn("py-7", collapsed ? "flex justify-center" : "px-5")}>
-        {collapsed ? (
-          <Image
-            src="/cow-icon.svg"
-            alt="Crooge"
-            width={36}
-            height={36}
-            className="invert dark:invert-0"
-          />
-        ) : (
-          <div className="flex items-center gap-1">
+      <div
+        className={cn(
+          "h-28 flex items-center",
+          collapsed ? "justify-center" : "px-5",
+        )}
+      >
+        <Link href="/" className="flex cursor-pointer">
+          {collapsed ? (
             <Image
               src="/cow-icon.svg"
-              alt=""
-              width={36}
-              height={36}
-              className="invert dark:invert-0"
-            />
-            <Image
-              src="/logo.svg"
               alt="Crooge"
-              width={90}
-              height={31}
+              width={35}
+              height={27}
               priority
               className="invert dark:invert-0"
             />
-          </div>
-        )}
+          ) : (
+            <Image
+              src="/crooge-logo.svg"
+              alt="Crooge"
+              width={143}
+              height={56}
+              priority
+              className="invert dark:invert-0"
+            />
+          )}
+        </Link>
       </div>
       <nav className="flex-1 px-3 space-y-0.5">{children}</nav>
       <div
