@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { meResponseSchema } from "../schemas.ts";
+import { serializeMe } from "../serialize.ts";
 
 /** Returns the authenticated user's own profile. */
 export async function getMe(app: FastifyInstance) {
@@ -25,13 +26,22 @@ export async function getMe(app: FastifyInstance) {
     async (request, reply) => {
       const user = await prisma.user.findUnique({
         where: { id: request.user.sub },
-        select: { id: true, name: true, email: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          locale: true,
+          theme: true,
+          colorTheme: true,
+          currency: true,
+          savingsRate: true,
+        },
       });
       if (!user) {
         return reply.status(404).send({ message: "user not found" });
       }
 
-      return reply.status(200).send(user);
+      return reply.status(200).send(serializeMe(user));
     },
   );
 }
