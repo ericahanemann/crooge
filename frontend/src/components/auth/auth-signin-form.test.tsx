@@ -42,7 +42,7 @@ describe("AuthSigninForm", () => {
   });
 
   it("signs in with the typed credentials and navigates home on success", async () => {
-    mockLogin.mockResolvedValue(undefined);
+    mockLogin.mockResolvedValue({ locale: "en" });
     render(<AuthSigninForm />);
     const user = userEvent.setup();
 
@@ -55,6 +55,18 @@ describe("AuthSigninForm", () => {
       "correct-horse-1!",
     );
     expect(mockPush).toHaveBeenCalledWith("/");
+  });
+
+  it("navigates home in the account's own locale when it differs from the current one", async () => {
+    mockLogin.mockResolvedValue({ locale: "pt-BR" });
+    render(<AuthSigninForm />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/email/i), "erica@example.com");
+    await user.type(screen.getByLabelText(/password/i), "correct-horse-1!");
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    expect(mockPush).toHaveBeenCalledWith("/", { locale: "pt-BR" });
   });
 
   it("shows the invalid-credentials message on a 401", async () => {

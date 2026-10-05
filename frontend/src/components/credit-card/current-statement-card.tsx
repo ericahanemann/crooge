@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { getProfile } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/types";
 import { AddCardExpenseDialog } from "./add-card-expense-dialog";
@@ -15,7 +16,10 @@ export async function CurrentStatementCard({
   bill,
   locale,
 }: CurrentStatementCardProps) {
-  const t = await getTranslations("creditCards");
+  const [t, profile] = await Promise.all([
+    getTranslations("creditCards"),
+    getProfile(),
+  ]);
 
   const fmt = (dateStr: string) =>
     parseLocalDate(dateStr).toLocaleDateString(toIntlLocale(locale), {
@@ -30,7 +34,7 @@ export async function CurrentStatementCard({
           {t("currentStatement")}
         </p>
         <p className="font-sans text-5xl font-bold text-foreground mt-1">
-          {fmtCurrency(bill.amount)}
+          {fmtCurrency(bill.amount, profile.currency)}
         </p>
       </div>
       <div className="h-px bg-border" />

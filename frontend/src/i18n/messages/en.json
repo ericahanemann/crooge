@@ -41,7 +41,8 @@
     "noResults": "No results",
     "emptyTransactions": "No transactions yet",
     "prevMonth": "Previous month",
-    "nextMonth": "Next month"
+    "nextMonth": "Next month",
+    "savingGoal": "Saving {rate}% of income"
   },
   "dialogs": {
     "common": {
@@ -189,9 +190,6 @@
       "emailPlaceholder": "your@email.com",
       "passwordLabel": "PASSWORD",
       "passwordPlaceholder": "Something you'll actually remember",
-      "passwordReqLength": "At least 8 characters",
-      "passwordReqNumber": "At least one number",
-      "passwordReqSymbol": "At least one symbol",
       "submit": "CREATE ACCOUNT",
       "submitting": "CREATING ACCOUNT...",
       "errorEmailTaken": "An account with this email already exists.",
@@ -225,6 +223,45 @@
       "gift": "GIFT",
       "investment": "INVESTMENT",
       "other": "OTHER"
+    }
+  },
+  "password": {
+    "reqLength": "At least 8 characters",
+    "reqNumber": "At least one number",
+    "reqSymbol": "At least one symbol"
+  },
+  "profile": {
+    "title": "PROFILE",
+    "profileCard": {
+      "heading": "PROFILE",
+      "nameLabel": "NAME",
+      "emailLabel": "EMAIL",
+      "currentPasswordLabel": "CURRENT PASSWORD",
+      "currentPasswordHint": "Required to change your email or password.",
+      "save": "SAVE",
+      "saving": "SAVING...",
+      "saved": "Saved",
+      "errorIncorrectPassword": "Incorrect password.",
+      "errorEmailTaken": "An account with this email already exists.",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "passwordHeading": "CHANGE PASSWORD",
+      "newPasswordLabel": "NEW PASSWORD",
+      "newPasswordHint": "Changing it signs you out of every other device.",
+      "confirmPasswordLabel": "CONFIRM NEW PASSWORD",
+      "errorPasswordMismatch": "Passwords don't match.",
+      "errorWeakPassword": "Password must be at least 8 characters, with a number and a symbol."
+    },
+    "preferencesCard": {
+      "heading": "PREFERENCES",
+      "localeLabel": "LANGUAGE",
+      "themeLabel": "THEME",
+      "themeLight": "LIGHT",
+      "themeDark": "DARK",
+      "colorThemeLabel": "ACCENT COLOR",
+      "currencyLabel": "CURRENCY",
+      "savingsRateLabel": "SAVINGS GOAL (%)",
+      "savingsRateHint": "Percent of income to set aside before spending. Affects the daily limit on the Monthly page. 0 keeps today's behavior.",
+      "saved": "Saved"
     }
   }
 }

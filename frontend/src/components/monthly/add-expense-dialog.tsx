@@ -4,6 +4,7 @@ import { Check, CreditCard, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -60,6 +61,8 @@ interface FormErrors {
 export function AddExpenseDialog() {
   const t = useTranslations();
   const router = useRouter();
+  const { user } = useAuth();
+  const currency = user?.currency ?? "BRL";
   const [open, setOpen] = useState(false);
 
   const [paymentMethod, setPaymentMethod] =
@@ -447,7 +450,7 @@ export function AddExpenseDialog() {
 
               {perInstallment !== null && (
                 <p className="-mt-2 font-sans text-sm text-muted-foreground">
-                  ≈ {fmtCurrency(perInstallment)}{" "}
+                  ≈ {fmtCurrency(perInstallment, currency)}{" "}
                   {t("dialogs.expense.perMonth")}
                 </p>
               )}

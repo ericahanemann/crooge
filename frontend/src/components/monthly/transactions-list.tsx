@@ -6,7 +6,7 @@ import {
   TransactionsFilterClient,
 } from "@/components/common/transactions-filter-client";
 import { resolveCategory } from "@/lib/categories";
-import { getCategories, getMonthlyTransactions } from "@/lib/data";
+import { getCategories, getMonthlyTransactions, getProfile } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
 /**
@@ -23,9 +23,10 @@ export async function TransactionsList({ month }: { month: string }) {
   const t = await getTranslations("monthly");
   const tCommon = await getTranslations("dialogs.common");
   const locale = await getLocale();
-  const [transactions, categories] = await Promise.all([
+  const [transactions, categories, profile] = await Promise.all([
     getMonthlyTransactions(month),
     getCategories(),
+    getProfile(),
   ]);
   const unknownLabel = tCommon("unknownCategory");
 
@@ -45,7 +46,7 @@ export async function TransactionsList({ month }: { month: string }) {
       categoryIcon: resolved.icon,
       description: tx.description,
       amount: Math.abs(tx.amount),
-      formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount)}`,
+      formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount, profile.currency)}`,
       isIncome,
       timing: tx.timing,
       paymentMethod: tx.paymentMethod,

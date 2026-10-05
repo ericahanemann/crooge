@@ -107,13 +107,33 @@ On mobile, the `PageHeader` shows only the burger button + page title. The 4 act
 
 ## User Avatar
 
-Component: `<UserAvatar name="Érica" initials="EH" src={optionalUrl} />`
-- Renders as a clickable chip: `border border-border rounded-lg px-3 py-1.5` with a dropdown menu
-- Shows `src` image (via `next/image fill`) if provided
-- Falls back to initials in `font-karantina text-xl leading-none` inside a `size-8 rounded-full bg-muted` circle
-- Shows first name only next to the avatar: `font-karantina text-xl tracking-wide uppercase text-muted-foreground`
+Component: `<UserAvatar compact={false} />` — no `name`/`initials`/`src` props; reads the signed-in user from `useAuth()` itself (only rendered inside the `(app)` group, which `AuthGate` already guarantees is authenticated). There's no avatar image today (no upload infra — see Profile Page below), so it always renders the initials fallback.
+- Renders as a clickable chip: `border border-border rounded-lg px-3 py-1.5` with a dropdown menu. `compact` (mobile `PageHeader`) drops the border/padding/name label down to a bare icon-only circle.
+- Initials in `font-karantina text-xl leading-none` inside a `size-8 rounded-full bg-highlight/15` circle (`getInitials()`, `src/lib/utils.ts`)
+- Shows first name only next to the avatar: `font-karantina text-xl tracking-wide uppercase text-foreground`
 - Name is always uppercase (Karantina rule)
-- Dropdown items: "My profile" / "Meu perfil" and "Sign out" / "Sair" — translated via `user` namespace
+- Dropdown items: "My profile" / "Meu perfil" (links to `/profile` — see Profile Page) and "Sign out" / "Sair" — translated via `user` namespace. The "My profile" `Menu.Item` uses Base UI's `render` prop to render as the i18n `Link` rather than its own default element, same pattern as `DialogPrimitive.Close render={<Button .../>}` elsewhere.
+
+## Profile Page
+
+Route `/profile` (`/perfil` in pt-BR), reached only via the avatar dropdown's "My profile" link — **not** a sidebar nav item, same as every other app's account settings. Lives in the `(app)` route group, so it gets the sidebar/`AuthGate`/`PageHeader` shell for free. Both cards read/write through `useAuth()` (`AuthProvider`'s `updateProfile`/`changePassword`), which calls `PATCH /me`/`PATCH /me/password` — there's no separate server-side data fetch for the page itself.
+
+Two bento cards, `grid grid-cols-1 lg:grid-cols-2 gap-5`:
+
+- **Profile card** (`ProfileCard`): name, email, **and** password change, all in one form with one explicit SAVE button on the right (`flex justify-end` — the "saved" acknowledgment sits to its left, not the usual card-CTA full-width/left-aligned layout, since this is a settings form, not a bento card's primary action). Deliberately one card, not a separate security card/dialog — every field here shares the same `currentPassword` reauth and the same submit/error cycle, so splitting them would mean two re-implementations of that cycle instead of one. The Save button is disabled unless `name`/`email`/the new-password field actually differ from the signed-in user's current values — typing into `currentPassword`/`confirmPassword` alone doesn't enable it, since neither represents a change on its own.
+  - Field order: NAME → EMAIL → a second section title ("CHANGE PASSWORD", same `font-karantina text-2xl tracking-wide uppercase` treatment as the card's own "PROFILE" heading, not a `border-t` divider — two sections of one card read better as two labeled groups than as a line-separated form) → NEW PASSWORD (always visible, optional, reuses the signup form's live password-requirements checklist — extracted to `PasswordRequirementsList`, `src/components/auth/password-requirements.tsx`, so both forms share one implementation; hint text below it is just "Changing it signs you out of every other device.", not an explanation that it's optional — leaving it blank already reads as "optional" from the empty field itself) → CONFIRM NEW PASSWORD (reveals once NEW PASSWORD has content) → CURRENT PASSWORD (reveals once *either* EMAIL changed *or* a new password is being set — one field serves both reauth triggers). Current password is placed **last**, immediately above the error/Save row, rather than appearing the moment the user starts editing — so revealing it never pushes down a field the user is actively typing into (it only ever appears below whatever's already stable).
+  - On submit: `name`/`email` go through `updateProfile` first (if changed), then — only if a new password was entered — `changePassword` runs last, since it ends this device's session. Changing the password **always signs the device out** (the form redirects to `/signin` on success) — the backend additionally revokes every *other* session's refresh-token family, but this device re-authenticates too rather than offering a "stay signed in here" option.
+- **Preferences card** (`PreferencesCard`): locale / theme / accent color / currency / savings-rate — every field applies **instantly on change**, no Save button, mirroring the header's `LanguageToggle`/`ThemeToggle`/`ColorThemeToggle` (same underlying `updateProfileAction`, deliberately duplicated here for discoverability). `savingsRate` is the one exception — a plain number input (0–100) that commits on blur, not every keystroke; this is a simpler substitute for a slider, since no slider primitive exists in `src/components/ui/` yet. Each field shows a brief `Check`-icon "saved" acknowledgment next to its label, auto-fading — the same pattern as dialogs' "keep adding" acknowledgment, but per-field instead of per-dialog. Every setter (`applyLocale`/`applyTheme`/`applyColorTheme`/`applyCurrency`/`commitSavingsRate`) no-ops when the picked value matches the current one — re-opening a `Select` and landing back on the already-active option, or clicking the segmented control's already-active side, fires no request and no "saved" flash.
+  - **Currency is display-only** — changes formatting app-wide (`fmtCurrency(amount, currency)`), never converts a stored value. No hint text spells this out in the UI; it's covered here instead.
+  - Locale/currency/accent-color options are deliberately untranslated (same as `LanguageToggle`'s "EN"/"PT") — a language's own name is shown in itself, and currency codes/card-brand-style labels aren't UI copy.
+
+### Preference sync (cookies vs. account)
+
+`theme`/`colorTheme` are account-scoped (`User.theme`/`colorTheme`), but the root layout still reads plain `theme`/`color-theme` cookies synchronously before first paint — a signed-out visitor has no account to read from, and a network round trip there would reintroduce the flash those cookies exist to avoid. So the cookies are a **write-through cache**, not replaced by the account field:
+- A toggle click sets the cookie/DOM attribute immediately (unchanged), then fires `updateProfileAction` in the background — the UI never waits on it.
+- On sign-in/silent-refresh, the account's stored value overwrites the cookie ("server wins" — don't let a borrowed device's cookie leak into your account).
+- At signup, the opposite direction once: the visitor's just-picked cookie value is carried **up** into the new account (`AuthProvider.register()`), not discarded for the account's defaults.
+- Locale follows the same "server wins at sign-in" rule, but navigates instead of just setting a cookie — `AuthSigninForm` pushes to the account's locale if it differs from the page's current one; next-intl's own `NEXT_LOCALE` cookie (read by `proxy.ts`) is what the header's `LanguageToggle` already relies on, unchanged.
 
 ## Color Palette
 
@@ -284,7 +304,7 @@ Four stacked sections inside a scrollable `p-7 space-y-5` container:
 
 1. **`grid grid-cols-1 sm:grid-cols-2 gap-5`** — Balance card (left) + Spending card (right), stacked on mobile, side-by-side from `sm` (640px) up.
    - Balance card: this month's net — income minus expenses, **resets every month** (not a carried-forward running total; there's no separate Account model) — large, `text-5xl text-highlight`, + income this month (secondary, `text-xl`) + "+ ADD INCOME" **Primary** button (`bg-primary`, white-on-dark). Uses a subtle `--highlight` accent to stand apart from the Spending card: `bg-linear-to-br from-highlight/10 via-card to-card` wash + `border-highlight/20` border.
-   - Spending card: spent this month (large, `text-5xl`) + DAILY LIMIT (remaining budget ÷ days left in month, as a `/ DAY` figure, `text-xl`) + "+ ADD EXPENSE" **Secondary** button (`bg-muted text-foreground border border-border`, same treatment as the sidebar's active nav link). Card itself stays neutral (`bg-card`, no highlight wash) — reads as the "cost" counterpart to Balance's "asset" framing.
+   - Spending card: spent this month (large, `text-5xl`) + DAILY LIMIT (remaining budget ÷ days left in month, as a `/ DAY` figure, `text-xl`) + "+ ADD EXPENSE" **Secondary** button (`bg-muted text-foreground border border-border`, same treatment as the sidebar's active nav link). Card itself stays neutral (`bg-card`, no highlight wash) — reads as the "cost" counterpart to Balance's "asset" framing. Budget defaults to all of income (`User.savingsRate` defaults to `0`) but can be less — see the profile page's savings-rate field; when it's non-zero, a small `text-xs text-muted-foreground` line ("Saving X% of income") appears below DAILY LIMIT so the lower number doesn't look unexplained.
 
 2. **Credit card section** — full-width bento card. Responsive layout:
    - **Mobile (below `md`):** `flex-col` — landscape card visual (`w-full aspect-[1.587]`) on top, info below.

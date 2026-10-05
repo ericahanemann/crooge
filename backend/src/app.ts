@@ -19,6 +19,8 @@ import { getMe } from "./modules/auth/routes/get-me.ts";
 import { logout } from "./modules/auth/routes/logout.ts";
 import { refreshSession } from "./modules/auth/routes/refresh-session.ts";
 import { registerUser } from "./modules/auth/routes/register-user.ts";
+import { updateMe } from "./modules/auth/routes/update-me.ts";
+import { updatePassword } from "./modules/auth/routes/update-password.ts";
 import { createCategory } from "./modules/categories/routes/create-category.ts";
 import { deleteCategory } from "./modules/categories/routes/delete-category.ts";
 import { listCategories } from "./modules/categories/routes/list-categories.ts";
@@ -40,7 +42,19 @@ import { updateTransaction } from "./modules/transactions/routes/update-transact
 // Request logging is otherwise off (default) to keep local `npm test` output
 // clean — but in CI, a hung/failed request has no other way to be observed
 // (no attaching a debugger to the runner), so trade the noise for visibility.
-export const app = fastify({ logger: !!process.env.CI });
+// `redact` keeps plaintext passwords (signup, sign-in, profile/password
+// updates) out of those CI logs rather than serializing the raw body.
+export const app = fastify({
+  logger: process.env.CI
+    ? {
+        redact: [
+          "req.body.password",
+          "req.body.currentPassword",
+          "req.body.newPassword",
+        ],
+      }
+    : false,
+});
 
 app.register(cors, { origin: env.FRONTEND_URL, credentials: true });
 app.register(cookie);
@@ -116,6 +130,8 @@ app.register(authenticateSession);
 app.register(refreshSession);
 app.register(logout);
 app.register(getMe);
+app.register(updateMe);
+app.register(updatePassword);
 app.register(createTransaction);
 app.register(listTransactions);
 app.register(getTransactionsSummary);

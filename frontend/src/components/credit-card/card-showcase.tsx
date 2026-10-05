@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { getProfile } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 import type { CreditCardDetail } from "@/lib/types";
 import { AddCreditCardDialog } from "./add-credit-card-dialog";
@@ -36,7 +37,10 @@ export async function CardShowcase({
   locale,
   selectedMonth,
 }: CardShowcaseProps) {
-  const t = await getTranslations("creditCards");
+  const [t, profile] = await Promise.all([
+    getTranslations("creditCards"),
+    getProfile(),
+  ]);
 
   // `getCreditCard` (lib/data.ts) always splices a synthesized current bill
   // into `bills` even for a brand-new card with no persisted bill row yet,
@@ -107,7 +111,7 @@ export async function CardShowcase({
                 {t("used")}
               </p>
               <p className="font-sans text-xl font-semibold text-foreground">
-                {fmtCurrency(card.limit - card.available)}
+                {fmtCurrency(card.limit - card.available, profile.currency)}
               </p>
             </div>
             <div className="text-right">
@@ -115,7 +119,7 @@ export async function CardShowcase({
                 {t("limit")}
               </p>
               <p className="font-sans text-xl font-semibold text-muted-foreground">
-                {fmtCurrency(card.limit)}
+                {fmtCurrency(card.limit, profile.currency)}
               </p>
             </div>
           </div>

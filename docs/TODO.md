@@ -5,8 +5,8 @@
 - [x] Include the current month's open credit card bill in `/transactions/summary`'s `balance`/`spent`
 - [x] Add edit/delete for transactions and credit cards
 - [x] Add a way to keep recurring transactions going past their initial horizon
-- [ ] Add an "edit profile" endpoint
-- [ ] Add account/profile settings page
+- [x] Add an "edit profile" endpoint (`PATCH /me` + `PATCH /me/password` — see `docs/edit-profile-spec.md`)
+- [x] Add account/profile settings page (`/profile` — name/email, locale/theme/accent/currency/savings-rate preferences, change-password dialog)
 - [ ] Add automated tests
 - [ ] Add Google sign-in (OAuth) — frontend already has the button, no handler wired up yet
 - [ ] Add password recovery

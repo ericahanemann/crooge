@@ -1,6 +1,5 @@
 "use client";
 
-import { Check, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
@@ -10,6 +9,10 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/auth-api";
 import { resolveStarterCategories } from "@/lib/categories";
 import { GoogleIcon } from "./google-icon";
+import {
+  isPasswordValid,
+  PasswordRequirementsList,
+} from "./password-requirements";
 
 /** sign-up form (name + email + password + google button); wired to `useAuth().register`, no google handler yet */
 export function AuthSignupForm() {
@@ -28,22 +31,11 @@ export function AuthSignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const hasMinLength = password.length >= 8;
-  const hasNumber = /\d/.test(password);
-  const hasSymbol = /[^A-Za-z0-9]/.test(password);
-  const passwordValid = hasMinLength && hasNumber && hasSymbol;
-
-  const passwordRequirements = [
-    { met: hasMinLength, label: t("passwordReqLength") },
-    { met: hasNumber, label: t("passwordReqNumber") },
-    { met: hasSymbol, label: t("passwordReqSymbol") },
-  ];
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (!passwordValid) {
+    if (!isPasswordValid(password)) {
       setError(t("errorWeakPassword"));
       return;
     }
@@ -130,21 +122,10 @@ export function AuthSignupForm() {
             minLength={8}
             disabled={submitting}
           />
-          {(passwordFocused || password.length > 0) && (
-            <ul aria-live="polite" className="flex flex-col gap-1">
-              {passwordRequirements.map((req) => (
-                <li
-                  key={req.label}
-                  className={`flex items-center gap-1.5 font-sans text-xs ${
-                    req.met ? "text-highlight" : "text-muted-foreground"
-                  }`}
-                >
-                  {req.met ? <Check size={12} /> : <X size={12} />}
-                  {req.label}
-                </li>
-              ))}
-            </ul>
-          )}
+          <PasswordRequirementsList
+            password={password}
+            visible={passwordFocused || password.length > 0}
+          />
         </div>
 
         {error && <p className="text-xs text-destructive">{error}</p>}

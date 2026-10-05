@@ -9,6 +9,7 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
+import { useAuth } from "@/components/auth/auth-provider";
 import { fmtCurrency, toIntlLocale } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/types";
 
@@ -42,10 +43,12 @@ function CustomTooltip({
   active,
   payload,
   locale,
+  currency,
 }: {
   active?: boolean;
   payload?: TooltipPayload[];
   locale: string;
+  currency: string;
 }) {
   if (!active || !payload?.length) return null;
   const bill = payload[0]?.payload;
@@ -56,7 +59,7 @@ function CustomTooltip({
         {monthLabel(bill.month, locale)}
       </p>
       <p className="font-sans text-sm font-semibold text-foreground">
-        {fmtCurrency(bill.amount)}
+        {fmtCurrency(bill.amount, currency)}
       </p>
     </div>
   );
@@ -70,6 +73,12 @@ function CustomTooltip({
 export function BillsChart({ bills, selectedMonth, locale }: BillsChartProps) {
   const router = useRouter();
   const pathname = usePathname();
+  // Read directly from the auth context, same as the client dialogs
+  // elsewhere in this directory (`AnteciparDialog`) — `locale` above
+  // happens to be threaded as a prop instead, an earlier choice this
+  // doesn't need to unwind.
+  const { user } = useAuth();
+  const currency = user?.currency ?? "BRL";
 
   return (
     <div className="bg-card border border-border rounded-xl p-5 [&_.recharts-surface]:outline-none [&_path]:outline-none">
@@ -89,7 +98,10 @@ export function BillsChart({ bills, selectedMonth, locale }: BillsChartProps) {
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip content={<CustomTooltip locale={locale} />} cursor={false} />
+          <Tooltip
+            content={<CustomTooltip locale={locale} currency={currency} />}
+            cursor={false}
+          />
           <Bar
             dataKey="amount"
             radius={[4, 4, 0, 0]}

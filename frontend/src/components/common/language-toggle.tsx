@@ -5,6 +5,8 @@ import { Globe } from "lucide-react";
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { updateProfileAction } from "@/lib/auth-actions";
+import type { Locale } from "@/lib/auth-api";
 import { cn } from "@/lib/utils";
 
 const localeLabels: Record<string, string> = {
@@ -24,6 +26,10 @@ export function LanguageToggle() {
 
   function switchLocale(next: string) {
     router.replace(pathname, { locale: next });
+    // Account-scoped sync, best-effort — see the matching comment in
+    // `ThemeToggle`. Signed-out visitors (auth pages) just navigate, same
+    // as before; the action no-ops without a session.
+    updateProfileAction({ locale: next as Locale }).catch(() => {});
   }
 
   return (

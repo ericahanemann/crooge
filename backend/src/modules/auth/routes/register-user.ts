@@ -10,6 +10,7 @@ import {
   iconKeySchema,
   KIND_TO_DB,
 } from "../../categories/schemas.ts";
+import { passwordSchema } from "../schemas.ts";
 
 const registerUserBodySchema = z.object({
   name: z.string().trim().min(1).describe("Full display name."),
@@ -18,18 +19,7 @@ const registerUserBodySchema = z.object({
     .trim()
     .toLowerCase()
     .describe("Must be unique across all users."),
-  password: z
-    .string()
-    .min(8)
-    .refine((value) => /\d/.test(value), {
-      message: "must contain at least one number",
-    })
-    .refine((value) => /[^A-Za-z0-9]/.test(value), {
-      message: "must contain at least one symbol",
-    })
-    .describe(
-      "Minimum 8 characters, with at least one number and one symbol. Hashed with argon2 before storage.",
-    ),
+  password: passwordSchema,
   categories: z
     .array(
       z.object({

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { getProfile } from "@/lib/data";
 import { fmtCurrency } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/types";
 import { AnteciparDialog } from "./antecipar-dialog";
@@ -15,7 +16,10 @@ export async function NextStatementsCard({
   available,
   futureBills,
 }: NextStatementsCardProps) {
-  const t = await getTranslations("creditCards");
+  const [t, profile] = await Promise.all([
+    getTranslations("creditCards"),
+    getProfile(),
+  ]);
   const futureTotal = futureBills.reduce((sum, b) => sum + b.amount, 0);
 
   return (
@@ -25,7 +29,7 @@ export async function NextStatementsCard({
           {t("nextStatements")}
         </p>
         <p className="font-sans text-5xl font-bold text-foreground mt-1">
-          {fmtCurrency(futureTotal)}
+          {fmtCurrency(futureTotal, profile.currency)}
         </p>
       </div>
       <div className="h-px bg-border" />
@@ -34,7 +38,7 @@ export async function NextStatementsCard({
           {t("available")}
         </p>
         <p className="font-sans text-xl font-semibold text-highlight">
-          {fmtCurrency(available)}
+          {fmtCurrency(available, profile.currency)}
         </p>
       </div>
       <div className="mt-auto">

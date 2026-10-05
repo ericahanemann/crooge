@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { GoogleIcon } from "./google-icon";
 /** sign-in form (email + password + google button); wired to `useAuth().login`, no google handler yet */
 export function AuthSigninForm() {
   const t = useTranslations("auth.signin");
+  const currentLocale = useLocale();
   const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -25,8 +26,16 @@ export function AuthSigninForm() {
     setSubmitting(true);
 
     try {
-      await login(email, password);
-      router.push("/");
+      const user = await login(email, password);
+      // "Server wins": if the account's stored locale differs from
+      // whatever locale this browser happened to land the signin page in,
+      // navigate into the account's own locale rather than leaving it
+      // mismatched until the next full reload.
+      if (user.locale !== currentLocale) {
+        router.push("/", { locale: user.locale });
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       setError(
         err instanceof ApiError && err.status === 401

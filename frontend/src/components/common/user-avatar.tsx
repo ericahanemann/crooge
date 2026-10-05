@@ -3,7 +3,7 @@
 import { Menu } from "@base-ui/react/menu";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/auth/auth-provider";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { getInitials } from "@/lib/utils";
 
 /** @prop compact - icon-only mode (no name label) used in the mobile `PageHeader`, default false. */
@@ -59,7 +59,14 @@ export function UserAvatar({ compact = false }: UserAvatarProps) {
           className="z-50"
         >
           <Menu.Popup className="min-w-40 bg-card border border-border rounded-md shadow-lg overflow-hidden">
-            <Menu.Item className="block w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-muted cursor-default transition-colors outline-none">
+            <Menu.Item
+              render={
+                <Link
+                  href="/profile"
+                  className="block w-full px-4 py-2.5 text-left text-sm text-foreground hover:bg-muted cursor-default transition-colors outline-none"
+                />
+              }
+            >
               {t("profile")}
             </Menu.Item>
             <Menu.Separator className="my-1 h-px bg-border" />

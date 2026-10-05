@@ -249,6 +249,330 @@ describe("auth routes", () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it("returns default preferences for a freshly created user", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({
+        locale: "en",
+        theme: "dark",
+        colorTheme: "pink",
+        currency: "BRL",
+        savingsRate: 0,
+      });
+    });
+  });
+
+  describe("PATCH /me", () => {
+    it("rejects requests with no Authorization header with 401", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        payload: { name: "New Name" },
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("updates the name alone, no password required", async () => {
+      const user = await createTestUser({ name: "Old Name" });
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { name: "New Name" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ name: "New Name" });
+    });
+
+    it("updates preference fields independently of identity fields", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          locale: "pt-BR",
+          theme: "light",
+          colorTheme: "violet",
+          currency: "USD",
+          savingsRate: 20,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({
+        locale: "pt-BR",
+        theme: "light",
+        colorTheme: "violet",
+        currency: "USD",
+        savingsRate: 20,
+      });
+    });
+
+    it("rejects an empty body with 400", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("rejects an invalid colorTheme with 400", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { colorTheme: "chartreuse" },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("rejects an email change with no currentPassword with 400", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { email: "new@example.com" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(response.json().issues.currentPassword).toContain(
+        "currentPassword is required to change email",
+      );
+    });
+
+    it("rejects an email change with the wrong currentPassword with 401", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          email: "new@example.com",
+          currentPassword: WRONG_PASSWORD,
+        },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("changes the email with the correct currentPassword", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          email: "new@example.com",
+          currentPassword: TEST_USER_PASSWORD,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ email: "new@example.com" });
+    });
+
+    it("rejects an email already in use by another user with 409", async () => {
+      await createTestUser({ email: "taken@example.com" });
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          email: "taken@example.com",
+          currentPassword: TEST_USER_PASSWORD,
+        },
+      });
+
+      expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe("PATCH /me/password", () => {
+    it("rejects requests with no Authorization header with 401", async () => {
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        payload: {
+          currentPassword: TEST_USER_PASSWORD,
+          newPassword: "new-password-1!",
+        },
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("rejects the wrong currentPassword with 401", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          currentPassword: WRONG_PASSWORD,
+          newPassword: "new-password-1!",
+        },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("rejects a weak newPassword with 400", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          currentPassword: TEST_USER_PASSWORD,
+          newPassword: PASSWORD_MISSING_NUMBER,
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("changes the password — old password no longer signs in, new one does", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+      const newPassword = "new-password-1!";
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { currentPassword: TEST_USER_PASSWORD, newPassword },
+      });
+      expect(response.statusCode).toBe(204);
+
+      const oldLogin = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: TEST_USER_PASSWORD },
+      });
+      expect(oldLogin.statusCode).toBe(401);
+
+      const newLogin = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: newPassword },
+      });
+      expect(newLogin.statusCode).toBe(200);
+    });
+
+    it("revokes every other session family but keeps the caller's own", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      // Two independent sign-ins: two separate refresh-token families.
+      const sessionA = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: TEST_USER_PASSWORD },
+      });
+      const sessionB = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: TEST_USER_PASSWORD },
+      });
+      const refreshTokenA = sessionA.json().refreshToken;
+      const refreshTokenB = sessionB.json().refreshToken;
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          currentPassword: TEST_USER_PASSWORD,
+          newPassword: "new-password-1!",
+          refreshToken: refreshTokenA,
+        },
+      });
+      expect(response.statusCode).toBe(204);
+
+      // Family A (the caller's own) still refreshes fine.
+      const refreshA = await app.inject({
+        method: "POST",
+        url: "/sessions/refresh",
+        payload: { refreshToken: refreshTokenA },
+      });
+      expect(refreshA.statusCode).toBe(200);
+
+      // Family B was revoked.
+      const refreshB = await app.inject({
+        method: "POST",
+        url: "/sessions/refresh",
+        payload: { refreshToken: refreshTokenB },
+      });
+      expect(refreshB.statusCode).toBe(401);
+    });
+
+    it("revokes every session, including the caller's own, when no refreshToken is given", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const session = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: TEST_USER_PASSWORD },
+      });
+      const refreshToken = session.json().refreshToken;
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          currentPassword: TEST_USER_PASSWORD,
+          newPassword: "new-password-1!",
+        },
+      });
+      expect(response.statusCode).toBe(204);
+
+      const refresh = await app.inject({
+        method: "POST",
+        url: "/sessions/refresh",
+        payload: { refreshToken },
+      });
+      expect(refresh.statusCode).toBe(401);
+    });
   });
 
   describe("POST /sessions/refresh", () => {

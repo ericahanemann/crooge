@@ -12,6 +12,24 @@ model User {
   name          String
   email         String         @unique
   password      String
+  // Account-scoped preferences — a write-through cache of these also lives
+  // in cookies on the frontend domain (theme/color-theme/NEXT_LOCALE) so
+  // first paint stays flash-free with no network round trip; this row is
+  // the source of truth they reconcile from on sign-in/refresh. Plain
+  // strings (not Prisma enums) since the allowed set is a frontend/UX
+  // concern that can grow without a migration — Zod validates the allowed
+  // values at the API boundary instead, same division of labor as
+  // `iconKeySchema` for categories.
+  locale        String         @default("en")
+  theme         String         @default("dark")
+  colorTheme    String         @default("pink") @map("color_theme")
+  // Display-only — changes formatting, never converts stored amounts.
+  currency      String         @default("BRL")
+  // Whole percent (0-100) of income treated as savings rather than budget,
+  // e.g. `budget = income * (1 - savingsRate / 100)`. Defaults to 0, which
+  // makes budget == income — today's behavior, unchanged until a user
+  // opts in.
+  savingsRate   Int            @default(0) @map("savings_rate")
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]
