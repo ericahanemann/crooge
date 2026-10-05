@@ -5,18 +5,27 @@ import { AddExpenseDialog } from "./add-expense-dialog";
 interface SpendingCardProps {
   spent: number;
   income: number;
+  /** Whole percent (0-100) of income set aside before spending — 0 (the default) makes `budget === income`, today's original behavior. */
+  savingsRate: number;
+  currency: string;
 }
 
 /**
  * "cost" half of the monthly page's top bento row — spent this month +
  * daily limit + Add Expense CTA
  *
- * `dailyLimit` = remaining budget (income − spent) ÷ days left in the
+ * `dailyLimit` = remaining budget (budget − spent) ÷ days left in the
  * *current calendar month* — always today's month, not whatever month the
  * page is viewing via `MonthNav`. floors at 0 once the budget is exhausted
- * rather than going negative.
+ * rather than going negative. `budget` is income minus the user's savings
+ * goal (see `savingsRate`), not necessarily all of income.
  */
-export async function SpendingCard({ spent, income }: SpendingCardProps) {
+export async function SpendingCard({
+  spent,
+  income,
+  savingsRate,
+  currency,
+}: SpendingCardProps) {
   const t = await getTranslations("monthly");
 
   const today = new Date();
@@ -26,7 +35,8 @@ export async function SpendingCard({ spent, income }: SpendingCardProps) {
     0,
   ).getDate();
   const daysLeft = Math.max(daysInMonth - today.getDate() + 1, 1);
-  const remaining = income - spent;
+  const budget = income * (1 - savingsRate / 100);
+  const remaining = budget - spent;
   const dailyLimit = remaining > 0 ? remaining / daysLeft : 0;
 
   return (
@@ -36,7 +46,7 @@ export async function SpendingCard({ spent, income }: SpendingCardProps) {
           {t("spentThisMonth")}
         </p>
         <p className="font-sans text-5xl font-bold text-foreground mt-1">
-          {fmtCurrency(spent)}
+          {fmtCurrency(spent, currency)}
         </p>
       </div>
       <div className="h-px bg-border" />
@@ -46,13 +56,18 @@ export async function SpendingCard({ spent, income }: SpendingCardProps) {
         </p>
         <div className="flex items-baseline gap-1.5">
           <p className="font-sans text-xl font-semibold text-foreground">
-            {fmtCurrency(dailyLimit)}
+            {fmtCurrency(dailyLimit, currency)}
           </p>
           <span className="font-sans text-sm text-muted-foreground uppercase">
             {t("perDay")}
           </span>
         </div>
       </div>
+      {savingsRate > 0 && (
+        <p className="font-sans text-xs text-muted-foreground">
+          {t("savingGoal", { rate: savingsRate })}
+        </p>
+      )}
       <div className="mt-auto">
         <AddExpenseDialog />
       </div>
