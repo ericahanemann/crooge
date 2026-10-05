@@ -16,7 +16,7 @@ Each user has exactly one implicit account/balance — it isn't a modeled "bank 
 - [x] It should be possible to sign in (email, password)
 - [ ] It should be possible to sign in with Google 
 - [x] It should be possible to get the logged-in user's profile
-- [ ] It should be possible to edit the logged-in user's profile
+- [x] It should be possible to edit the logged-in user's profile (`PATCH /me` — name/email/preferences; `PATCH /me/password` for password changes, kept separate — see `docs/edit-profile-spec.md`)
 - [x] It should be possible to log out
 
 ### Monthly summary, income and expenses
