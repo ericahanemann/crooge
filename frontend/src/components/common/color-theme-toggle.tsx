@@ -3,17 +3,9 @@
 import { Menu } from "@base-ui/react/menu";
 import { Palette } from "lucide-react";
 import { useEffect, useState } from "react";
+import { updateProfileAction } from "@/lib/auth-actions";
+import { COLOR_THEME_OPTIONS, type ColorThemeKey } from "@/lib/color-themes";
 import { cn } from "@/lib/utils";
-
-const COLOR_OPTIONS = [
-  { key: "pink", label: "PINK", hex: "#f472b6" },
-  { key: "violet", label: "VIOLET", hex: "#8b5cf6" },
-  { key: "emerald", label: "EMERALD", hex: "#34d399" },
-  { key: "amber", label: "AMBER", hex: "#fbbf24" },
-  { key: "sky", label: "SKY", hex: "#38bdf8" },
-] as const;
-
-type ColorKey = (typeof COLOR_OPTIONS)[number]["key"];
 
 /**
  * palette icon dropdown for picking the `--highlight` accent color
@@ -24,22 +16,25 @@ type ColorKey = (typeof COLOR_OPTIONS)[number]["key"];
  * mirrors it into state
  */
 export function ColorThemeToggle() {
-  const [colorTheme, setColorTheme] = useState<ColorKey | null>(null);
+  const [colorTheme, setColorTheme] = useState<ColorThemeKey | null>(null);
 
   useEffect(() => {
     const current =
-      (document.documentElement.getAttribute("data-color-theme") as ColorKey) ??
-      "pink";
+      (document.documentElement.getAttribute(
+        "data-color-theme",
+      ) as ColorThemeKey) ?? "pink";
     setColorTheme(current);
   }, []);
 
   if (!colorTheme) return <div className="size-8" />;
 
-  function switchColor(key: ColorKey) {
+  function switchColor(key: ColorThemeKey) {
     document.documentElement.setAttribute("data-color-theme", key);
     setColorTheme(key);
     // biome-ignore lint/suspicious/noDocumentCookie: cookie needed for SSR theme persistence
     document.cookie = `color-theme=${key};path=/;max-age=31536000;SameSite=Lax`;
+    // Account-scoped sync, best-effort — see the matching comment in `ThemeToggle`.
+    updateProfileAction({ colorTheme: key }).catch(() => {});
   }
 
   return (
@@ -55,7 +50,7 @@ export function ColorThemeToggle() {
           className="z-50"
         >
           <Menu.Popup className="min-w-30 bg-card border border-border rounded-md shadow-lg overflow-hidden">
-            {COLOR_OPTIONS.map((opt) => (
+            {COLOR_THEME_OPTIONS.map((opt) => (
               <Menu.Item
                 key={opt.key}
                 onClick={() => switchColor(opt.key)}

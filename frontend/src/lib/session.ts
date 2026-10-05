@@ -51,3 +51,44 @@ export async function getRefreshToken(): Promise<string | null> {
   const store = await cookies();
   return store.get(REFRESH_TOKEN_COOKIE)?.value ?? null;
 }
+
+// Same cookie names/shape `ThemeToggle`/`ColorThemeToggle` already write
+// client-side via `document.cookie` (see those components) — kept as
+// literals here rather than imported, since those two stay plain client
+// components with no shared constants module today.
+const THEME_PREFERENCE_COOKIE = "theme";
+const COLOR_THEME_PREFERENCE_COOKIE = "color-theme";
+const PREFERENCE_COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
+
+/**
+ * Write-through cache: the account record (`User.theme`/`colorTheme`) is
+ * the source of truth, these cookies are what `app/layout.tsx` actually
+ * reads before first paint (so there's no network round trip before a
+ * toggle/sign-in visually responds). Called after sign-in/refresh resolve
+ * ("server wins" — the account's stored preference overrides whatever this
+ * browser's cookies happened to say) and after a toggle click posts its
+ * change to `PATCH /me` in the background.
+ *
+ * Deliberately NOT httpOnly — unlike the auth tokens above, these mirror
+ * values the client already reads/writes itself via `document.cookie`.
+ */
+export async function setPreferenceCookies(input: {
+  theme?: string;
+  colorTheme?: string;
+}) {
+  const store = await cookies();
+  if (input.theme) {
+    store.set(THEME_PREFERENCE_COOKIE, input.theme, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: PREFERENCE_COOKIE_MAX_AGE,
+    });
+  }
+  if (input.colorTheme) {
+    store.set(COLOR_THEME_PREFERENCE_COOKIE, input.colorTheme, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: PREFERENCE_COOKIE_MAX_AGE,
+    });
+  }
+}

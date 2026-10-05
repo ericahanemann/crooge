@@ -3,6 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { updateProfileAction } from "@/lib/auth-actions";
 
 /**
  * sun/moon icon button that flips light/dark mode
@@ -25,10 +26,15 @@ export function ThemeToggle() {
 
   function toggle() {
     const next = !isDark;
+    const theme = next ? "dark" : "light";
     setIsDark(next);
     document.documentElement.classList.toggle("dark", next);
     // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API not yet widely supported
-    document.cookie = `theme=${next ? "dark" : "light"};path=/;max-age=31536000;SameSite=Lax`;
+    document.cookie = `theme=${theme};path=/;max-age=31536000;SameSite=Lax`;
+    // Account-scoped sync, best-effort — the toggle above is instant and
+    // never waits on this; signed-out visitors just update the cookie, same
+    // as before (the action no-ops without a session, see `updateProfileAction`).
+    updateProfileAction({ theme }).catch(() => {});
   }
 
   return (

@@ -24,10 +24,32 @@ async function toApiError(response: Response) {
   );
 }
 
+export type Locale = "en" | "pt-BR";
+export type Theme = "light" | "dark";
+export type ColorTheme = "pink" | "violet" | "emerald" | "amber" | "sky";
+export type Currency = "BRL" | "USD" | "EUR";
+
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  locale: Locale;
+  theme: Theme;
+  colorTheme: ColorTheme;
+  currency: Currency;
+  savingsRate: number;
+}
+
+/** Every field optional — a caller sends only what changed. */
+export interface UpdateProfileInput {
+  name?: string;
+  email?: string;
+  currentPassword?: string;
+  locale?: Locale;
+  theme?: Theme;
+  colorTheme?: ColorTheme;
+  currency?: Currency;
+  savingsRate?: number;
 }
 
 export interface SignupCategory {
@@ -108,4 +130,49 @@ export async function getMe(accessToken: string): Promise<AuthUser> {
   if (!response.ok) throw await toApiError(response);
 
   return response.json();
+}
+
+/** Partial update to the authenticated user's own profile/preferences — see `UpdateProfileInput`. */
+export async function updateMe(
+  accessToken: string,
+  input: UpdateProfileInput,
+): Promise<AuthUser> {
+  const response = await fetch(`${API_URL}/me`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw await toApiError(response);
+
+  return response.json();
+}
+
+/**
+ * `refreshToken` is passed explicitly, same reasoning as `refreshSession`
+ * above — it identifies which session family to keep signed in while every
+ * other family is revoked. Omit it to sign out everywhere, including the
+ * device making this request.
+ */
+export async function updatePassword(
+  accessToken: string,
+  input: {
+    currentPassword: string;
+    newPassword: string;
+    refreshToken?: string;
+  },
+): Promise<void> {
+  const response = await fetch(`${API_URL}/me/password`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw await toApiError(response);
 }
