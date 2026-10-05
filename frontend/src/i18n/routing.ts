@@ -26,6 +26,10 @@ export const routing = defineRouting({
       en: "/credit-cards/bills-summary",
       "pt-BR": "/cartoes/resumo",
     },
+    "/profile": {
+      en: "/profile",
+      "pt-BR": "/perfil",
+    },
     "/signin": {
       en: "/signin",
       "pt-BR": "/entrar",

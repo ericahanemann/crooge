@@ -41,7 +41,8 @@
     "noResults": "Sem resultados",
     "emptyTransactions": "Nenhuma transação ainda",
     "prevMonth": "Mês anterior",
-    "nextMonth": "Próximo mês"
+    "nextMonth": "Próximo mês",
+    "savingGoal": "Economizando {rate}% da renda"
   },
   "dialogs": {
     "common": {
@@ -189,9 +190,6 @@
       "emailPlaceholder": "seu@email.com",
       "passwordLabel": "SENHA",
       "passwordPlaceholder": "Algo que você vai lembrar",
-      "passwordReqLength": "Pelo menos 8 caracteres",
-      "passwordReqNumber": "Pelo menos um número",
-      "passwordReqSymbol": "Pelo menos um símbolo",
       "submit": "CRIAR CONTA",
       "submitting": "CRIANDO CONTA...",
       "errorEmailTaken": "Já existe uma conta com este e-mail.",
@@ -225,6 +223,45 @@
       "gift": "PRESENTE",
       "investment": "INVESTIMENTO",
       "other": "OUTROS"
+    }
+  },
+  "password": {
+    "reqLength": "Pelo menos 8 caracteres",
+    "reqNumber": "Pelo menos um número",
+    "reqSymbol": "Pelo menos um símbolo"
+  },
+  "profile": {
+    "title": "PERFIL",
+    "profileCard": {
+      "heading": "PERFIL",
+      "nameLabel": "NOME",
+      "emailLabel": "E-MAIL",
+      "currentPasswordLabel": "SENHA ATUAL",
+      "currentPasswordHint": "Necessária para alterar seu e-mail ou senha.",
+      "save": "SALVAR",
+      "saving": "SALVANDO...",
+      "saved": "Salvo",
+      "errorIncorrectPassword": "Senha incorreta.",
+      "errorEmailTaken": "Já existe uma conta com este e-mail.",
+      "errorGeneric": "Algo deu errado. Tente novamente.",
+      "passwordHeading": "ALTERAR SENHA",
+      "newPasswordLabel": "NOVA SENHA",
+      "newPasswordHint": "Alterá-la desconecta todos os outros dispositivos.",
+      "confirmPasswordLabel": "CONFIRMAR NOVA SENHA",
+      "errorPasswordMismatch": "As senhas não coincidem.",
+      "errorWeakPassword": "A senha deve ter no mínimo 8 caracteres, com um número e um símbolo."
+    },
+    "preferencesCard": {
+      "heading": "PREFERÊNCIAS",
+      "localeLabel": "IDIOMA",
+      "themeLabel": "TEMA",
+      "themeLight": "CLARO",
+      "themeDark": "ESCURO",
+      "colorThemeLabel": "COR DE DESTAQUE",
+      "currencyLabel": "MOEDA",
+      "savingsRateLabel": "META DE ECONOMIA (%)",
+      "savingsRateHint": "Percentual da renda a reservar antes de gastar. Afeta o limite diário na página Mensal. 0 mantém o comportamento atual.",
+      "saved": "Salvo"
     }
   }
 }
