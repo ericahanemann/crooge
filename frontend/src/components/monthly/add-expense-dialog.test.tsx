@@ -13,6 +13,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: mockRefresh, push: vi.fn() }),
 }));
 
+vi.mock("@/components/auth/auth-provider", () => ({
+  useAuth: () => ({ user: { currency: "BRL" } }),
+}));
+
 vi.mock("@/lib/category-actions", () => ({
   listCategoriesAction: vi.fn(),
   createCategoryAction: vi.fn(),

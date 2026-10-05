@@ -6,10 +6,15 @@ import { AddIncomeDialog } from "./add-income-dialog";
 interface BalanceCardProps {
   balance: number;
   income: number;
+  currency: string;
 }
 
 /** "asset" half of the monthly page's top bento row */
-export async function BalanceCard({ balance, income }: BalanceCardProps) {
+export async function BalanceCard({
+  balance,
+  income,
+  currency,
+}: BalanceCardProps) {
   const t = await getTranslations("monthly");
   return (
     <div className="bg-card border border-highlight/20 rounded-xl p-5 flex flex-col gap-3.5">
@@ -19,7 +24,7 @@ export async function BalanceCard({ balance, income }: BalanceCardProps) {
         </p>
         <p className="font-sans text-5xl font-bold text-highlight mt-1">
           {balance < 0 ? "-" : ""}
-          {fmtCurrency(balance)}
+          {fmtCurrency(balance, currency)}
         </p>
       </div>
       <div className="h-px bg-border" />
@@ -28,7 +33,7 @@ export async function BalanceCard({ balance, income }: BalanceCardProps) {
           {t("incomeThisMonth")}
         </p>
         <p className="font-sans text-xl font-semibold text-highlight">
-          {fmtCurrency(income)}
+          {fmtCurrency(income, currency)}
         </p>
       </div>
       <div className="mt-auto">

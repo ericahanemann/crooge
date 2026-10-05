@@ -3,15 +3,42 @@ export function toIntlLocale(locale: string): string {
   return locale === "pt-BR" ? "pt-BR" : "en-US";
 }
 
-// always formats as brazilian reais with `pt-BR` grouping/decimal separators,
-// regardless of the active UI locale — the app's only currency is BRL, so
-// this is intentionally not locale-sensitive. sign is stripped (`Math.abs`);
-// callers render the +/- themselves based on transaction type.
-export function fmtCurrency(amount: number): string {
-  return `R$${Math.abs(amount).toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  BRL: "R$",
+  USD: "$",
+  EUR: "€",
+};
+
+/** Symbol for a bare amount input's prefix decoration (e.g. the "R$" beside the Antecipar amount field) — not a full currency-formatted string. */
+export function currencySymbol(currency: string): string {
+  return CURRENCY_SYMBOLS[currency] ?? currency;
+}
+
+// Display-only: `currency` changes how an amount is *formatted*, never what
+// it's worth — this never converts the underlying value (see
+// `docs/edit-profile-spec.md`). Sign is stripped (`Math.abs`); callers
+// render the +/- themselves based on transaction type.
+//
+// BRL keeps its own hand-built formatting rather than
+// `Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL"})`, which
+// inserts a non-breaking space after the symbol ("R$ 1.234,56") — this app
+// has always rendered "R$1.234,56" with no space, and every existing test
+// (and the DESIGN.md-documented look) was written against that. Every
+// other currency goes through `Intl.NumberFormat` properly, which is also
+// how BRL used to be *not* handled (it was the one hardcoded case) before
+// `currency` became a per-user preference instead of a fixed assumption.
+export function fmtCurrency(amount: number, currency: string): string {
+  const abs = Math.abs(amount);
+  if (currency === "BRL") {
+    return `R$${abs.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(abs);
 }
 
 // parses a "YYYY-MM-DD" string into a local-midnight date. deliberately

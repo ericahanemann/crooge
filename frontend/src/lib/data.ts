@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { AuthUser } from "./auth-api";
 import { BackendError, backendFetchJson } from "./backend-fetch";
 import type {
   Category,
@@ -24,6 +26,18 @@ const MAX_BILLS_PAGE_SIZE = 60;
 // backend directly. Each function does whatever number of backend calls it
 // takes to produce the shape components expect — callers don't need to know
 // the backend splits card detail/bills across separate endpoints.
+
+/**
+ * The signed-in user's profile/preferences — mainly fetched here for
+ * `currency` (display formatting, never a data fetch concern of its own
+ * elsewhere). Wrapped in React's `cache()` because several independent
+ * `<Suspense>`-streamed sections on the same page (see `monthly/page.tsx`,
+ * `current-bill/page.tsx`) each need it; this de-dupes those into one
+ * `/me` request per render pass instead of one per section.
+ */
+export const getProfile = cache(async (): Promise<AuthUser> => {
+  return backendFetchJson<AuthUser>("/me");
+});
 
 export async function getMonthlySummary(month: string) {
   return backendFetchJson<{ balance: number; income: number; spent: number }>(

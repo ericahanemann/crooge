@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { CategorySelect } from "@/components/monthly/category-select";
 import {
   Dialog,
@@ -22,7 +23,7 @@ import {
   updateCategoryAction,
 } from "@/lib/category-actions";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
-import { todayISO } from "@/lib/format";
+import { currencySymbol, todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,8 @@ export function AddCardExpenseDialog({
   const tc = useTranslations("dialogs.common");
   const te = useTranslations("dialogs.expense");
   const router = useRouter();
+  const { user } = useAuth();
+  const currency = user?.currency ?? "BRL";
 
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>(defaultMode);
@@ -244,7 +247,7 @@ export function AddCardExpenseDialog({
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  R$
+                  {currencySymbol(currency)}
                 </span>
                 <Input
                   id="card-amount"

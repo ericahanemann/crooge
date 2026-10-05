@@ -6,7 +6,11 @@ import {
   TransactionsFilterClient,
 } from "@/components/common/transactions-filter-client";
 import { resolveCategory } from "@/lib/categories";
-import { getCategories, getCreditCardTransactions } from "@/lib/data";
+import {
+  getCategories,
+  getCreditCardTransactions,
+  getProfile,
+} from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
 interface CreditCardTransactionsListProps {
@@ -27,9 +31,10 @@ export async function CreditCardTransactionsList({
 }: CreditCardTransactionsListProps) {
   const t = await getTranslations("monthly");
   const tCommon = await getTranslations("dialogs.common");
-  const [transactions, categories] = await Promise.all([
+  const [transactions, categories, profile] = await Promise.all([
     getCreditCardTransactions(cardId, month),
     getCategories(),
+    getProfile(),
   ]);
   const unknownLabel = tCommon("unknownCategory");
 
@@ -49,7 +54,7 @@ export async function CreditCardTransactionsList({
       categoryIcon: resolved.icon,
       description: tx.description,
       amount: Math.abs(tx.amount),
-      formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount)}`,
+      formattedAmount: `${isIncome ? "+" : "-"}${fmtCurrency(tx.amount, profile.currency)}`,
       isIncome,
       timing: tx.timing,
       paymentMethod: tx.paymentMethod,

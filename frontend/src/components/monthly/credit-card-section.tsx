@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CardVisual } from "@/components/credit-card/card-visual";
 import { Link } from "@/i18n/navigation";
-import { getCreditCard } from "@/lib/data";
+import { getCreditCard, getProfile } from "@/lib/data";
 import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 
 /**
@@ -16,7 +16,7 @@ import { fmtCurrency, parseLocalDate, toIntlLocale } from "@/lib/format";
 export async function CreditCardSection() {
   const t = await getTranslations("monthly");
   const locale = await getLocale();
-  const card = await getCreditCard();
+  const [card, profile] = await Promise.all([getCreditCard(), getProfile()]);
   const currentBill = card?.bills.find((b) => b.status === "current");
 
   if (!card || !currentBill) return null;
@@ -53,7 +53,7 @@ export async function CreditCardSection() {
                 {t("currentBill")}
               </span>
               <span className="font-sans text-3xl font-bold text-foreground">
-                {fmtCurrency(currentBill.amount)}
+                {fmtCurrency(currentBill.amount, profile.currency)}
               </span>
             </div>
             <div className="h-px bg-border" />
@@ -71,7 +71,7 @@ export async function CreditCardSection() {
                 {t("upcoming")}
               </span>
               <span className="font-sans text-base font-semibold text-muted-foreground">
-                {fmtCurrency(upcomingBills)}
+                {fmtCurrency(upcomingBills, profile.currency)}
               </span>
             </div>
           </div>

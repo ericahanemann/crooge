@@ -4,6 +4,7 @@ import { CalendarClock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
-import { fmtCurrency, toIntlLocale } from "@/lib/format";
+import { currencySymbol, fmtCurrency, toIntlLocale } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,12 @@ export function AnteciparDialog({
   const tc = useTranslations("dialogs.common");
   const locale = useLocale();
   const router = useRouter();
+  // Read directly from the auth context rather than threaded as a prop —
+  // same precedent as `locale` above (`useLocale()`), which this
+  // client component also reads directly instead of receiving from a
+  // server-component parent.
+  const { user } = useAuth();
+  const currency = user?.currency ?? "BRL";
 
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -168,7 +175,7 @@ export function AnteciparDialog({
                   </span>
                 </div>
                 <span className="font-sans text-sm font-semibold text-foreground">
-                  {fmtCurrency(bill.amount)}
+                  {fmtCurrency(bill.amount, currency)}
                 </span>
               </button>
             ))}
@@ -183,7 +190,7 @@ export function AnteciparDialog({
             </label>
             <div className="relative">
               <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                R$
+                {currencySymbol(currency)}
               </span>
               <Input
                 id="antecipar-amount"
