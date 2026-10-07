@@ -21,6 +21,10 @@ const authenticateSessionBodySchema = z.object({
 
 // Precomputed once so a login for a non-existent email still pays the
 // argon2 verify cost — otherwise timing would reveal which emails exist.
+// The `??` fallback below also covers a Google-only account (`password`
+// is `null`) the same way — same 401, same cost paid, no separate code
+// path that would otherwise leak "this email exists but uses Google
+// sign-in."
 const dummyPasswordHash = await hash(randomBytes(32).toString("hex"));
 
 /** Signs in with email + password. Issues a new access token and a new refresh-token *family* (also set as an httpOnly cookie). */

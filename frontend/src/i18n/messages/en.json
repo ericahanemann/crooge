@@ -169,9 +169,9 @@
       "errorInvalidCredentials": "Invalid email or password.",
       "errorGeneric": "Something went wrong. Please try again.",
       "or": "OR",
-      "google": "CONTINUE WITH GOOGLE",
       "noAccount": "Don't have an account?",
-      "signUp": "Sign up"
+      "signUp": "Sign up",
+      "errorGoogleAccountExists": "An account with this email already exists. Sign in with your password instead, then you can link Google from your profile."
     },
     "signup": {
       "title": "GET CROOOOOGY",
@@ -196,9 +196,9 @@
       "errorWeakPassword": "Password must be at least 8 characters, with a number and a symbol.",
       "errorGeneric": "Something went wrong. Please try again.",
       "or": "OR",
-      "google": "CONTINUE WITH GOOGLE",
       "hasAccount": "Already have an account?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "errorGoogleAccountExists": "An account with this email already exists. Sign in with your password instead, then you can link Google from your profile."
     }
   },
   "categories": {
@@ -249,7 +249,13 @@
       "newPasswordHint": "Changing it signs you out of every other device.",
       "confirmPasswordLabel": "CONFIRM NEW PASSWORD",
       "errorPasswordMismatch": "Passwords don't match.",
-      "errorWeakPassword": "Password must be at least 8 characters, with a number and a symbol."
+      "errorWeakPassword": "Password must be at least 8 characters, with a number and a symbol.",
+      "setPasswordHeading": "SET PASSWORD",
+      "setPasswordHint": "Add a password so you can also sign in without Google. This signs you out of every other device.",
+      "googleAccountLabel": "GOOGLE ACCOUNT",
+      "googleAccountConnected": "Connected",
+      "errorGoogleEmailMismatch": "This Google account's email doesn't match yours.",
+      "errorGoogleAlreadyLinked": "This Google account is already linked to a different user."
     },
     "preferencesCard": {
       "heading": "PREFERENCES",

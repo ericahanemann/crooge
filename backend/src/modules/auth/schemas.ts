@@ -74,6 +74,16 @@ export const meResponseSchema = z
     colorTheme: colorThemeSchema,
     currency: currencySchema,
     savingsRate: savingsRateSchema,
+    hasPassword: z
+      .boolean()
+      .describe(
+        "False for a Google-only account that's never set one — `PATCH /me/password` doesn't require `currentPassword` in that case (see its own docs).",
+      ),
+    hasGoogleAccount: z
+      .boolean()
+      .describe(
+        "Whether a Google account is linked (`POST /sessions/google` or `POST /me/google`).",
+      ),
   })
   .describe("The authenticated user's profile.");
 

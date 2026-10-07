@@ -6,6 +6,8 @@ type MeSource = Pick<
   | "id"
   | "name"
   | "email"
+  | "password"
+  | "googleId"
   | "locale"
   | "theme"
   | "colorTheme"
@@ -29,5 +31,9 @@ export function serializeMe(user: MeSource) {
     colorTheme: user.colorTheme as ColorTheme,
     currency: user.currency as Currency,
     savingsRate: user.savingsRate,
+    // Never serialize `password`/`googleId` themselves — only derived
+    // booleans.
+    hasPassword: user.password !== null,
+    hasGoogleAccount: user.googleId !== null,
   };
 }

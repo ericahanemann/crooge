@@ -28,7 +28,7 @@ const updateMeBodySchema = z
       .string()
       .optional()
       .describe(
-        "Required only when `email` is present — changing the account's identity is gated behind reauth, same reasoning as `PATCH /me/password`.",
+        "Required when `email` is present and the account has a password — changing the account's identity is gated behind reauth, same reasoning as `PATCH /me/password`. Not required for a Google-only account with no password set (nothing to reauth against); see `hasPassword` on `GET /me`.",
       ),
     locale: localeSchema.optional(),
     theme: themeSchema.optional(),
@@ -46,10 +46,6 @@ const updateMeBodySchema = z
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: "at least one field is required",
-  })
-  .refine((data) => !data.email || !!data.currentPassword, {
-    message: "currentPassword is required to change email",
-    path: ["currentPassword"],
   })
   .describe(
     "Partial update to the authenticated user's own profile — every field is optional, but at least one is required.",
@@ -80,6 +76,9 @@ export async function updateMe(app: FastifyInstance) {
           409: errorResponseSchema.describe(
             "A user with this email already exists.",
           ),
+          422: errorResponseSchema.describe(
+            "`email` was present, the account has a password, and `currentPassword` was missing. Whether this applies depends on `hasPassword` (`GET /me`), not just on the request body, so it can't be a static schema check.",
+          ),
         },
       },
     },
@@ -92,19 +91,32 @@ export async function updateMe(app: FastifyInstance) {
         return reply.status(404).send({ message: "user not found" });
       }
 
-      if (fields.email) {
+      // Whether `currentPassword` is required depends on `existing.password`
+      // (DB state, not just this request's body), so this can't be a static
+      // Zod refine the way `updateMeBodySchema`'s "at least one field"
+      // check is — see the 422 response's description.
+      if (fields.email && existing.password) {
+        if (!currentPassword) {
+          return reply.status(422).send({
+            message: "currentPassword is required to change email",
+          });
+        }
+
         // The caller is already authenticated (the access token proves
         // identity), so there's no email-enumeration question here — just
         // "did you type your own password right." No dummy-hash timing
         // trick needed, unlike sign-in.
         const passwordMatches = await verify(
           existing.password,
-          currentPassword as string,
+          currentPassword,
         );
         if (!passwordMatches) {
           return reply.status(401).send({ message: "incorrect password" });
         }
       }
+      // else: no password on the account (Google-only) — nothing to
+      // reauth against; the access token alone is sufficient, same trust
+      // level as any other field here.
 
       try {
         const user = await prisma.user.update({

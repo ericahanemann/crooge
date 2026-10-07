@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError } from "@/lib/auth-api";
 import { resolveStarterCategories } from "@/lib/categories";
-import { GoogleIcon } from "./google-icon";
+import { GoogleSignInButton } from "./google-sign-in-button";
 import {
   isPasswordValid,
   PasswordRequirementsList,
 } from "./password-requirements";
 
-/** sign-up form (name + email + password + google button); wired to `useAuth().register`, no google handler yet */
+/** sign-up form (name + email + password + "Sign up with Google" button); wired to `useAuth().register`/`loginWithGoogle` */
 export function AuthSignupForm() {
   const t = useTranslations("auth.signup");
   // untranslated root translator — `resolveStarterCategories` needs the
@@ -22,8 +22,9 @@ export function AuthSignupForm() {
   // namespace-scoped one, since it's shared with server components that
   // resolve the same keys from different namespaces.
   const tRoot = useTranslations();
+  const currentLocale = useLocale();
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,6 +54,35 @@ export function AuthSignupForm() {
       } else {
         setError(t("errorGeneric"));
       }
+      setSubmitting(false);
+    }
+  }
+
+  async function handleGoogleToken(idToken: string) {
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      const user = await loginWithGoogle(
+        idToken,
+        resolveStarterCategories(tRoot),
+      );
+      // Usually a no-op redirect (a brand-new account's locale is carried
+      // up to match this page's), but "sign up with Google" can also
+      // resolve to an existing account (someone who already has one
+      // clicking the wrong button) — same "server wins" case the signin
+      // page handles, so this needs the same check.
+      if (user.locale !== currentLocale) {
+        router.push("/", { locale: user.locale });
+      } else {
+        router.push("/");
+      }
+    } catch (err) {
+      setError(
+        err instanceof ApiError && err.status === 409
+          ? t("errorGoogleAccountExists")
+          : t("errorGeneric"),
+      );
       setSubmitting(false);
     }
   }
@@ -147,13 +177,11 @@ export function AuthSignupForm() {
         <div className="flex-1 h-px bg-border" />
       </div>
 
-      <button
-        type="button"
-        className="w-full py-4 rounded-lg border border-border bg-transparent text-foreground font-karantina text-2xl leading-none tracking-wide uppercase hover:bg-muted transition-colors flex items-center justify-center gap-3 cursor-pointer"
-      >
-        <GoogleIcon />
-        {t("google")}
-      </button>
+      <GoogleSignInButton
+        text="signup_with"
+        onToken={handleGoogleToken}
+        disabled={submitting}
+      />
 
       <p className="font-sans text-sm text-center text-muted-foreground">
         {t("hasAccount")}{" "}

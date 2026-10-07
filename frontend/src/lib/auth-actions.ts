@@ -1,14 +1,20 @@
 "use server";
 
+import { getLocale } from "next-intl/server";
 import {
   ApiError,
   type AuthUser,
+  type ColorTheme,
   getMe,
+  googleSignIn,
+  type Locale,
+  linkGoogleAccount,
   refreshSession as refreshBackendSession,
   type SignupCategory,
   signIn,
   signOut,
   signUp,
+  type Theme,
   type UpdateProfileInput,
   updateMe,
   updatePassword,
@@ -16,6 +22,7 @@ import {
 import {
   clearSessionCookies,
   getAccessToken,
+  getPreferenceCookies,
   getRefreshToken,
   setPreferenceCookies,
   setSessionCookies,
@@ -135,7 +142,8 @@ export async function updateProfileAction(
  * apps' default (see `docs/edit-profile-spec.md`).
  */
 export async function updatePasswordAction(input: {
-  currentPassword: string;
+  /** Omit only when the account has no password yet (`!AuthUser.hasPassword`). */
+  currentPassword?: string;
   newPassword: string;
 }): Promise<{ ok: true } | ActionError> {
   const accessToken = await getAccessToken();
@@ -151,6 +159,73 @@ export async function updatePasswordAction(input: {
     });
     await clearSessionCookies();
     return { ok: true };
+  } catch (error) {
+    return fromApiError(error);
+  }
+}
+
+/**
+ * Signs in (or signs up) with Google. On a `409` — an account with this
+ * email already has a password — the backend deliberately refuses to
+ * auto-link; the caller (`GoogleSignInButton`'s consumers) checks
+ * `result.status === 409` and directs the user to sign in with their
+ * password instead, then call `linkGoogleAction`.
+ */
+export async function googleSignInAction(
+  idToken: string,
+  categories?: SignupCategory[],
+): Promise<{ ok: true; user: AuthUser } | ActionError> {
+  try {
+    const session = await googleSignIn({ idToken, categories });
+    let user = await getMe(session.accessToken);
+    await setSessionCookies(session.accessToken, session.refreshToken);
+
+    if (session.created) {
+      // Brand-new account — carry the visitor's deliberate, seconds-old
+      // cookie/locale choices up into it, same direction
+      // `AuthProvider.register()` takes for password signup (see its
+      // comment) — just done server-side here, since account creation
+      // for Google sign-in happens in this one Server Action rather than
+      // a separate client effect. Best-effort: a failure here shouldn't
+      // surface as a sign-in failure.
+      const [cookiePrefs, locale] = await Promise.all([
+        getPreferenceCookies(),
+        getLocale(),
+      ]);
+      user = await updateMe(session.accessToken, {
+        locale: locale as Locale,
+        ...(cookiePrefs.theme ? { theme: cookiePrefs.theme as Theme } : {}),
+        ...(cookiePrefs.colorTheme
+          ? { colorTheme: cookiePrefs.colorTheme as ColorTheme }
+          : {}),
+      }).catch(() => user);
+    }
+
+    // "Server wins" otherwise — an existing account's stored value
+    // overrides whatever this browser's cookies said, same rule
+    // `signInAction` applies.
+    await setPreferenceCookies({
+      theme: user.theme,
+      colorTheme: user.colorTheme,
+    });
+    return { ok: true, user };
+  } catch (error) {
+    return fromApiError(error);
+  }
+}
+
+/** Links a Google account to the already-signed-in caller — the completion step after a `googleSignInAction` 409. */
+export async function linkGoogleAction(
+  idToken: string,
+): Promise<{ ok: true; user: AuthUser } | ActionError> {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    return { ok: false, status: 401, message: "no session" };
+  }
+
+  try {
+    const user = await linkGoogleAccount(accessToken, idToken);
+    return { ok: true, user };
   } catch (error) {
     return fromApiError(error);
   }

@@ -7,11 +7,13 @@ import { render } from "../../../tests/setup/test-utils";
 import { AuthSignupForm } from "./auth-signup-form";
 
 const mockRegister = vi.fn();
+const mockLoginWithGoogle = vi.fn();
 const mockPush = vi.fn();
 
 vi.mock("@/components/auth/auth-provider", () => ({
   useAuth: () => ({
     login: vi.fn(),
+    loginWithGoogle: mockLoginWithGoogle,
     register: mockRegister,
     logout: vi.fn(),
     status: "unauthenticated",
@@ -25,6 +27,15 @@ vi.mock("@/i18n/navigation", () => ({
     <a href={href} {...props}>
       {children}
     </a>
+  ),
+}));
+
+// See the matching comment in auth-signin-form.test.tsx.
+vi.mock("./google-sign-in-button", () => ({
+  GoogleSignInButton: ({ onToken }: { onToken: (token: string) => void }) => (
+    <button type="button" onClick={() => onToken("fake-id-token")}>
+      Google Button
+    </button>
   ),
 }));
 
@@ -44,6 +55,7 @@ async function fillForm(
 describe("AuthSignupForm", () => {
   beforeEach(() => {
     mockRegister.mockReset();
+    mockLoginWithGoogle.mockReset();
     mockPush.mockReset();
   });
 
@@ -153,5 +165,29 @@ describe("AuthSignupForm", () => {
     expect(
       await screen.findByText(/something went wrong/i),
     ).toBeInTheDocument();
+  });
+
+  it("signs up with Google and navigates home", async () => {
+    mockLoginWithGoogle.mockResolvedValue({ locale: "en" });
+    render(<AuthSignupForm />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /google button/i }));
+
+    expect(mockLoginWithGoogle).toHaveBeenCalledWith(
+      "fake-id-token",
+      expect.any(Array),
+    );
+    expect(mockPush).toHaveBeenCalledWith("/");
+  });
+
+  it("shows the account-exists message when Google sign-up 409s", async () => {
+    mockLoginWithGoogle.mockRejectedValue(new ApiError(409, "account exists"));
+    render(<AuthSignupForm />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /google button/i }));
+
+    expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
   });
 });

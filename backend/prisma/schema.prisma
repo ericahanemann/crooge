@@ -11,7 +11,19 @@ model User {
   id            String         @id @default(uuid())
   name          String
   email         String         @unique
-  password      String
+  // Nullable: a Google-only account never sets one. `POST /sessions`
+  // (password login) must check for null rather than let `argon2.verify`
+  // run against it — see `authenticate-session.ts`. The profile page can
+  // let a Google-only user set a password later (adding a second sign-in
+  // method); nothing currently stops the reverse (a password account
+  // staying password-only forever).
+  password      String?
+  // Google's stable subject id (`sub` claim) — set the first time a
+  // `POST /sessions/google` call resolves to this account, whether that's
+  // a brand-new account or an existing password account being linked.
+  // Unique so one Google identity can't end up attached to two local
+  // accounts.
+  googleId      String?        @unique @map("google_id")
   // Account-scoped preferences — a write-through cache of these also lives
   // in cookies on the frontend domain (theme/color-theme/NEXT_LOCALE) so
   // first paint stays flash-free with no network round trip; this row is

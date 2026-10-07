@@ -10,6 +10,8 @@ import {
   useState,
 } from "react";
 import {
+  googleSignInAction,
+  linkGoogleAction,
   refreshSessionAction,
   signInAction,
   signOutAction,
@@ -48,11 +50,23 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   /** Partial profile/preference update — see `UpdateProfileInput`. Throws `ApiError` on failure. */
   updateProfile: (input: UpdateProfileInput) => Promise<AuthUser>;
-  /** Always ends this device's own session on success — see `updatePasswordAction`. */
+  /** Always ends this device's own session on success — see `updatePasswordAction`. Omit `currentPassword` only when setting a first password (`!user.hasPassword`). */
   changePassword: (
-    currentPassword: string,
+    currentPassword: string | undefined,
     newPassword: string,
   ) => Promise<void>;
+  /**
+   * Signs in (or signs up) with Google. Throws `ApiError` — a `409`
+   * specifically means an account with this email already has a password
+   * and refused to auto-link; the caller should direct the user to sign
+   * in with it, then call `linkGoogleAccount`.
+   */
+  loginWithGoogle: (
+    idToken: string,
+    categories?: SignupCategory[],
+  ) => Promise<AuthUser>;
+  /** Links a Google account to the already-signed-in user — the completion step after a `loginWithGoogle` 409. */
+  linkGoogleAccount: (idToken: string) => Promise<AuthUser>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -157,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const changePassword = useCallback(
-    async (currentPassword: string, newPassword: string) => {
+    async (currentPassword: string | undefined, newPassword: string) => {
       const result = await updatePasswordAction({
         currentPassword,
         newPassword,
@@ -169,6 +183,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const loginWithGoogle = useCallback(
+    async (idToken: string, categories?: SignupCategory[]) => {
+      const result = await googleSignInAction(idToken, categories);
+      if (!result.ok) throw new ApiError(result.status, result.message);
+      setUser(result.user);
+      setStatus("authenticated");
+      return result.user;
+    },
+    [],
+  );
+
+  const linkGoogleAccount = useCallback(async (idToken: string) => {
+    const result = await linkGoogleAction(idToken);
+    if (!result.ok) throw new ApiError(result.status, result.message);
+    setUser(result.user);
+    return result.user;
+  }, []);
+
   const value = useMemo(
     () => ({
       status,
@@ -178,8 +210,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       updateProfile,
       changePassword,
+      loginWithGoogle,
+      linkGoogleAccount,
     }),
-    [status, user, login, register, logout, updateProfile, changePassword],
+    [
+      status,
+      user,
+      login,
+      register,
+      logout,
+      updateProfile,
+      changePassword,
+      loginWithGoogle,
+      linkGoogleAccount,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

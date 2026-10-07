@@ -7,6 +7,11 @@ const envSchema = z.object({
   DATABASE_URL: z.string(),
   JWT_SECRET: z.string().min(32),
   FRONTEND_URL: z.url().default("http://localhost:3000"),
+  // Not a secret — this is the OAuth client's public identifier, the same
+  // value the frontend passes to Google Identity Services. Required here
+  // too: `OAuth2Client.verifyIdToken`'s `audience` check is what stops a
+  // Google ID token minted for a *different* app from being accepted.
+  GOOGLE_CLIENT_ID: z.string(),
 });
 
 const _env = envSchema.safeParse(process.env);

@@ -16,6 +16,8 @@ import { env } from "./env/index.ts";
 import { authenticate } from "./http/hooks/authenticate.ts";
 import { authenticateSession } from "./modules/auth/routes/authenticate-session.ts";
 import { getMe } from "./modules/auth/routes/get-me.ts";
+import { googleSignIn } from "./modules/auth/routes/google-sign-in.ts";
+import { linkGoogle } from "./modules/auth/routes/link-google.ts";
 import { logout } from "./modules/auth/routes/logout.ts";
 import { refreshSession } from "./modules/auth/routes/refresh-session.ts";
 import { registerUser } from "./modules/auth/routes/register-user.ts";
@@ -127,6 +129,8 @@ app.register(swaggerUi, { routePrefix: "/docs" });
 
 app.register(registerUser);
 app.register(authenticateSession);
+app.register(googleSignIn);
+app.register(linkGoogle);
 app.register(refreshSession);
 app.register(logout);
 app.register(getMe);

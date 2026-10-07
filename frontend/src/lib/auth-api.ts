@@ -38,6 +38,9 @@ export interface AuthUser {
   colorTheme: ColorTheme;
   currency: Currency;
   savingsRate: number;
+  /** False for a Google-only account that's never set one — `updatePassword` doesn't need `currentPassword` in that case. */
+  hasPassword: boolean;
+  hasGoogleAccount: boolean;
 }
 
 /** Every field optional — a caller sends only what changed. */
@@ -160,7 +163,8 @@ export async function updateMe(
 export async function updatePassword(
   accessToken: string,
   input: {
-    currentPassword: string;
+    /** Omit only when the account has no password yet (`!AuthUser.hasPassword`) — setting a first password on a Google-only account. */
+    currentPassword?: string;
     newPassword: string;
     refreshToken?: string;
   },
@@ -175,4 +179,55 @@ export async function updatePassword(
   });
 
   if (!response.ok) throw await toApiError(response);
+}
+
+export interface GoogleSession extends Session {
+  /** Whether this call created a brand-new account — the frontend needs this to decide which way preference-cookie reconciliation goes, same distinction `signUpAction`/`signInAction` make for password auth. */
+  created: boolean;
+}
+
+/**
+ * Signs in with Google — creates a new account on first use, or resolves
+ * to an existing one. `idToken` comes straight from Google Identity
+ * Services (`GoogleSignInButton`) and is verified server-side; this call
+ * never trusts it client-side.
+ *
+ * A `409` here specifically means "an account with this email already has
+ * a password" — the backend refuses to auto-link it (see
+ * `backend/src/modules/auth/routes/google-sign-in.ts`'s docstring); the
+ * caller should direct the user to sign in with their password instead,
+ * then call `linkGoogleAccount`.
+ */
+export async function googleSignIn(input: {
+  idToken: string;
+  categories?: SignupCategory[];
+}): Promise<GoogleSession> {
+  const response = await fetch(`${API_URL}/sessions/google`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw await toApiError(response);
+
+  return response.json();
+}
+
+/** Links a Google account to the already-authenticated caller — the completion step after a `googleSignIn` 409. */
+export async function linkGoogleAccount(
+  accessToken: string,
+  idToken: string,
+): Promise<AuthUser> {
+  const response = await fetch(`${API_URL}/me/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ idToken }),
+  });
+
+  if (!response.ok) throw await toApiError(response);
+
+  return response.json();
 }

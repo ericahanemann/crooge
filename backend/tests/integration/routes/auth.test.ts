@@ -1,12 +1,39 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { app } from "../../../src/app.ts";
 import { REFRESH_TOKEN_COOKIE_NAME } from "../../../src/modules/auth/constants.ts";
+import type { GoogleProfile } from "../../../src/modules/auth/google-token.ts";
+import {
+  InvalidGoogleTokenError,
+  verifyGoogleIdToken,
+} from "../../../src/modules/auth/google-token.ts";
 import {
   generateRefreshToken,
   hashToken,
 } from "../../../src/modules/auth/tokens.ts";
 import { createTestUser, TEST_USER_PASSWORD } from "../../setup/factories.ts";
 import { prisma, resetDatabase } from "../../setup/test-db.ts";
+
+// The one deliberate mock in this suite — `verifyGoogleIdToken` is a real
+// network call to Google, not app logic, so it's the one place faking the
+// result is more honest than exercising it for real (see
+// `tests/setup/testcontainers-db.ts`'s comment on `GOOGLE_CLIENT_ID`).
+// Everything downstream of it (account lookup/creation/linking, category
+// seeding, session issuance) still runs for real against the test database.
+vi.mock("../../../src/modules/auth/google-token.ts", async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import("../../../src/modules/auth/google-token.ts")
+    >();
+  return { ...actual, verifyGoogleIdToken: vi.fn() };
+});
 
 // Plain literals, deliberately — see the comment on TEST_USER_PASSWORD in
 // factories.ts for why these are safe despite GitGuardian flagging them.
@@ -267,6 +294,31 @@ describe("auth routes", () => {
         colorTheme: "pink",
         currency: "BRL",
         savingsRate: 0,
+        hasPassword: true,
+        hasGoogleAccount: false,
+      });
+    });
+
+    it("reports hasPassword: false and hasGoogleAccount: true for a Google-only account", async () => {
+      const user = await prisma.user.create({
+        data: {
+          name: "Google User",
+          email: "google-only@example.com",
+          googleId: "google-sub-456",
+        },
+      });
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({
+        hasPassword: false,
+        hasGoogleAccount: true,
       });
     });
   });
@@ -351,7 +403,7 @@ describe("auth routes", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("rejects an email change with no currentPassword with 400", async () => {
+    it("rejects an email change with no currentPassword with 422 when the account has a password", async () => {
       const user = await createTestUser();
       const token = app.jwt.sign({ sub: user.id });
 
@@ -362,10 +414,31 @@ describe("auth routes", () => {
         payload: { email: "new@example.com" },
       });
 
-      expect(response.statusCode).toBe(400);
-      expect(response.json().issues.currentPassword).toContain(
-        "currentPassword is required to change email",
-      );
+      expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({
+        message: "currentPassword is required to change email",
+      });
+    });
+
+    it("allows an email change with no currentPassword on a password-less (Google-only) account", async () => {
+      const user = await prisma.user.create({
+        data: {
+          name: "Google User",
+          email: "google-user@example.com",
+          googleId: "google-sub-123",
+        },
+      });
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { email: "new@example.com" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ email: "new@example.com" });
     });
 
     it("rejects an email change with the wrong currentPassword with 401", async () => {
@@ -572,6 +645,251 @@ describe("auth routes", () => {
         payload: { refreshToken },
       });
       expect(refresh.statusCode).toBe(401);
+    });
+
+    it("sets a first password on a password-less account with no currentPassword", async () => {
+      const user = await prisma.user.create({
+        data: {
+          name: "Google User",
+          email: "google-user@example.com",
+          googleId: "google-sub-789",
+        },
+      });
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { newPassword: "new-password-1!" },
+      });
+      expect(response.statusCode).toBe(204);
+
+      const login = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: "new-password-1!" },
+      });
+      expect(login.statusCode).toBe(200);
+    });
+  });
+
+  describe("POST /sessions/google", () => {
+    const fakeGoogleProfile = (overrides: Partial<GoogleProfile> = {}) => ({
+      googleId: "google-sub-1",
+      email: "erica@example.com",
+      emailVerified: true,
+      name: "Erica",
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      vi.mocked(verifyGoogleIdToken).mockReset();
+    });
+
+    it("rejects an invalid/unverifiable token with 401", async () => {
+      vi.mocked(verifyGoogleIdToken).mockRejectedValue(
+        new InvalidGoogleTokenError("bad token"),
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: { idToken: "not-a-real-token" },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("rejects an unverified email with 401", async () => {
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(
+        fakeGoogleProfile({ emailVerified: false }),
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("creates a new password-less account on first sign-in and seeds starter categories", async () => {
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(fakeGoogleProfile());
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: {
+          idToken: "some-token",
+          categories: [
+            { kind: "expense", label: "Groceries", icon: "shopping-cart" },
+          ],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.accessToken).toEqual(expect.any(String));
+      expect(body.refreshToken).toEqual(expect.any(String));
+      expect(body.created).toBe(true);
+
+      const user = await prisma.user.findUniqueOrThrow({
+        where: { email: "erica@example.com" },
+      });
+      expect(user.password).toBeNull();
+      expect(user.googleId).toBe("google-sub-1");
+
+      const categories = await prisma.category.findMany({
+        where: { userId: user.id },
+      });
+      expect(categories).toHaveLength(1);
+      expect(categories[0]).toMatchObject({ label: "Groceries" });
+    });
+
+    it("signs into the existing account on a second sign-in, matched by googleId", async () => {
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(fakeGoogleProfile());
+      await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: { idToken: "some-token" },
+      });
+      const firstUser = await prisma.user.findUniqueOrThrow({
+        where: { email: "erica@example.com" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().created).toBe(false);
+      const userCount = await prisma.user.count();
+      expect(userCount).toBe(1);
+      const token = app.jwt.verify<{ sub: string }>(
+        response.json().accessToken,
+      );
+      expect(token.sub).toBe(firstUser.id);
+    });
+
+    it("auto-links to an existing password-less account matched by email", async () => {
+      const existing = await prisma.user.create({
+        data: { name: "Erica", email: "erica@example.com", googleId: null },
+      });
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(fakeGoogleProfile());
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().created).toBe(false);
+      const updated = await prisma.user.findUniqueOrThrow({
+        where: { id: existing.id },
+      });
+      expect(updated.googleId).toBe("google-sub-1");
+    });
+
+    it("refuses to auto-link to an existing account that has a password, with 409", async () => {
+      await createTestUser({ email: "erica@example.com" });
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(fakeGoogleProfile());
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions/google",
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const unchanged = await prisma.user.findUniqueOrThrow({
+        where: { email: "erica@example.com" },
+      });
+      expect(unchanged.googleId).toBeNull();
+    });
+  });
+
+  describe("POST /me/google", () => {
+    const fakeGoogleProfile = (overrides: Partial<GoogleProfile> = {}) => ({
+      googleId: "google-sub-1",
+      email: "erica@example.com",
+      emailVerified: true,
+      name: "Erica",
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      vi.mocked(verifyGoogleIdToken).mockReset();
+    });
+
+    it("rejects requests with no Authorization header with 401", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/me/google",
+        payload: { idToken: "some-token" },
+      });
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("links Google to the authenticated account when emails match", async () => {
+      const user = await createTestUser({ email: "erica@example.com" });
+      const token = app.jwt.sign({ sub: user.id });
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(fakeGoogleProfile());
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/me/google",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toMatchObject({ hasGoogleAccount: true });
+    });
+
+    it("rejects a Google account whose email doesn't match the caller's, with 400", async () => {
+      const user = await createTestUser({ email: "erica@example.com" });
+      const token = app.jwt.sign({ sub: user.id });
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(
+        fakeGoogleProfile({ email: "someone-else@example.com" }),
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/me/google",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("rejects a Google account already linked to a different user, with 409", async () => {
+      await prisma.user.create({
+        data: {
+          name: "Other",
+          email: "other@example.com",
+          googleId: "google-sub-1",
+        },
+      });
+      const user = await createTestUser({ email: "erica@example.com" });
+      const token = app.jwt.sign({ sub: user.id });
+      vi.mocked(verifyGoogleIdToken).mockResolvedValue(
+        fakeGoogleProfile({ email: "erica@example.com" }),
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/me/google",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { idToken: "some-token" },
+      });
+
+      expect(response.statusCode).toBe(409);
     });
   });
 
