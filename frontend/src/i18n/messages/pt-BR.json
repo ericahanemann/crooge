@@ -169,9 +169,9 @@
       "errorInvalidCredentials": "E-mail ou senha inválidos.",
       "errorGeneric": "Algo deu errado. Tente novamente.",
       "or": "OU",
-      "google": "CONTINUAR COM O GOOGLE",
       "noAccount": "Não tem uma conta?",
-      "signUp": "Cadastre-se"
+      "signUp": "Cadastre-se",
+      "errorGoogleAccountExists": "Já existe uma conta com este e-mail. Entre com sua senha e depois você pode conectar o Google pelo seu perfil."
     },
     "signup": {
       "title": "GET CROOOOOGY",
@@ -196,9 +196,9 @@
       "errorWeakPassword": "A senha deve ter no mínimo 8 caracteres, com um número e um símbolo.",
       "errorGeneric": "Algo deu errado. Tente novamente.",
       "or": "OU",
-      "google": "CONTINUAR COM O GOOGLE",
       "hasAccount": "Já tem uma conta?",
-      "signIn": "Entrar"
+      "signIn": "Entrar",
+      "errorGoogleAccountExists": "Já existe uma conta com este e-mail. Entre com sua senha e depois você pode conectar o Google pelo seu perfil."
     }
   },
   "categories": {
@@ -249,7 +249,13 @@
       "newPasswordHint": "Alterá-la desconecta todos os outros dispositivos.",
       "confirmPasswordLabel": "CONFIRMAR NOVA SENHA",
       "errorPasswordMismatch": "As senhas não coincidem.",
-      "errorWeakPassword": "A senha deve ter no mínimo 8 caracteres, com um número e um símbolo."
+      "errorWeakPassword": "A senha deve ter no mínimo 8 caracteres, com um número e um símbolo.",
+      "setPasswordHeading": "DEFINIR SENHA",
+      "setPasswordHint": "Adicione uma senha para também poder entrar sem o Google. Isso desconecta todos os outros dispositivos.",
+      "googleAccountLabel": "CONTA GOOGLE",
+      "googleAccountConnected": "Conectada",
+      "errorGoogleEmailMismatch": "O e-mail desta conta Google não corresponde ao seu.",
+      "errorGoogleAlreadyLinked": "Esta conta Google já está vinculada a outro usuário."
     },
     "preferencesCard": {
       "heading": "PREFERÊNCIAS",

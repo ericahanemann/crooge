@@ -92,3 +92,23 @@ export async function setPreferenceCookies(input: {
     });
   }
 }
+
+/**
+ * The reverse read, for the one place that needs it server-side:
+ * `googleSignInAction`'s "carry the visitor's cookie choice up into a
+ * brand-new account" step (see its comment) — everywhere else reads these
+ * cookies client-side via `document.cookie` (`readCookie`,
+ * `AuthProvider.register()`'s password-signup equivalent), since they're
+ * deliberately not httpOnly. The server can still read a non-httpOnly
+ * cookie the browser sent, httpOnly only blocks client *JS*.
+ */
+export async function getPreferenceCookies(): Promise<{
+  theme?: string;
+  colorTheme?: string;
+}> {
+  const store = await cookies();
+  return {
+    theme: store.get(THEME_PREFERENCE_COOKIE)?.value,
+    colorTheme: store.get(COLOR_THEME_PREFERENCE_COOKIE)?.value,
+  };
+}

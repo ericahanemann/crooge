@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   isPasswordValid,
   PasswordRequirementsList,
@@ -18,7 +19,12 @@ import { ApiError } from "@/lib/auth-api";
  * (rather than a separate security card + dialog) since every field here
  * shares the same `currentPassword` reauth requirement and the same
  * submit/error cycle. `currentPassword` reveals once either an identity
- * field (email) or the new-password fields need it; `confirmPassword`
+ * field (email) or the new-password fields need it *and the account has
+ * one to confirm* — a Google-only account (`!user.hasPassword`) has
+ * nothing to reauth against, so the field never appears and the section
+ * heading/hint read "SET PASSWORD" instead of "CHANGE PASSWORD" (see
+ * `backend/src/modules/auth/routes/update-me.ts`/`update-password.ts`,
+ * which apply the exact same condition server-side). `confirmPassword`
  * reveals once a new password is being typed.
  *
  * On submit: `name`/`email` go through `updateProfile` (`PATCH /me`) first,
@@ -30,7 +36,7 @@ import { ApiError } from "@/lib/auth-api";
  */
 export function ProfileCard() {
   const t = useTranslations("profile.profileCard");
-  const { user, updateProfile, changePassword } = useAuth();
+  const { user, updateProfile, changePassword, linkGoogleAccount } = useAuth();
   const router = useRouter();
 
   const [name, setName] = useState(user?.name ?? "");
@@ -42,19 +48,47 @@ export function ProfileCard() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [googleLinkError, setGoogleLinkError] = useState<string | null>(null);
+  const [googleLinked, setGoogleLinked] = useState(false);
 
   if (!user) return null;
+  // Captured as a primitive — same reason `PreferencesCard` does this:
+  // TS's control-flow narrowing of the null check above doesn't reach
+  // into the nested function *declarations* below (`handleSubmit`), only
+  // into arrow expressions defined after the check.
+  const hasPassword = user.hasPassword;
 
   const emailChanged = email !== user.email;
   const nameChanged = name !== user.name;
   const changingPassword = newPassword.length > 0;
-  const needsCurrentPassword = emailChanged || changingPassword;
+  // Nothing to reauth against on a password-less (Google-only) account —
+  // same condition the backend applies (`PATCH /me`/`PATCH /me/password`
+  // both skip the `currentPassword` requirement when `!hasPassword`).
+  const needsCurrentPassword =
+    (emailChanged || changingPassword) && hasPassword;
   const dirty = emailChanged || nameChanged || changingPassword;
 
   function resetPasswordFields() {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
+  }
+
+  async function handleGoogleLinkToken(idToken: string) {
+    setGoogleLinkError(null);
+    try {
+      await linkGoogleAccount(idToken);
+      setGoogleLinked(true);
+      setTimeout(() => setGoogleLinked(false), 1500);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        setGoogleLinkError(t("errorGoogleEmailMismatch"));
+      } else if (err instanceof ApiError && err.status === 409) {
+        setGoogleLinkError(t("errorGoogleAlreadyLinked"));
+      } else {
+        setGoogleLinkError(t("errorGeneric"));
+      }
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -77,12 +111,17 @@ export function ProfileCard() {
       if (nameChanged || emailChanged) {
         await updateProfile({
           ...(nameChanged ? { name } : {}),
-          ...(emailChanged ? { email, currentPassword } : {}),
+          ...(emailChanged
+            ? { email, ...(hasPassword ? { currentPassword } : {}) }
+            : {}),
         });
       }
 
       if (changingPassword) {
-        await changePassword(currentPassword, newPassword);
+        await changePassword(
+          hasPassword ? currentPassword : undefined,
+          newPassword,
+        );
         router.push("/signin");
         return;
       }
@@ -149,7 +188,7 @@ export function ProfileCard() {
       </div>
 
       <p className="font-karantina text-2xl tracking-wide text-foreground uppercase">
-        {t("passwordHeading")}
+        {user.hasPassword ? t("passwordHeading") : t("setPasswordHeading")}
       </p>
 
       <div className="flex flex-col gap-1.5">
@@ -175,7 +214,7 @@ export function ProfileCard() {
           visible={newPasswordFocused || newPassword.length > 0}
         />
         <p className="font-sans text-xs text-muted-foreground">
-          {t("newPasswordHint")}
+          {user.hasPassword ? t("newPasswordHint") : t("setPasswordHint")}
         </p>
       </div>
 
@@ -221,6 +260,34 @@ export function ProfileCard() {
           </p>
         </div>
       )}
+
+      <div className="h-px bg-border" />
+
+      <div className="flex flex-col gap-1.5">
+        <span className="font-sans text-sm text-muted-foreground uppercase">
+          {t("googleAccountLabel")}
+        </span>
+        {user.hasGoogleAccount ? (
+          <span className="flex items-center gap-1.5 font-sans text-sm text-highlight">
+            <Check size={14} />
+            {t("googleAccountConnected")}
+          </span>
+        ) : (
+          <GoogleSignInButton
+            text="continue_with"
+            onToken={handleGoogleLinkToken}
+          />
+        )}
+        {googleLinked && (
+          <span className="flex items-center gap-1.5 font-sans text-xs text-highlight">
+            <Check size={14} />
+            {t("saved")}
+          </span>
+        )}
+        {googleLinkError && (
+          <p className="text-xs text-destructive">{googleLinkError}</p>
+        )}
+      </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
