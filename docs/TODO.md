@@ -8,7 +8,7 @@
 - [x] Add an "edit profile" endpoint (`PATCH /me` + `PATCH /me/password` — see `docs/edit-profile-spec.md`)
 - [x] Add account/profile settings page (`/profile` — name/email, locale/theme/accent/currency/savings-rate preferences, change-password dialog)
 - [ ] Add automated tests
-- [ ] Add Google sign-in (OAuth) — frontend already has the button, no handler wired up yet
+- [x] Add Google sign-in (OAuth) — `POST /sessions/google` (sign in or sign up) + `POST /me/google` (link to an already-authenticated account); frontend renders Google's own "Sign in/up with Google" button via Identity Services (`GoogleSignInButton`), no custom OAuth redirect flow
 - [ ] Add password recovery
 - [ ] Add email verification
 - [ ] Design and build the dashboard page
