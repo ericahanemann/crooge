@@ -8,6 +8,7 @@ type MeSource = Pick<
   | "email"
   | "password"
   | "googleId"
+  | "avatarUrl"
   | "locale"
   | "theme"
   | "colorTheme"
@@ -31,6 +32,7 @@ export function serializeMe(user: MeSource) {
     colorTheme: user.colorTheme as ColorTheme,
     currency: user.currency as Currency,
     savingsRate: user.savingsRate,
+    avatarUrl: user.avatarUrl,
     // Never serialize `password`/`googleId` themselves — only derived
     // booleans.
     hasPassword: user.password !== null,

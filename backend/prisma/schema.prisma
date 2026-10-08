@@ -24,6 +24,12 @@ model User {
   // Unique so one Google identity can't end up attached to two local
   // accounts.
   googleId      String?        @unique @map("google_id")
+  // Set either by hand on the profile page (paste any image URL — no
+  // upload infra exists, see DESIGN.md "User Avatar") or automatically
+  // from the Google account's own picture the first time a Google
+  // sign-in/link resolves for this user and it doesn't already have one
+  // (never overwrites a value the user already set).
+  avatarUrl     String?        @map("avatar_url")
   // Account-scoped preferences — a write-through cache of these also lives
   // in cookies on the frontend domain (theme/color-theme/NEXT_LOCALE) so
   // first paint stays flash-free with no network round trip; this row is

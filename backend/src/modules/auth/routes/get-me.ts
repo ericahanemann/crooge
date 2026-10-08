@@ -32,6 +32,7 @@ export async function getMe(app: FastifyInstance) {
           email: true,
           password: true,
           googleId: true,
+          avatarUrl: true,
           locale: true,
           theme: true,
           colorTheme: true,

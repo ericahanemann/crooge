@@ -79,7 +79,12 @@ export async function linkGoogle(app: FastifyInstance) {
       try {
         const updated = await prisma.user.update({
           where: { id: userId },
-          data: { googleId: profile.googleId },
+          data: {
+            googleId: profile.googleId,
+            // Only prefill — never overwrite an avatar the user already
+            // set by hand.
+            ...(user.avatarUrl ? {} : { avatarUrl: profile.picture }),
+          },
         });
         return reply.status(200).send(serializeMe(updated));
       } catch (error) {

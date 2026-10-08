@@ -6,6 +6,8 @@ export interface GoogleProfile {
   email: string;
   emailVerified: boolean;
   name: string;
+  /** Google's own profile picture URL, if the account has one — used to prefill `User.avatarUrl` on first link, never overwriting a value the user already set. */
+  picture?: string;
 }
 
 export class InvalidGoogleTokenError extends Error {}
@@ -44,5 +46,6 @@ export async function verifyGoogleIdToken(
     // check this before trusting the email for lookup/creation/linking.
     emailVerified: payload.email_verified === true,
     name: payload.name ?? payload.email,
+    picture: payload.picture,
   };
 }
