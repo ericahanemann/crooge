@@ -241,8 +241,6 @@
       "heading": "PERFIL",
       "nameLabel": "NOME",
       "emailLabel": "E-MAIL",
-      "avatarUrlLabel": "URL DO AVATAR",
-      "avatarUrlPlaceholder": "https://exemplo.com/sua-foto.jpg",
       "currentPasswordLabel": "SENHA ATUAL",
       "currentPasswordHint": "Necessária para alterar seu e-mail ou senha.",
       "save": "SALVAR",

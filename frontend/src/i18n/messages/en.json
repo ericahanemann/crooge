@@ -241,8 +241,6 @@
       "heading": "PROFILE",
       "nameLabel": "NAME",
       "emailLabel": "EMAIL",
-      "avatarUrlLabel": "AVATAR URL",
-      "avatarUrlPlaceholder": "https://example.com/your-photo.jpg",
       "currentPasswordLabel": "CURRENT PASSWORD",
       "currentPasswordHint": "Required to change your email or password.",
       "save": "SAVE",

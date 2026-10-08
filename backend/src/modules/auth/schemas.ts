@@ -58,9 +58,6 @@ export const colorThemeSchema = z.enum([
 // Display-only — see `currency` column comment in schema.prisma.
 export const currencySchema = z.enum(["BRL", "USD", "EUR"]);
 export const savingsRateSchema = z.int().min(0).max(100);
-// No upload infra (see schema.prisma's `User.avatarUrl` comment) — just a
-// plain image URL the user pastes in, or Google's own picture URL.
-export const avatarUrlSchema = z.url().max(2048);
 
 export type Locale = z.infer<typeof localeSchema>;
 export type Theme = z.infer<typeof themeSchema>;
@@ -81,7 +78,7 @@ export const meResponseSchema = z
       .url()
       .nullable()
       .describe(
-        "Set by hand on the profile page, or automatically from Google's own picture on first Google sign-in/link (never overwrites a value the user already set). Null if neither has happened.",
+        "Google's own picture URL, set automatically the first time a Google sign-in/link resolves for this account and it doesn't already have one. There's no way to set this by hand — null for an account that's never signed in with Google, or whose Google account has no picture.",
       ),
     hasPassword: z
       .boolean()

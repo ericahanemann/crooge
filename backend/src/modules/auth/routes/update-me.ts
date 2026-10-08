@@ -6,7 +6,6 @@ import { Prisma } from "../../../generated/prisma/client.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
-  avatarUrlSchema,
   colorThemeSchema,
   currencySchema,
   localeSchema,
@@ -31,10 +30,6 @@ const updateMeBodySchema = z
       .describe(
         "Required when `email` is present and the account has a password — changing the account's identity is gated behind reauth, same reasoning as `PATCH /me/password`. Not required for a Google-only account with no password set (nothing to reauth against); see `hasPassword` on `GET /me`.",
       ),
-    avatarUrl: avatarUrlSchema
-      .nullable()
-      .optional()
-      .describe("Pass `null` to clear it back to the initials fallback."),
     locale: localeSchema.optional(),
     theme: themeSchema.optional(),
     colorTheme: colorThemeSchema.optional(),
