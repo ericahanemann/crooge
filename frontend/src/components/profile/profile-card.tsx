@@ -41,6 +41,7 @@ export function ProfileCard() {
 
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatarUrl ?? "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordFocused, setNewPasswordFocused] = useState(false);
@@ -60,13 +61,15 @@ export function ProfileCard() {
 
   const emailChanged = email !== user.email;
   const nameChanged = name !== user.name;
+  const avatarUrlChanged = avatarUrl !== (user.avatarUrl ?? "");
   const changingPassword = newPassword.length > 0;
   // Nothing to reauth against on a password-less (Google-only) account —
   // same condition the backend applies (`PATCH /me`/`PATCH /me/password`
   // both skip the `currentPassword` requirement when `!hasPassword`).
   const needsCurrentPassword =
     (emailChanged || changingPassword) && hasPassword;
-  const dirty = emailChanged || nameChanged || changingPassword;
+  const dirty =
+    emailChanged || nameChanged || avatarUrlChanged || changingPassword;
 
   function resetPasswordFields() {
     setCurrentPassword("");
@@ -108,12 +111,13 @@ export function ProfileCard() {
 
     setSaving(true);
     try {
-      if (nameChanged || emailChanged) {
+      if (nameChanged || emailChanged || avatarUrlChanged) {
         await updateProfile({
           ...(nameChanged ? { name } : {}),
           ...(emailChanged
             ? { email, ...(hasPassword ? { currentPassword } : {}) }
             : {}),
+          ...(avatarUrlChanged ? { avatarUrl: avatarUrl.trim() || null } : {}),
         });
       }
 
@@ -183,6 +187,23 @@ export function ProfileCard() {
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
+          disabled={saving}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label
+          htmlFor="profile-avatar-url"
+          className="font-sans text-sm text-muted-foreground uppercase font-normal"
+        >
+          {t("avatarUrlLabel")}
+        </Label>
+        <Input
+          id="profile-avatar-url"
+          type="url"
+          value={avatarUrl}
+          onChange={(e) => setAvatarUrl(e.target.value)}
+          placeholder={t("avatarUrlPlaceholder")}
           disabled={saving}
         />
       </div>

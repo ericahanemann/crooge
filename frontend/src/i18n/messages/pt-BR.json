@@ -199,6 +199,11 @@
       "hasAccount": "Já tem uma conta?",
       "signIn": "Entrar",
       "errorGoogleAccountExists": "Já existe uma conta com este e-mail. Entre com sua senha e depois você pode conectar o Google pelo seu perfil."
+    },
+    "google": {
+      "signIn": "Entrar com o Google",
+      "signUp": "Cadastrar com o Google",
+      "continueWith": "Continuar com o Google"
     }
   },
   "categories": {
@@ -236,6 +241,8 @@
       "heading": "PERFIL",
       "nameLabel": "NOME",
       "emailLabel": "E-MAIL",
+      "avatarUrlLabel": "URL DO AVATAR",
+      "avatarUrlPlaceholder": "https://exemplo.com/sua-foto.jpg",
       "currentPasswordLabel": "SENHA ATUAL",
       "currentPasswordHint": "Necessária para alterar seu e-mail ou senha.",
       "save": "SALVAR",

@@ -38,6 +38,8 @@ export interface AuthUser {
   colorTheme: ColorTheme;
   currency: Currency;
   savingsRate: number;
+  /** Set by hand on the profile page, or automatically from Google's own picture on first Google sign-in/link (never overwritten once set). Null → `UserAvatar` falls back to initials. */
+  avatarUrl: string | null;
   /** False for a Google-only account that's never set one — `updatePassword` doesn't need `currentPassword` in that case. */
   hasPassword: boolean;
   hasGoogleAccount: boolean;
@@ -48,6 +50,8 @@ export interface UpdateProfileInput {
   name?: string;
   email?: string;
   currentPassword?: string;
+  /** Pass `null` to clear it back to the initials fallback. */
+  avatarUrl?: string | null;
   locale?: Locale;
   theme?: Theme;
   colorTheme?: ColorTheme;

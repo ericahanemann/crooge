@@ -41,9 +41,19 @@ export function UserAvatar({ compact = false }: UserAvatarProps) {
         }
       >
         <div className="relative size-8 rounded-full bg-highlight/15 flex items-center justify-center overflow-hidden shrink-0">
-          <span className="font-karantina text-xl leading-none text-highlight">
-            {initials}
-          </span>
+          {user.avatarUrl ? (
+            // biome-ignore lint/performance/noImgElement: arbitrary user-pasted/Google
+            // URL, not a known-ahead-of-time domain next/image could be configured for.
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="size-full object-cover"
+            />
+          ) : (
+            <span className="font-karantina text-xl leading-none text-highlight">
+              {initials}
+            </span>
+          )}
         </div>
         {!compact && (
           <span className="font-karantina text-xl tracking-wide uppercase text-foreground">

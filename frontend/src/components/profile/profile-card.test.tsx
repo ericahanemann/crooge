@@ -44,6 +44,7 @@ const passwordUser: AuthUser = {
   colorTheme: "pink",
   currency: "BRL",
   savingsRate: 0,
+  avatarUrl: null,
   hasPassword: true,
   hasGoogleAccount: false,
 };
