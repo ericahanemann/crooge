@@ -199,6 +199,11 @@
       "hasAccount": "Already have an account?",
       "signIn": "Sign in",
       "errorGoogleAccountExists": "An account with this email already exists. Sign in with your password instead, then you can link Google from your profile."
+    },
+    "google": {
+      "signIn": "Sign in with Google",
+      "signUp": "Sign up with Google",
+      "continueWith": "Continue with Google"
     }
   },
   "categories": {

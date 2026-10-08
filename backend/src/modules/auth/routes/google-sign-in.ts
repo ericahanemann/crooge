@@ -112,6 +112,19 @@ export async function googleSignIn(app: FastifyInstance) {
       });
       let isNewAccount = false;
 
+      if (user && !user.avatarUrl && profile.picture) {
+        // Backfills an account that linked Google before `avatarUrl`
+        // existed (or before this user ever had a Google picture) — every
+        // *other* path that resolves `user` here (new account, first
+        // auto-link) already sets it inline, this is the one case
+        // (an already-linked, returning sign-in) that otherwise never
+        // touches this column again.
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { avatarUrl: profile.picture },
+        });
+      }
+
       if (!user) {
         const existingByEmail = await prisma.user.findUnique({
           where: { email: profile.email },
@@ -127,7 +140,14 @@ export async function googleSignIn(app: FastifyInstance) {
 
           user = await prisma.user.update({
             where: { id: existingByEmail.id },
-            data: { googleId: profile.googleId },
+            data: {
+              googleId: profile.googleId,
+              // Only prefill — never overwrite an avatar the user already
+              // set by hand.
+              ...(existingByEmail.avatarUrl
+                ? {}
+                : { avatarUrl: profile.picture }),
+            },
           });
         } else {
           isNewAccount = true;
@@ -137,6 +157,7 @@ export async function googleSignIn(app: FastifyInstance) {
               email: profile.email,
               googleId: profile.googleId,
               password: null,
+              avatarUrl: profile.picture,
             },
           });
           user = newUser;

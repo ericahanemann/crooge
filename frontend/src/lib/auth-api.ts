@@ -38,6 +38,8 @@ export interface AuthUser {
   colorTheme: ColorTheme;
   currency: Currency;
   savingsRate: number;
+  /** Google's own picture URL, set automatically on Google sign-in/link. Null → `UserAvatar` falls back to initials. There's no way to set this by hand. */
+  avatarUrl: string | null;
   /** False for a Google-only account that's never set one — `updatePassword` doesn't need `currentPassword` in that case. */
   hasPassword: boolean;
   hasGoogleAccount: boolean;

@@ -74,6 +74,12 @@ export const meResponseSchema = z
     colorTheme: colorThemeSchema,
     currency: currencySchema,
     savingsRate: savingsRateSchema,
+    avatarUrl: z
+      .url()
+      .nullable()
+      .describe(
+        "Google's own picture URL, set automatically the first time a Google sign-in/link resolves for this account and it doesn't already have one. There's no way to set this by hand — null for an account that's never signed in with Google, or whose Google account has no picture.",
+      ),
     hasPassword: z
       .boolean()
       .describe(
