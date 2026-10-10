@@ -42,7 +42,8 @@
     "emptyTransactions": "Nenhuma transação ainda",
     "prevMonth": "Mês anterior",
     "nextMonth": "Próximo mês",
-    "savingGoal": "Economizando {rate}% da renda"
+    "savingGoal": "Economizando {rate}% da renda",
+    "loadMore": "VER MAIS"
   },
   "dialogs": {
     "common": {
@@ -273,6 +274,15 @@
       "savingsRateLabel": "META DE ECONOMIA (%)",
       "savingsRateHint": "Percentual da renda a reservar antes de gastar. Afeta o limite diário na página Mensal. 0 mantém o comportamento atual.",
       "saved": "Salvo"
+    },
+    "dangerZone": {
+      "heading": "EXCLUIR CONTA",
+      "description": "Exclui permanentemente sua conta e tudo nela — transações, cartões de crédito, faturas, categorias, séries recorrentes. Isso não pode ser desfeito.",
+      "deleteButton": "EXCLUIR CONTA",
+      "confirmTitle": "EXCLUIR CONTA",
+      "confirmDescription": "Tem certeza absoluta? Isso exclui permanentemente sua conta e todos os seus dados. Isso não pode ser desfeito.",
+      "currentPasswordLabel": "SENHA ATUAL",
+      "errorIncorrectPassword": "Senha incorreta."
     }
   }
 }

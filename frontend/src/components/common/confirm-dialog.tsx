@@ -24,6 +24,8 @@ interface ConfirmDialogProps {
   confirmLabel: string;
   cancelLabel: string;
   onConfirm: () => Promise<{ ok: true } | { ok: false; message: string }>;
+  /** Extra fields between the description and the footer — e.g. a reauth password input (`DeleteAccountCard`). Most callers don't need this. */
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -34,6 +36,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  children,
 }: ConfirmDialogProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +65,7 @@ export function ConfirmDialog({
       <DialogContent>
         <DialogTitle>{title}</DialogTitle>
         <p className="font-sans text-sm text-muted-foreground">{description}</p>
+        {children}
         {error && <p className="text-xs text-destructive">{error}</p>}
         <div className="flex justify-end gap-3">
           <DialogSecondaryButton onClick={() => onOpenChange(false)}>

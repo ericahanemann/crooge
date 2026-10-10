@@ -14,8 +14,7 @@ import {
  * as a side effect — callers must do this *before* anything imports
  * `src/app.ts` (transitively `src/env/index.ts`, which validates those at
  * import time). That's what makes this enough for full test isolation
- * without a `buildApp()` factory — see `docs/next-steps.md`'s "one
- * deliberate deviation" note.
+ * without a `buildApp()` factory.
  *
  * `GOOGLE_CLIENT_ID` here is just a placeholder satisfying `env/index.ts`'s
  * schema — no test actually calls Google's servers. `verifyGoogleIdToken`

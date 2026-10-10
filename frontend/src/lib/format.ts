@@ -15,9 +15,8 @@ export function currencySymbol(currency: string): string {
 }
 
 // Display-only: `currency` changes how an amount is *formatted*, never what
-// it's worth — this never converts the underlying value (see
-// `docs/edit-profile-spec.md`). Sign is stripped (`Math.abs`); callers
-// render the +/- themselves based on transaction type.
+// it's worth — this never converts the underlying value. Sign is stripped
+// (`Math.abs`); callers render the +/- themselves based on transaction type.
 //
 // BRL keeps its own hand-built formatting rather than
 // `Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL"})`, which

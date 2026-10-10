@@ -15,6 +15,7 @@ import {
 import { env } from "./env/index.ts";
 import { authenticate } from "./http/hooks/authenticate.ts";
 import { authenticateSession } from "./modules/auth/routes/authenticate-session.ts";
+import { deleteMe } from "./modules/auth/routes/delete-me.ts";
 import { getMe } from "./modules/auth/routes/get-me.ts";
 import { googleSignIn } from "./modules/auth/routes/google-sign-in.ts";
 import { linkGoogle } from "./modules/auth/routes/link-google.ts";
@@ -136,6 +137,7 @@ app.register(logout);
 app.register(getMe);
 app.register(updateMe);
 app.register(updatePassword);
+app.register(deleteMe);
 app.register(createTransaction);
 app.register(listTransactions);
 app.register(getTransactionsSummary);

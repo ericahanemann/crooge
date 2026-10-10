@@ -18,7 +18,14 @@ import {
   generateRefreshToken,
   hashToken,
 } from "../../../src/modules/auth/tokens.ts";
-import { createTestUser, TEST_USER_PASSWORD } from "../../setup/factories.ts";
+import {
+  createTestCategory,
+  createTestCreditCardWithBill,
+  createTestRecurringSeries,
+  createTestTransaction,
+  createTestUser,
+  TEST_USER_PASSWORD,
+} from "../../setup/factories.ts";
 import { prisma, resetDatabase } from "../../setup/test-db.ts";
 
 // The one deliberate mock in this suite — `verifyGoogleIdToken` is a real
@@ -1045,6 +1052,115 @@ describe("auth routes", () => {
         payload: { refreshToken },
       });
       expect(refreshAfterLogout.statusCode).toBe(401);
+    });
+  });
+
+  describe("DELETE /me", () => {
+    it("rejects requests with no Authorization header with 401", async () => {
+      const response = await app.inject({ method: "DELETE", url: "/me" });
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("rejects the wrong currentPassword with 401 and leaves the account intact", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { currentPassword: WRONG_PASSWORD },
+      });
+
+      expect(response.statusCode).toBe(401);
+      expect(
+        await prisma.user.findUnique({ where: { id: user.id } }),
+      ).not.toBeNull();
+    });
+
+    it("rejects a missing currentPassword on an account that has one with 401", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("deletes a Google-only account with no currentPassword at all", async () => {
+      const user = await prisma.user.create({
+        data: {
+          name: "Google Only",
+          email: `google-only-${crypto.randomUUID()}@example.test`,
+          googleId: crypto.randomUUID(),
+        },
+      });
+      const token = app.jwt.sign({ sub: user.id });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(204);
+      expect(
+        await prisma.user.findUnique({ where: { id: user.id } }),
+      ).toBeNull();
+    });
+
+    it("deletes the account and every row it owned — transactions, bills, cards, categories, recurring series, refresh tokens", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      const category = await createTestCategory(user.id);
+      const { card, bill } = await createTestCreditCardWithBill(user.id);
+      const transaction = await createTestTransaction(user.id, {
+        creditCardId: card.id,
+      });
+      const { series } = await createTestRecurringSeries(user.id);
+      const login = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: user.email, password: TEST_USER_PASSWORD },
+      });
+      expect(login.statusCode).toBe(200);
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { currentPassword: TEST_USER_PASSWORD },
+      });
+
+      expect(response.statusCode).toBe(204);
+      expect(
+        await prisma.user.findUnique({ where: { id: user.id } }),
+      ).toBeNull();
+      expect(
+        await prisma.transaction.findUnique({ where: { id: transaction.id } }),
+      ).toBeNull();
+      expect(
+        await prisma.creditCardBill.findUnique({ where: { id: bill.id } }),
+      ).toBeNull();
+      expect(
+        await prisma.creditCard.findUnique({ where: { id: card.id } }),
+      ).toBeNull();
+      expect(
+        await prisma.category.findUnique({ where: { id: category.id } }),
+      ).toBeNull();
+      expect(
+        await prisma.recurringSeries.findUnique({ where: { id: series.id } }),
+      ).toBeNull();
+      expect(
+        await prisma.refreshToken.findMany({ where: { userId: user.id } }),
+      ).toHaveLength(0);
     });
   });
 });

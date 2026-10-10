@@ -9,6 +9,7 @@ import type {
   CreditCardDetail,
   CreditCardSummary,
   Transaction,
+  TransactionsPage,
 } from "./types";
 
 /**
@@ -47,8 +48,19 @@ export async function getMonthlySummary(month: string) {
 
 export async function getMonthlyTransactions(
   month: string,
-): Promise<Transaction[]> {
-  return backendFetchJson<Transaction[]>(`/transactions?month=${month}`);
+  options: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    category?: string;
+  } = {},
+): Promise<TransactionsPage> {
+  const params = new URLSearchParams({ month });
+  if (options.page) params.set("page", String(options.page));
+  if (options.pageSize) params.set("pageSize", String(options.pageSize));
+  if (options.search) params.set("search", options.search);
+  if (options.category) params.set("category", options.category);
+  return backendFetchJson<TransactionsPage>(`/transactions?${params}`);
 }
 
 export async function getCreditCards(): Promise<CreditCardSummary[]> {

@@ -183,6 +183,28 @@ export async function updatePassword(
   if (!response.ok) throw await toApiError(response);
 }
 
+/**
+ * Permanently deletes the account and everything it owns. Omit
+ * `currentPassword` only when the account has no password
+ * (`!AuthUser.hasPassword`) — a Google-only account has nothing to reauth
+ * against, same rule as `updatePassword`.
+ */
+export async function deleteAccount(
+  accessToken: string,
+  input: { currentPassword?: string } = {},
+): Promise<void> {
+  const response = await fetch(`${API_URL}/me`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) throw await toApiError(response);
+}
+
 export interface GoogleSession extends Session {
   /** Whether this call created a brand-new account — the frontend needs this to decide which way preference-cookie reconciliation goes, same distinction `signUpAction`/`signInAction` make for password auth. */
   created: boolean;

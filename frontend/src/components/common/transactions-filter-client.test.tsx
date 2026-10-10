@@ -166,7 +166,7 @@ describe("TransactionsFilterClient", () => {
     render(<TransactionsFilterClient {...defaultProps} groups={groups} />);
 
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Travel" }));
+    await user.click(await screen.findByRole("option", { name: "Travel" }));
 
     expect(screen.getByText("Flight")).toBeInTheDocument();
     expect(screen.queryByText("Groceries")).not.toBeInTheDocument();

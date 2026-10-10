@@ -10,7 +10,12 @@ import { MonthlySummarySkeleton } from "@/components/monthly/monthly-summary-ske
 import { TransactionsList } from "@/components/monthly/transactions-list";
 
 interface MonthlyPageProps {
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{
+    month?: string;
+    q?: string;
+    category?: string;
+    pageSize?: string;
+  }>;
 }
 
 /**
@@ -23,7 +28,12 @@ interface MonthlyPageProps {
  * so slow sections don't block fast ones
  */
 export default async function MonthlyPage({ searchParams }: MonthlyPageProps) {
-  const { month: monthParam } = await searchParams;
+  const {
+    month: monthParam,
+    q,
+    category,
+    pageSize: pageSizeParam,
+  } = await searchParams;
   const locale = await getLocale();
   const t = await getTranslations("monthly");
 
@@ -49,7 +59,12 @@ export default async function MonthlyPage({ searchParams }: MonthlyPageProps) {
           <CreditCardSection />
         </Suspense>
         <Suspense fallback={<TransactionsSkeleton />}>
-          <TransactionsList month={currentMonth} />
+          <TransactionsList
+            month={currentMonth}
+            search={q}
+            category={category}
+            pageSize={pageSizeParam ? Number(pageSizeParam) : undefined}
+          />
         </Suspense>
       </div>
     </div>
