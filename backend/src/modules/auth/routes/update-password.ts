@@ -2,8 +2,14 @@ import { hash, verify } from "@node-rs/argon2";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { AUTH_REAUTH_RATE_LIMIT } from "../../../http/rate-limit.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import {
+  clearFailedAttempts,
+  isLockedOut,
+  registerFailedAttempt,
+} from "../lockout.ts";
 import { passwordSchema } from "../schemas.ts";
 import { hashToken } from "../tokens.ts";
 
@@ -49,6 +55,7 @@ export async function updatePassword(app: FastifyInstance) {
     "/me/password",
     {
       onRequest: [app.authenticate],
+      config: { rateLimit: AUTH_REAUTH_RATE_LIMIT },
       schema: {
         tags: ["auth"],
         summary: "Change the current user's password",
@@ -60,6 +67,9 @@ export async function updatePassword(app: FastifyInstance) {
             "`currentPassword` didn't match, or was missing on an account that has one.",
           ),
           404: errorResponseSchema,
+          429: errorResponseSchema.describe(
+            "Too many failed reauth attempts — locked out for a while.",
+          ),
         },
       },
     },
@@ -73,12 +83,22 @@ export async function updatePassword(app: FastifyInstance) {
       }
 
       if (user.password) {
+        const lockoutKey = `user:${userId}`;
+        if (await isLockedOut(lockoutKey)) {
+          return reply.status(429).send({
+            message: "too many failed attempts — try again later",
+          });
+        }
+
         if (
           !currentPassword ||
           !(await verify(user.password, currentPassword))
         ) {
+          await registerFailedAttempt(lockoutKey);
           return reply.status(401).send({ message: "incorrect password" });
         }
+
+        await clearFailedAttempts(lockoutKey);
       }
       // else: no password set yet — this is the account's first one,
       // nothing to verify against.

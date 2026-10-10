@@ -1,6 +1,7 @@
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
 import fastify, { type FastifyError } from "fastify";
@@ -62,6 +63,27 @@ export const app = fastify({
 app.register(cors, { origin: env.FRONTEND_URL, credentials: true });
 app.register(cookie);
 app.register(jwt, { secret: env.JWT_SECRET });
+
+// Skipped under the test runner: the integration suite fires far more
+// requests at `/sessions`/`/users` etc. in a few seconds than any real
+// client would in the same window (that's the point of an integration
+// suite), and this plugin's exact thresholds aren't product behavior worth
+// asserting there the way `lockout.ts`'s account-lockout logic is (see
+// `tests/unit/rate-limit.test.ts` for that, exercised against a standalone
+// instance using these same exported configs). Global default here is
+// deliberately loose — a basic anti-abuse net; `AUTH_*_RATE_LIMIT` configs
+// (see `http/rate-limit.ts`) tighten it on the specific routes that check a
+// password or mint a session.
+if (env.NODE_ENV !== "test") {
+  app.register(rateLimit, {
+    global: true,
+    max: 300,
+    timeWindow: "1 minute",
+    errorResponseBuilder: () => ({
+      message: "too many requests — try again later",
+    }),
+  });
+}
 
 app.decorate("authenticate", authenticate);
 

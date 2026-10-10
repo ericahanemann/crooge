@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { Prisma } from "../../../generated/prisma/client.ts";
+import { AUTH_REGISTER_RATE_LIMIT } from "../../../http/rate-limit.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
@@ -43,6 +44,7 @@ export async function registerUser(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     "/users",
     {
+      config: { rateLimit: AUTH_REGISTER_RATE_LIMIT },
       schema: {
         tags: ["auth"],
         summary: "Register a new user",

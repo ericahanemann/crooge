@@ -2,8 +2,14 @@ import { verify } from "@node-rs/argon2";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { AUTH_REAUTH_RATE_LIMIT } from "../../../http/rate-limit.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
+import {
+  clearFailedAttempts,
+  isLockedOut,
+  registerFailedAttempt,
+} from "../lockout.ts";
 
 const deleteMeBodySchema = z
   .object({
@@ -43,6 +49,7 @@ export async function deleteMe(app: FastifyInstance) {
     "/me",
     {
       onRequest: [app.authenticate],
+      config: { rateLimit: AUTH_REAUTH_RATE_LIMIT },
       schema: {
         tags: ["auth"],
         summary: "Permanently delete the current user's account",
@@ -58,6 +65,9 @@ export async function deleteMe(app: FastifyInstance) {
             "`currentPassword` didn't match, or was missing on an account that has one.",
           ),
           404: errorResponseSchema,
+          429: errorResponseSchema.describe(
+            "Too many failed reauth attempts — locked out for a while.",
+          ),
         },
       },
     },
@@ -71,12 +81,22 @@ export async function deleteMe(app: FastifyInstance) {
       }
 
       if (user.password) {
+        const lockoutKey = `user:${userId}`;
+        if (await isLockedOut(lockoutKey)) {
+          return reply.status(429).send({
+            message: "too many failed attempts — try again later",
+          });
+        }
+
         if (
           !currentPassword ||
           !(await verify(user.password, currentPassword))
         ) {
+          await registerFailedAttempt(lockoutKey);
           return reply.status(401).send({ message: "incorrect password" });
         }
+
+        await clearFailedAttempts(lockoutKey);
       }
       // else: Google-only account, nothing to reauth against — the access
       // token alone is sufficient, same trust level as every other

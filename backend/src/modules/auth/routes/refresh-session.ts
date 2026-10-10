@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { AUTH_REFRESH_RATE_LIMIT } from "../../../http/rate-limit.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
@@ -37,6 +38,7 @@ export async function refreshSession(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     "/sessions/refresh",
     {
+      config: { rateLimit: AUTH_REFRESH_RATE_LIMIT },
       schema: {
         tags: ["auth"],
         summary: "Refresh a session",
