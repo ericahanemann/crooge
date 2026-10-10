@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { AUTH_GOOGLE_RATE_LIMIT } from "../../../http/rate-limit.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
@@ -79,6 +80,7 @@ export async function googleSignIn(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     "/sessions/google",
     {
+      config: { rateLimit: AUTH_GOOGLE_RATE_LIMIT },
       schema: {
         tags: ["auth"],
         summary: "Sign in (or sign up) with Google",

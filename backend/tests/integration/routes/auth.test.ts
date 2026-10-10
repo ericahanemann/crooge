@@ -8,7 +8,10 @@ import {
   vi,
 } from "vitest";
 import { app } from "../../../src/app.ts";
-import { REFRESH_TOKEN_COOKIE_NAME } from "../../../src/modules/auth/constants.ts";
+import {
+  MAX_FAILED_AUTH_ATTEMPTS,
+  REFRESH_TOKEN_COOKIE_NAME,
+} from "../../../src/modules/auth/constants.ts";
 import type { GoogleProfile } from "../../../src/modules/auth/google-token.ts";
 import {
   InvalidGoogleTokenError,
@@ -231,6 +234,111 @@ describe("auth routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+
+    it("locks out after too many failed attempts, rejecting even the correct password with 429", async () => {
+      await createTestUser({ email: "erica@example.com" });
+
+      for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
+        const response = await app.inject({
+          method: "POST",
+          url: "/sessions",
+          payload: { email: "erica@example.com", password: WRONG_PASSWORD },
+        });
+        expect(response.statusCode).toBe(401);
+      }
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: {
+          email: "erica@example.com",
+          password: TEST_USER_PASSWORD,
+        },
+      });
+
+      expect(response.statusCode).toBe(429);
+    });
+
+    it("locks out an unknown email the same way — no account-existence oracle", async () => {
+      for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
+        const response = await app.inject({
+          method: "POST",
+          url: "/sessions",
+          payload: { email: "nobody@example.com", password: WRONG_PASSWORD },
+        });
+        expect(response.statusCode).toBe(401);
+      }
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: "nobody@example.com", password: WRONG_PASSWORD },
+      });
+
+      expect(response.statusCode).toBe(429);
+    });
+
+    it("clears the failed-attempt count after a successful sign-in", async () => {
+      await createTestUser({ email: "erica@example.com" });
+
+      for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS - 1; i++) {
+        await app.inject({
+          method: "POST",
+          url: "/sessions",
+          payload: { email: "erica@example.com", password: WRONG_PASSWORD },
+        });
+      }
+
+      const success = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: {
+          email: "erica@example.com",
+          password: TEST_USER_PASSWORD,
+        },
+      });
+      expect(success.statusCode).toBe(200);
+
+      const afterReset = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: { email: "erica@example.com", password: WRONG_PASSWORD },
+      });
+      expect(afterReset.statusCode).toBe(401);
+
+      const attempt = await prisma.authAttempt.findUnique({
+        where: { key: "erica@example.com" },
+      });
+      expect(attempt?.failedCount).toBe(1);
+    });
+
+    it("unlocks once the lockout window has passed", async () => {
+      await createTestUser({ email: "erica@example.com" });
+
+      for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
+        await app.inject({
+          method: "POST",
+          url: "/sessions",
+          payload: { email: "erica@example.com", password: WRONG_PASSWORD },
+        });
+      }
+
+      await prisma.authAttempt.update({
+        where: { key: "erica@example.com" },
+        data: { lockedUntil: new Date(Date.now() - 1000) },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/sessions",
+        payload: {
+          email: "erica@example.com",
+          password: TEST_USER_PASSWORD,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 
@@ -530,6 +638,36 @@ describe("auth routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+
+    it("locks out after too many wrong currentPassword attempts, rejecting even the correct one with 429", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
+        const response = await app.inject({
+          method: "PATCH",
+          url: "/me/password",
+          headers: { authorization: `Bearer ${token}` },
+          payload: {
+            currentPassword: WRONG_PASSWORD,
+            newPassword: "new-password-1!",
+          },
+        });
+        expect(response.statusCode).toBe(401);
+      }
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: "/me/password",
+        headers: { authorization: `Bearer ${token}` },
+        payload: {
+          currentPassword: TEST_USER_PASSWORD,
+          newPassword: "new-password-1!",
+        },
+      });
+
+      expect(response.statusCode).toBe(429);
     });
 
     it("rejects a weak newPassword with 400", async () => {
@@ -1090,6 +1228,33 @@ describe("auth routes", () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+
+    it("locks out after too many wrong currentPassword attempts, rejecting even the correct one with 429", async () => {
+      const user = await createTestUser();
+      const token = app.jwt.sign({ sub: user.id });
+
+      for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
+        const response = await app.inject({
+          method: "DELETE",
+          url: "/me",
+          headers: { authorization: `Bearer ${token}` },
+          payload: { currentPassword: WRONG_PASSWORD },
+        });
+        expect(response.statusCode).toBe(401);
+      }
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/me",
+        headers: { authorization: `Bearer ${token}` },
+        payload: { currentPassword: TEST_USER_PASSWORD },
+      });
+
+      expect(response.statusCode).toBe(429);
+      expect(
+        await prisma.user.findUnique({ where: { id: user.id } }),
+      ).not.toBeNull();
     });
 
     it("deletes a Google-only account with no currentPassword at all", async () => {

@@ -58,6 +58,26 @@ model User {
   @@map("users")
 }
 
+/**
+ * Failed-attempt counter behind login/reauth lockout (see
+ * `modules/auth/lockout.ts`). `key` is whatever identifies the thing being
+ * brute-forced — the lowercased email presented to `POST /sessions`, or
+ * `user:<id>` for an already-authenticated reauth check (`PATCH
+ * /me/password`, `DELETE /me`) — deliberately not a FK to `User`: tracking
+ * by the presented key rather than a resolved account id means a key that
+ * doesn't resolve to a real account locks out identically to one that
+ * does, so this can't be used to probe which emails/accounts exist (same
+ * reasoning as `authenticate-session.ts`'s dummy-hash timing fix).
+ */
+model AuthAttempt {
+  key         String    @id
+  failedCount Int       @default(0) @map("failed_count")
+  lockedUntil DateTime? @map("locked_until")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@map("auth_attempts")
+}
+
 model RefreshToken {
   id        String    @id @default(uuid())
   userId    String    @map("user_id")

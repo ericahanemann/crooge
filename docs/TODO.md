@@ -11,8 +11,6 @@
 - [ ] Add password recovery
 - [ ] Add email verification
 - [ ] Design and build the dashboard page
-- [ ] Add rate limiting / lockout on auth endpoints (pre-existing gap — no
-      route has it today)
 - [ ] Shared bills — split a bill with one or more friends; track how much
       you owe each other. Likely needs a "friends" concept first (connecting
       two accounts).

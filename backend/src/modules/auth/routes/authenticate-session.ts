@@ -3,6 +3,7 @@ import { hash, verify } from "@node-rs/argon2";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { AUTH_SESSIONS_RATE_LIMIT } from "../../../http/rate-limit.ts";
 import { errorResponseSchema } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
@@ -10,6 +11,11 @@ import {
   REFRESH_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_TTL_MS,
 } from "../constants.ts";
+import {
+  clearFailedAttempts,
+  isLockedOut,
+  registerFailedAttempt,
+} from "../lockout.ts";
 import { refreshTokenCookieOptions } from "../refresh-token-cookie.ts";
 import { sessionResponseSchema } from "../schemas.ts";
 import { generateRefreshToken, hashToken } from "../tokens.ts";
@@ -32,6 +38,7 @@ export async function authenticateSession(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     "/sessions",
     {
+      config: { rateLimit: AUTH_SESSIONS_RATE_LIMIT },
       schema: {
         tags: ["auth"],
         summary: "Sign in",
@@ -39,11 +46,20 @@ export async function authenticateSession(app: FastifyInstance) {
         response: {
           200: sessionResponseSchema,
           401: errorResponseSchema.describe("Invalid email or password."),
+          429: errorResponseSchema.describe(
+            "Too many failed attempts for this email — locked out for a while.",
+          ),
         },
       },
     },
     async (request, reply) => {
       const { email, password } = request.body;
+
+      // Checked (and, below, paid the same argon2-verify cost) before
+      // knowing whether `email` even has an account — a key that never
+      // resolves to a real user locks out exactly like one that does, so
+      // this can't be used to probe which emails exist.
+      const locked = await isLockedOut(email);
 
       const user = await prisma.user.findUnique({ where: { email } });
 
@@ -52,9 +68,18 @@ export async function authenticateSession(app: FastifyInstance) {
         password,
       );
 
+      if (locked) {
+        return reply
+          .status(429)
+          .send({ message: "too many failed attempts — try again later" });
+      }
+
       if (!user || !passwordMatches) {
+        await registerFailedAttempt(email);
         return reply.status(401).send({ message: "invalid credentials" });
       }
+
+      await clearFailedAttempts(email);
 
       const accessToken = await reply.jwtSign(
         { sub: user.id },
