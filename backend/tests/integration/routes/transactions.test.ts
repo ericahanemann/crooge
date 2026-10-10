@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { app } from "../../../src/app.ts";
 import {
+  createTestCategory,
   createTestCreditCard,
   createTestCreditCardWithBill,
   createTestInstallmentGroup,
@@ -845,7 +846,7 @@ describe("transactions routes", () => {
       expect(response.statusCode).toBe(200);
       const occurrences = response
         .json()
-        .filter((t: { id: string }) => t.id !== first?.id);
+        .items.filter((t: { id: string }) => t.id !== first?.id);
       const seriesTransactions = await prisma.transaction.findMany({
         where: { recurringSeriesId: series.id },
       });
@@ -878,9 +879,109 @@ describe("transactions routes", () => {
 
       expect(response.statusCode).toBe(200);
       const body = response.json();
-      expect(body).toHaveLength(2);
-      expect(body[0].id).toBe(inMonth2.id);
-      expect(body[1].id).toBe(inMonth1.id);
+      expect(body.items).toHaveLength(2);
+      expect(body.total).toBe(2);
+      expect(body.items[0].id).toBe(inMonth2.id);
+      expect(body.items[1].id).toBe(inMonth1.id);
+    });
+
+    it("paginates with page/pageSize", async () => {
+      const user = await createTestUser();
+      const older = await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 5)),
+      });
+      const newer = await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 20)),
+      });
+
+      const page1 = await app.inject({
+        method: "GET",
+        url: "/transactions?month=2026-03&page=1&pageSize=1",
+        headers: await authHeader(user.id),
+      });
+      const page2 = await app.inject({
+        method: "GET",
+        url: "/transactions?month=2026-03&page=2&pageSize=1",
+        headers: await authHeader(user.id),
+      });
+
+      expect(page1.json()).toMatchObject({ total: 2, page: 1, pageSize: 1 });
+      expect(page1.json().items).toHaveLength(1);
+      expect(page1.json().items[0].id).toBe(newer.id);
+      expect(page2.json().items).toHaveLength(1);
+      expect(page2.json().items[0].id).toBe(older.id);
+    });
+
+    it("filters by category", async () => {
+      const user = await createTestUser();
+      const food = await createTestCategory(user.id, { label: "Food" });
+      const transport = await createTestCategory(user.id, {
+        label: "Transport",
+      });
+      const foodTx = await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 5)),
+        category: food.id,
+      });
+      await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 6)),
+        category: transport.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/transactions?month=2026-03&category=${food.id}`,
+        headers: await authHeader(user.id),
+      });
+
+      expect(response.json().items).toHaveLength(1);
+      expect(response.json().items[0].id).toBe(foodTx.id);
+    });
+
+    it("filters by search, matching the description case-insensitively", async () => {
+      const user = await createTestUser();
+      const match = await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 5)),
+        description: "Uber ride",
+      });
+      await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 6)),
+        description: "Groceries",
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/transactions?month=2026-03&search=UBER",
+        headers: await authHeader(user.id),
+      });
+
+      expect(response.json().items).toHaveLength(1);
+      expect(response.json().items[0].id).toBe(match.id);
+    });
+
+    it("returns every category used this month regardless of the active filter", async () => {
+      const user = await createTestUser();
+      const food = await createTestCategory(user.id, { label: "Food" });
+      const transport = await createTestCategory(user.id, {
+        label: "Transport",
+      });
+      await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 5)),
+        category: food.id,
+      });
+      await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 6)),
+        category: transport.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/transactions?month=2026-03&category=${food.id}`,
+        headers: await authHeader(user.id),
+      });
+
+      expect(response.json().categories.sort()).toEqual(
+        [food.id, transport.id].sort(),
+      );
     });
 
     it("materializes an overdue bill as a side effect", async () => {
@@ -903,7 +1004,9 @@ describe("transactions routes", () => {
       });
       expect(materialized).not.toBeNull();
       expect(
-        response.json().some((t: { id: string }) => t.id === materialized?.id),
+        response
+          .json()
+          .items.some((t: { id: string }) => t.id === materialized?.id),
       ).toBe(true);
     });
 
@@ -966,7 +1069,7 @@ describe("transactions routes", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.json()).toHaveLength(0);
+      expect(response.json().items).toHaveLength(0);
     });
   });
 

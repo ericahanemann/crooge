@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { monthQuerySchema } from "../../http/schemas/common.ts";
 
 export const transactionTimingSchema = z.enum([
   "oneTime",
@@ -106,3 +107,46 @@ export const updateTransactionBodySchema = z
   .describe(
     "Partial update — every field is optional, but at least one is required.",
   );
+
+export const listTransactionsQuerySchema = monthQuerySchema.extend({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  search: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .optional()
+    .describe(
+      "Case-insensitive substring match against the transaction's description.",
+    ),
+  category: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("Exact category id. Omit for every category."),
+});
+
+/** One page of a month's transactions, newest first (mirrors `GET /credit-cards/:id/bills`' paging shape). */
+export const transactionsPageResponseSchema = z
+  .object({
+    items: z.array(transactionResponseSchema),
+    total: z
+      .number()
+      .int()
+      .describe(
+        "Total transactions matching the current month/search/category filter.",
+      ),
+    page: z.number().int(),
+    pageSize: z.number().int(),
+    categories: z
+      .array(z.string())
+      .describe(
+        "Distinct category ids used by any transaction this month, ignoring the current search/category filter — for populating the filter dropdown.",
+      ),
+  })
+  .describe("A page of a month's transactions.");
+
+z.globalRegistry.add(transactionsPageResponseSchema, {
+  id: "TransactionsPage",
+});
