@@ -36,9 +36,9 @@ const CURRENCY_OPTIONS: { key: Currency; label: string }[] = [
  * Every field here applies instantly on change (no Save button) — same
  * interaction as the header's `ThemeToggle`/`ColorThemeToggle`/
  * `LanguageToggle`, which this card deliberately duplicates for
- * discoverability (same underlying `updateProfileAction`, see
- * `docs/edit-profile-spec.md` open question #2). `savingsRate` is the one
- * exception — a number input commits on blur, not on every keystroke.
+ * discoverability (same underlying `updateProfileAction`). `savingsRate`
+ * is the one exception — a number input commits on blur, not on every
+ * keystroke.
  */
 export function PreferencesCard() {
   const t = useTranslations("profile.preferencesCard");

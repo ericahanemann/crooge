@@ -16,7 +16,7 @@ Each user has exactly one implicit account/balance — it isn't a modeled "bank 
 - [x] It should be possible to sign in (email, password)
 - [x] It should be possible to sign in with Google (ID-token flow via Google Identity Services — `POST /sessions/google` creates an account on first use or signs into an existing one; see the business rules below for the account-linking policy) 
 - [x] It should be possible to get the logged-in user's profile
-- [x] It should be possible to edit the logged-in user's profile (`PATCH /me` — name/email/preferences; `PATCH /me/password` for password changes, kept separate — see `docs/edit-profile-spec.md`)
+- [x] It should be possible to edit the logged-in user's profile (`PATCH /me` — name/email/preferences; `PATCH /me/password` for password changes, kept separate)
 - [x] It should be possible to log out
 
 ### Monthly summary, income and expenses
@@ -69,7 +69,7 @@ Each user has exactly one implicit account/balance — it isn't a modeled "bank 
 - [x] Every expense has a payment method: debit/pix (debits the account balance immediately) or credit (goes into the card's bill, doesn't affect the balance until the bill is paid)
 - [x] The account balance is the sum of income minus debit/pix expenses minus credit card bills that have come due (the bill materializes into a real, read-only, non-card `Transaction` once its due date passes — or earlier, if paid ahead of time — and is counted here from that point on; a still-open bill with no passed due date and no early payment doesn't affect the balance yet)
 - [x] "Spent this month" (shown on the Spending Card) uses that same materialized-bill mechanism — a bill counts once due/paid, not before
-- [x] The daily limit is the remaining monthly budget divided by the days left in the month, where the budget is income times `(1 − savingsRate / 100)` — `savingsRate` is an optional per-user preference (`PATCH /me`, default `0`%, see `docs/edit-profile-spec.md`), so this is `income` unless the user has set one
+- [x] The daily limit is the remaining monthly budget divided by the days left in the month, where the budget is income times `(1 − savingsRate / 100)` — `savingsRate` is an optional per-user preference (`PATCH /me`, default `0`%), so this is `income` unless the user has set one
 
 ### Categories
 
@@ -91,7 +91,7 @@ Each user has exactly one implicit account/balance — it isn't a modeled "bank 
 - [x] The application's data needs to be persisted in a PostgreSQL database, via Prisma
 - [x] The API must be built with Fastify
 - [x] The user must be identified by a JWT (access/refresh token pair, refresh tokens rotated and revocable)
-- [ ] Transaction and bill lists need to be paginated (`GET /credit-cards/:id/bills` is paginated — max page size 60, 5 years of monthly cycles; `GET /transactions` still returns the full month's result set unpaginated — a month's transaction count has a natural ceiling a credit card's multi-year bill history doesn't, so this hasn't bitten yet, but it's the same shape of gap; see TODO.md)
+- [x] Transaction and bill lists are paginated (`GET /credit-cards/:id/bills` — max page size 60, 5 years of monthly cycles; `GET /transactions` also accepts `page`/`pageSize`, plus `search` — a case-insensitive substring match against the description — and `category` — an exact category id — both scoped to the already-selected month, not all-time history; see `backend/src/modules/transactions/schemas.ts`)
 - [x] Monetary amounts must be stored in a way that avoids floating-point errors (Prisma's `Decimal`, or integer cents) (`Decimal` throughout)
 - [x] The API needs to allow CORS for the Next.js front-end to consume the routes
 - [x] Authenticated routes must validate the JWT before running the handler (Fastify hook/middleware) (`app.authenticate`, applied via `onRequest` on every protected route)
