@@ -53,6 +53,15 @@ export interface CreditCardBillsPage {
   pageSize: number;
 }
 
+export interface TransactionsPage {
+  items: Transaction[];
+  total: number;
+  page: number;
+  pageSize: number;
+  /** Every category used by a transaction this month, ignoring the current search/category filter — for the filter dropdown. */
+  categories: CategoryId[];
+}
+
 export interface CreditCardDetail extends CreditCardSummary {
   bills: CreditCardBill[];
 }

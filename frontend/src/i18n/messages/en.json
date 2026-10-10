@@ -42,7 +42,8 @@
     "emptyTransactions": "No transactions yet",
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
-    "savingGoal": "Saving {rate}% of income"
+    "savingGoal": "Saving {rate}% of income",
+    "loadMore": "LOAD MORE"
   },
   "dialogs": {
     "common": {
@@ -273,6 +274,15 @@
       "savingsRateLabel": "SAVINGS GOAL (%)",
       "savingsRateHint": "Percent of income to set aside before spending. Affects the daily limit on the Monthly page. 0 keeps today's behavior.",
       "saved": "Saved"
+    },
+    "dangerZone": {
+      "heading": "DELETE ACCOUNT",
+      "description": "Permanently deletes your account and everything in it — transactions, credit cards, bills, categories, recurring series. This can't be undone.",
+      "deleteButton": "DELETE ACCOUNT",
+      "confirmTitle": "DELETE ACCOUNT",
+      "confirmDescription": "Are you absolutely sure? This permanently deletes your account and all of its data. This can't be undone.",
+      "currentPasswordLabel": "CURRENT PASSWORD",
+      "errorIncorrectPassword": "Incorrect password."
     }
   }
 }

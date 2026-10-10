@@ -34,7 +34,14 @@ export function MonthNav({ currentMonth, locale }: MonthNavProps) {
     const d = new Date(`${currentMonth}-01T12:00:00`);
     d.setMonth(d.getMonth() + delta);
     const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    // Carries over every *other* existing search param, but deliberately
+    // drops the transactions list's own filter state (`q`/`category`/
+    // `pageSize`) — a search/filter from the previous month shouldn't
+    // silently carry into the next one.
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("q");
+    params.delete("category");
+    params.delete("pageSize");
     params.set("month", next);
     router.push(`${pathname}?${params.toString()}`);
   }
