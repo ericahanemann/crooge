@@ -5,6 +5,7 @@ import {
   ApiError,
   type AuthUser,
   type ColorTheme,
+  deleteAccount,
   getMe,
   googleSignIn,
   type Locale,
@@ -139,7 +140,7 @@ export async function updateProfileAction(
  * Changes the password, then always clears this device's session too —
  * the backend revokes every *other* session family, but the simplest and
  * safest UX is still "re-sign-in after a password change," matching most
- * apps' default (see `docs/edit-profile-spec.md`).
+ * apps' default.
  */
 export async function updatePasswordAction(input: {
   /** Omit only when the account has no password yet (`!AuthUser.hasPassword`). */
@@ -157,6 +158,29 @@ export async function updatePasswordAction(input: {
       ...input,
       refreshToken: refreshToken ?? undefined,
     });
+    await clearSessionCookies();
+    return { ok: true };
+  } catch (error) {
+    return fromApiError(error);
+  }
+}
+
+/**
+ * Permanently deletes the account, then always clears this device's
+ * session — same reasoning as `updatePasswordAction`: there's nothing left
+ * to stay signed into.
+ */
+export async function deleteAccountAction(input: {
+  /** Omit only when the account has no password (`!AuthUser.hasPassword`). */
+  currentPassword?: string;
+}): Promise<{ ok: true } | ActionError> {
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    return { ok: false, status: 401, message: "no session" };
+  }
+
+  try {
+    await deleteAccount(accessToken, input);
     await clearSessionCookies();
     return { ok: true };
   } catch (error) {

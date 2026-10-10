@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import {
+  deleteAccountAction,
   googleSignInAction,
   linkGoogleAction,
   refreshSessionAction,
@@ -55,6 +56,8 @@ interface AuthContextValue {
     currentPassword: string | undefined,
     newPassword: string,
   ) => Promise<void>;
+  /** Permanently deletes the account. Omit `currentPassword` only for a Google-only account (`!user.hasPassword`). Always ends this device's session on success. */
+  deleteAccount: (currentPassword: string | undefined) => Promise<void>;
   /**
    * Signs in (or signs up) with Google. Throws `ApiError` — a `409`
    * specifically means an account with this email already has a password
@@ -183,6 +186,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const deleteAccount = useCallback(
+    async (currentPassword: string | undefined) => {
+      const result = await deleteAccountAction({ currentPassword });
+      if (!result.ok) throw new ApiError(result.status, result.message);
+      setUser(null);
+      setStatus("unauthenticated");
+    },
+    [],
+  );
+
   const loginWithGoogle = useCallback(
     async (idToken: string, categories?: SignupCategory[]) => {
       const result = await googleSignInAction(idToken, categories);
@@ -210,6 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       updateProfile,
       changePassword,
+      deleteAccount,
       loginWithGoogle,
       linkGoogleAccount,
     }),
@@ -221,6 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       updateProfile,
       changePassword,
+      deleteAccount,
       loginWithGoogle,
       linkGoogleAccount,
     ],

@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/common/page-header";
+import { DeleteAccountCard } from "@/components/profile/delete-account-card";
 import { PreferencesCard } from "@/components/profile/preferences-card";
 import { ProfileCard } from "@/components/profile/profile-card";
 
@@ -19,6 +20,7 @@ export default async function ProfilePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <ProfileCard />
           <PreferencesCard />
+          <DeleteAccountCard />
         </div>
       </div>
     </div>
