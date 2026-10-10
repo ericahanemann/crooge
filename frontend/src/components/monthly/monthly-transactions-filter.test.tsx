@@ -97,7 +97,7 @@ describe("MonthlyTransactionsFilter", () => {
     render(<MonthlyTransactionsFilter {...defaultProps} pageSize={40} />);
 
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Food" }));
+    await user.click(await screen.findByRole("option", { name: "Food" }));
 
     expect(mockReplace).toHaveBeenCalledWith(
       "/en/monthly?month=2026-03&category=cat-food",

@@ -28,7 +28,7 @@ describe("CardSelector", () => {
     render(<CardSelector cards={cards} selectedCard="card-1" />);
 
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Inter" }));
+    await user.click(await screen.findByRole("option", { name: "Inter" }));
 
     expect(mockPush).toHaveBeenCalledWith(
       "/credit-cards/current-bill?card=card-2",
@@ -47,7 +47,7 @@ describe("CardSelector", () => {
     );
 
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Inter" }));
+    await user.click(await screen.findByRole("option", { name: "Inter" }));
 
     expect(mockPush).toHaveBeenCalledWith(
       "/credit-cards/current-bill?card=card-2&month=2026-03",
