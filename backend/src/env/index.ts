@@ -12,6 +12,17 @@ const envSchema = z.object({
   // too: `OAuth2Client.verifyIdToken`'s `audience` check is what stops a
   // Google ID token minted for a *different* app from being accepted.
   GOOGLE_CLIENT_ID: z.string(),
+  // Which reverse proxy(s) in front of this process to trust for
+  // `request.ip` (which `@fastify/rate-limit`'s per-IP configs key off of
+  // — see `http/rate-limit.ts`). Unset/empty keeps Fastify's default
+  // (`false` — trust nothing, `request.ip` is always the socket's direct
+  // peer), which is correct with no proxy in front but makes every
+  // request look like it's coming from the proxy's one IP once there is
+  // one, collapsing per-IP rate limiting into a single shared bucket. Set
+  // to the proxy's address (or a comma-separated list) once a host is
+  // chosen — see `resolveTrustProxy` in `lib/trust-proxy.ts` for exactly
+  // what this accepts, and why it's not just "how many hops."
+  TRUST_PROXY: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);

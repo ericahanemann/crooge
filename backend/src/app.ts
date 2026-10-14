@@ -15,6 +15,7 @@ import {
 } from "fastify-type-provider-zod";
 import { env } from "./env/index.ts";
 import { authenticate } from "./http/hooks/authenticate.ts";
+import { resolveTrustProxy } from "./lib/trust-proxy.ts";
 import { authenticateSession } from "./modules/auth/routes/authenticate-session.ts";
 import { deleteMe } from "./modules/auth/routes/delete-me.ts";
 import { getMe } from "./modules/auth/routes/get-me.ts";
@@ -58,7 +59,18 @@ export const app = fastify({
         ],
       }
     : false,
+  trustProxy: resolveTrustProxy(env.TRUST_PROXY),
 });
+
+// Unauthenticated, no rate limit — this is what a host's own health check
+// polls (sometimes every few seconds) to decide whether to keep routing
+// traffic here, restart the instance, or mark a deploy as failed. Liveness
+// only (process is up and answering), not readiness (e.g. a DB ping) —
+// a transient DB hiccup shouldn't make a host kill an otherwise-fine
+// instance.
+app.get("/health", { config: { rateLimit: false } }, async () => ({
+  status: "ok",
+}));
 
 app.register(cors, { origin: env.FRONTEND_URL, credentials: true });
 app.register(cookie);
