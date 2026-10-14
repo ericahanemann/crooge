@@ -7,7 +7,10 @@ async function redirectToSignin(): Promise<never> {
   return redirect({ href: "/signin", locale });
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333";
+// `/api/v1` — the backend's whole business-route surface lives under that
+// prefix (see `backend/src/http/api-prefix.ts`); `/health`/`/docs` are the
+// only backend routes outside it, and nothing here ever calls those.
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3333"}/api/v1`;
 
 export class BackendError extends Error {
   status: number;

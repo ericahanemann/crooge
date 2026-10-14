@@ -7,7 +7,7 @@ import {
   updateTransactionAction,
 } from "./transaction-actions";
 
-const API_URL = "http://localhost:3333";
+const API_URL = "http://localhost:3333/api/v1";
 
 vi.mock("@/lib/session", () => ({
   getAccessToken: () => Promise.resolve("token-123"),

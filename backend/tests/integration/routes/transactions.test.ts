@@ -34,7 +34,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "income",
@@ -57,7 +57,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "income",
@@ -76,7 +76,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: { type: "income", amount: 100, date: "2026-03-05" },
       });
@@ -91,7 +91,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -112,7 +112,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -135,7 +135,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -160,7 +160,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -183,7 +183,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(attacker.id),
         payload: {
           type: "expense",
@@ -207,7 +207,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -229,7 +229,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -254,7 +254,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -275,7 +275,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -297,7 +297,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -327,7 +327,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -356,7 +356,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -379,7 +379,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -407,7 +407,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -437,7 +437,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -465,7 +465,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -490,7 +490,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/transactions",
+        url: "/api/v1/transactions",
         headers: await authHeader(user.id),
         payload: {
           type: "expense",
@@ -522,7 +522,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: { description: "New" },
       });
@@ -536,7 +536,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${crypto.randomUUID()}`,
+        url: `/api/v1/transactions/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
         payload: { description: "New" },
       });
@@ -551,7 +551,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(attacker.id),
         payload: { description: "New" },
       });
@@ -565,7 +565,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: {},
       });
@@ -582,7 +582,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: { description: "New" },
       });
@@ -597,7 +597,7 @@ describe("transactions routes", () => {
 
       const blocked = await app.inject({
         method: "PATCH",
-        url: `/transactions/${target.id}`,
+        url: `/api/v1/transactions/${target.id}`,
         headers: await authHeader(user.id),
         payload: { amount: 999 },
       });
@@ -605,7 +605,7 @@ describe("transactions routes", () => {
 
       const allowed = await app.inject({
         method: "PATCH",
-        url: `/transactions/${target.id}`,
+        url: `/api/v1/transactions/${target.id}`,
         headers: await authHeader(user.id),
         payload: { description: "Updated" },
       });
@@ -620,7 +620,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: { paymentMethod: "credit" },
       });
@@ -636,7 +636,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: { paymentMethod: "credit" },
       });
@@ -655,7 +655,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: { paymentMethod: "debit_pix" },
       });
@@ -679,7 +679,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: { amount: 200 },
       });
@@ -699,7 +699,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
         payload: {
           paymentMethod: "credit",
@@ -718,7 +718,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -734,7 +734,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/transactions/${crypto.randomUUID()}`,
+        url: `/api/v1/transactions/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
       });
 
@@ -748,7 +748,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(attacker.id),
       });
 
@@ -764,7 +764,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/transactions/${transaction.id}`,
+        url: `/api/v1/transactions/${transaction.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -780,7 +780,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/transactions/${transactions[1].id}`,
+        url: `/api/v1/transactions/${transactions[1].id}`,
         headers: await authHeader(user.id),
       });
 
@@ -807,7 +807,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/transactions/${first?.id}`,
+        url: `/api/v1/transactions/${first?.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -833,13 +833,13 @@ describe("transactions routes", () => {
 
       await app.inject({
         method: "DELETE",
-        url: `/transactions/${first?.id}`,
+        url: `/api/v1/transactions/${first?.id}`,
         headers: await authHeader(user.id),
       });
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -873,7 +873,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -896,12 +896,12 @@ describe("transactions routes", () => {
 
       const page1 = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03&page=1&pageSize=1",
+        url: "/api/v1/transactions?month=2026-03&page=1&pageSize=1",
         headers: await authHeader(user.id),
       });
       const page2 = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03&page=2&pageSize=1",
+        url: "/api/v1/transactions?month=2026-03&page=2&pageSize=1",
         headers: await authHeader(user.id),
       });
 
@@ -929,7 +929,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/transactions?month=2026-03&category=${food.id}`,
+        url: `/api/v1/transactions?month=2026-03&category=${food.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -950,7 +950,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03&search=UBER",
+        url: "/api/v1/transactions?month=2026-03&search=UBER",
         headers: await authHeader(user.id),
       });
 
@@ -975,7 +975,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/transactions?month=2026-03&category=${food.id}`,
+        url: `/api/v1/transactions?month=2026-03&category=${food.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -994,7 +994,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -1019,7 +1019,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -1040,12 +1040,12 @@ describe("transactions routes", () => {
 
       await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
       await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -1064,7 +1064,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions?month=2026-03",
+        url: "/api/v1/transactions?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -1090,7 +1090,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions/summary?month=2026-03",
+        url: "/api/v1/transactions/summary?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -1115,7 +1115,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions/summary?month=2026-03",
+        url: "/api/v1/transactions/summary?month=2026-03",
         headers: await authHeader(user.id),
       });
 
@@ -1133,7 +1133,7 @@ describe("transactions routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/transactions/summary?month=2026-03",
+        url: "/api/v1/transactions/summary?month=2026-03",
         headers: await authHeader(user.id),
       });
 

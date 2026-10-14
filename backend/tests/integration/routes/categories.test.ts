@@ -26,7 +26,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: { kind: "expense", label: "Travel", icon: "plane" },
       });
@@ -46,7 +46,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: { kind: "income", label: "Salary", icon: "briefcase" },
       });
@@ -63,7 +63,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: {
           kind: "expense",
@@ -88,7 +88,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: { kind: "expense", label: "Travel", icon: "plane" },
       });
@@ -105,7 +105,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: { kind: "income", label: "Travel", icon: "plane" },
       });
@@ -120,7 +120,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(userB.id),
         payload: { kind: "expense", label: "Travel", icon: "plane" },
       });
@@ -133,7 +133,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: { kind: "expense", label: "   ", icon: "plane" },
       });
@@ -146,7 +146,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
         payload: { kind: "expense", label: "Travel", icon: "not-a-real-icon" },
       });
@@ -162,7 +162,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
         payload: { label: "New", icon: "coffee" },
       });
@@ -176,7 +176,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/categories/${crypto.randomUUID()}`,
+        url: `/api/v1/categories/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
         payload: { label: "New", icon: "coffee" },
       });
@@ -191,7 +191,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(attacker.id),
         payload: { label: "New", icon: "coffee" },
       });
@@ -213,7 +213,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
         payload: { label: "Taken", icon: "coffee" },
       });
@@ -229,7 +229,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -245,7 +245,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${crypto.randomUUID()}`,
+        url: `/api/v1/categories/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
       });
 
@@ -259,7 +259,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(attacker.id),
       });
 
@@ -276,7 +276,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -289,7 +289,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -328,7 +328,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -362,7 +362,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/categories/${category.id}`,
+        url: `/api/v1/categories/${category.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -387,7 +387,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/categories",
+        url: "/api/v1/categories",
         headers: await authHeader(user.id),
       });
 
@@ -404,7 +404,7 @@ describe("categories routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/categories?kind=income",
+        url: "/api/v1/categories?kind=income",
         headers: await authHeader(user.id),
       });
 

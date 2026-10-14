@@ -38,7 +38,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/credit-cards",
+        url: "/api/v1/credit-cards",
         headers: await authHeader(user.id),
         payload: {
           name: "Nubank",
@@ -63,7 +63,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/credit-cards",
+        url: "/api/v1/credit-cards",
         headers: await authHeader(user.id),
         payload: {
           name: "Nubank",
@@ -86,7 +86,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/credit-cards",
+        url: "/api/v1/credit-cards",
         headers: await authHeader(user.id),
         payload: {
           name: "Nubank",
@@ -108,7 +108,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
         payload: {
           name: "New name",
@@ -131,7 +131,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/credit-cards/${crypto.randomUUID()}`,
+        url: `/api/v1/credit-cards/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
         payload: {
           name: "X",
@@ -152,7 +152,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(attacker.id),
         payload: {
           name: "X",
@@ -174,7 +174,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
         payload: {
           name: "X",
@@ -196,7 +196,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
         payload: {
           name: card.name,
@@ -223,7 +223,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -239,7 +239,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/credit-cards/${crypto.randomUUID()}`,
+        url: `/api/v1/credit-cards/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
       });
 
@@ -253,7 +253,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(attacker.id),
       });
 
@@ -271,7 +271,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -284,14 +284,14 @@ describe("credit cards routes", () => {
 
       const first = await app.inject({
         method: "DELETE",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
       expect(first.statusCode).toBe(204);
 
       const second = await app.inject({
         method: "DELETE",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
       expect(second.statusCode).toBe(204);
@@ -305,7 +305,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -320,7 +320,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${crypto.randomUUID()}`,
+        url: `/api/v1/credit-cards/${crypto.randomUUID()}`,
         headers: await authHeader(user.id),
       });
 
@@ -334,7 +334,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(attacker.id),
       });
 
@@ -349,7 +349,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -386,7 +386,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}`,
+        url: `/api/v1/credit-cards/${card.id}`,
         headers: await authHeader(user.id),
       });
 
@@ -408,7 +408,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/credit-cards",
+        url: "/api/v1/credit-cards",
         headers: await authHeader(user.id),
       });
 
@@ -425,7 +425,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/credit-cards",
+        url: "/api/v1/credit-cards",
         headers: await authHeader(user.id),
       });
 
@@ -441,7 +441,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}/bills`,
+        url: `/api/v1/credit-cards/${card.id}/bills`,
         headers: await authHeader(user.id),
       });
 
@@ -458,7 +458,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}/bills?pageSize=61`,
+        url: `/api/v1/credit-cards/${card.id}/bills?pageSize=61`,
         headers: await authHeader(user.id),
       });
 
@@ -470,7 +470,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${crypto.randomUUID()}/bills`,
+        url: `/api/v1/credit-cards/${crypto.randomUUID()}/bills`,
         headers: await authHeader(user.id),
       });
 
@@ -484,7 +484,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}/bills`,
+        url: `/api/v1/credit-cards/${card.id}/bills`,
         headers: await authHeader(attacker.id),
       });
 
@@ -521,7 +521,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}/bills`,
+        url: `/api/v1/credit-cards/${card.id}/bills`,
         headers: await authHeader(user.id),
       });
 
@@ -561,7 +561,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}/transactions?month=${cycle.cycleMonth}`,
+        url: `/api/v1/credit-cards/${card.id}/transactions?month=${cycle.cycleMonth}`,
         headers: await authHeader(user.id),
       });
 
@@ -576,7 +576,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${crypto.randomUUID()}/transactions?month=2026-01`,
+        url: `/api/v1/credit-cards/${crypto.randomUUID()}/transactions?month=2026-01`,
         headers: await authHeader(user.id),
       });
 
@@ -590,7 +590,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/credit-cards/${card.id}/transactions?month=2026-01`,
+        url: `/api/v1/credit-cards/${card.id}/transactions?month=2026-01`,
         headers: await authHeader(attacker.id),
       });
 
@@ -613,7 +613,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: `/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
+        url: `/api/v1/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
         headers: await authHeader(user.id),
         payload: {},
       });
@@ -636,7 +636,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: `/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
+        url: `/api/v1/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
         headers: await authHeader(user.id),
         payload: { amount: 42 },
       });
@@ -654,7 +654,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: `/credit-cards/${card.id}/bills/1999-01/pay`,
+        url: `/api/v1/credit-cards/${card.id}/bills/1999-01/pay`,
         headers: await authHeader(user.id),
         payload: {},
       });
@@ -672,7 +672,7 @@ describe("credit cards routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: `/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
+        url: `/api/v1/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
         headers: await authHeader(attacker.id),
         payload: {},
       });
@@ -693,7 +693,7 @@ describe("credit cards routes", () => {
 
       const first = await app.inject({
         method: "POST",
-        url: `/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
+        url: `/api/v1/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
         headers: await authHeader(user.id),
         payload: {},
       });
@@ -701,7 +701,7 @@ describe("credit cards routes", () => {
 
       const second = await app.inject({
         method: "POST",
-        url: `/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
+        url: `/api/v1/credit-cards/${card.id}/bills/${cycle.cycleMonth}/pay`,
         headers: await authHeader(user.id),
         payload: {},
       });

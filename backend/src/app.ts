@@ -14,6 +14,7 @@ import {
   validatorCompiler,
 } from "fastify-type-provider-zod";
 import { env } from "./env/index.ts";
+import { API_V1_PREFIX } from "./http/api-prefix.ts";
 import { authenticate } from "./http/hooks/authenticate.ts";
 import { resolveTrustProxy } from "./lib/trust-proxy.ts";
 import { authenticateSession } from "./modules/auth/routes/authenticate-session.ts";
@@ -115,8 +116,9 @@ app.register(swagger, {
       title: "Crooge API",
       description:
         "Backend for Crooge, a personal finance tracker (monthly income/expenses + credit card bills). " +
-        "Every endpoint below `/me` and `/sessions*` requires a bearer access token, obtained from " +
-        "`POST /sessions` and renewed via `POST /sessions/refresh`. " +
+        "Every route below is served under `/api/v1`. Every endpoint below `/api/v1/me` and " +
+        "`/api/v1/sessions*` requires a bearer access token, obtained from `POST /api/v1/sessions` and " +
+        "renewed via `POST /api/v1/sessions/refresh`. " +
         "Requests that fail body/query/param validation return `400` with `{ message, issues }`, where " +
         "`issues` maps each invalid field path to its error messages; malformed requests Fastify rejects " +
         "before validation (e.g. an empty body with a `Content-Type: application/json` header) return their " +
@@ -151,7 +153,7 @@ app.register(swagger, {
           scheme: "bearer",
           bearerFormat: "JWT",
           description:
-            'Access token from `POST /sessions` — send as "Authorization: Bearer <token>".',
+            'Access token from `POST /api/v1/sessions` — send as "Authorization: Bearer <token>".',
         },
       },
     },
@@ -162,33 +164,38 @@ app.register(swagger, {
 
 app.register(swaggerUi, { routePrefix: "/docs" });
 
-app.register(registerUser);
-app.register(authenticateSession);
-app.register(googleSignIn);
-app.register(linkGoogle);
-app.register(refreshSession);
-app.register(logout);
-app.register(getMe);
-app.register(updateMe);
-app.register(updatePassword);
-app.register(deleteMe);
-app.register(createTransaction);
-app.register(listTransactions);
-app.register(getTransactionsSummary);
-app.register(updateTransaction);
-app.register(deleteTransaction);
-app.register(createCreditCard);
-app.register(updateCreditCard);
-app.register(deleteCreditCard);
-app.register(listCreditCards);
-app.register(getCreditCard);
-app.register(listCreditCardBills);
-app.register(listCreditCardTransactions);
-app.register(payCreditCardBill);
-app.register(listCategories);
-app.register(createCategory);
-app.register(updateCategory);
-app.register(deleteCategory);
+app.register(
+  async (api) => {
+    api.register(registerUser);
+    api.register(authenticateSession);
+    api.register(googleSignIn);
+    api.register(linkGoogle);
+    api.register(refreshSession);
+    api.register(logout);
+    api.register(getMe);
+    api.register(updateMe);
+    api.register(updatePassword);
+    api.register(deleteMe);
+    api.register(createTransaction);
+    api.register(listTransactions);
+    api.register(getTransactionsSummary);
+    api.register(updateTransaction);
+    api.register(deleteTransaction);
+    api.register(createCreditCard);
+    api.register(updateCreditCard);
+    api.register(deleteCreditCard);
+    api.register(listCreditCards);
+    api.register(getCreditCard);
+    api.register(listCreditCardBills);
+    api.register(listCreditCardTransactions);
+    api.register(payCreditCardBill);
+    api.register(listCategories);
+    api.register(createCategory);
+    api.register(updateCategory);
+    api.register(deleteCategory);
+  },
+  { prefix: API_V1_PREFIX },
+);
 
 app.setErrorHandler<FastifyError>((error, _request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {

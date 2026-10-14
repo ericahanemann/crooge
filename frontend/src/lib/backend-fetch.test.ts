@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { server } from "../../tests/setup/msw-server";
 import { BackendError, backendFetchJson } from "./backend-fetch";
 
-const API_URL = "http://localhost:3333";
+const API_URL = "http://localhost:3333/api/v1";
 
 const mockGetAccessToken = vi.fn();
 const mockRedirect = vi.fn((..._args: unknown[]) => {

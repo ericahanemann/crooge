@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { server } from "../../tests/setup/msw-server";
 import { ApiError, getMe, signIn, signUp } from "./auth-api";
 
-const API_URL = "http://localhost:3333";
+const API_URL = "http://localhost:3333/api/v1";
 
 describe("signUp", () => {
   it("posts to /users and resolves on success", async () => {
