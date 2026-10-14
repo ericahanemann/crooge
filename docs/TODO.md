@@ -13,16 +13,16 @@ Code-side prep is done (health check, `trustProxy`, `--env-file-if-exists`,
 backend `Dockerfile` — now runs `prisma migrate deploy` on every boot,
 safe specifically because Render's free plan hard-caps at one instance;
 see the Dockerfile's comment if this ever moves to a multi-instance plan —
-Server Actions origin, `db:migrate:deploy` script — see git history).
-What's left needs an external interface, not code:
+Server Actions origin, `db:migrate:deploy` script, `/api/v1` route
+versioning — see git history). What's left needs an external interface,
+not code:
 
-- [ ] Create the Neon project, get its pooled connection string
-- [ ] Create the Render web service from `backend/Dockerfile` (Root
-      Directory: `backend`), set its env vars (`DATABASE_URL` from Neon,
-      `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `NODE_ENV=production`,
-      `TRUST_PROXY=true` — safe here specifically because Render's free web
-      service has no direct-to-container public ingress, only its own
-      proxy)
+- [x] Create the Neon project, get its pooled connection string — done,
+      migrations applied against it
+- [x] Create the Render web service from `backend/Dockerfile` — live at
+      https://crooge.onrender.com, `/health` returns 200. `FRONTEND_URL`
+      and `GOOGLE_CLIENT_ID` are still set to placeholders there (see the
+      two items below)
 - [ ] Real Google Cloud OAuth Client ID in both `backend/.env`'s
       `GOOGLE_CLIENT_ID` and `frontend/.env.local`'s
       `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (both are placeholders today) — also
@@ -33,7 +33,9 @@ What's left needs an external interface, not code:
 - [ ] Set `SERVER_ACTIONS_ALLOWED_ORIGIN` (frontend) to the real prod
       domain — see `next.config.ts`
 - [ ] Set `FRONTEND_URL` (backend, for CORS) and `NEXT_PUBLIC_API_URL`
-      (frontend) to each other's real prod URLs
+      (frontend) to each other's real prod URLs — `NEXT_PUBLIC_API_URL` is
+      just the host (e.g. `https://api.crooge.mycustomdomain.com.br`), no
+      `/api/v1` suffix — the frontend code appends that itself
 - [ ] Vercel project settings: Root Directory → `frontend`
 
 ## Next Features (after prod deploy)

@@ -69,7 +69,7 @@ describe("auth routes", () => {
     it("creates a user and returns 201 with an empty body", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/users",
+        url: "/api/v1/users",
         payload: {
           name: "Erica",
           email: "erica@example.com",
@@ -89,7 +89,7 @@ describe("auth routes", () => {
     it("seeds any starter categories sent along with signup", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/users",
+        url: "/api/v1/users",
         payload: {
           name: "Erica",
           email: "erica@example.com",
@@ -121,7 +121,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/users",
+        url: "/api/v1/users",
         payload: {
           name: "Erica",
           email: "erica@example.com",
@@ -138,7 +138,7 @@ describe("auth routes", () => {
     it("rejects a password missing a number with 400", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/users",
+        url: "/api/v1/users",
         payload: {
           name: "Erica",
           email: "erica@example.com",
@@ -155,7 +155,7 @@ describe("auth routes", () => {
     it("rejects a password missing a symbol with 400", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/users",
+        url: "/api/v1/users",
         payload: {
           name: "Erica",
           email: "erica@example.com",
@@ -172,7 +172,7 @@ describe("auth routes", () => {
     it("rejects a password below the minimum length with 400", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/users",
+        url: "/api/v1/users",
         payload: {
           name: "Erica",
           email: "erica@example.com",
@@ -191,7 +191,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: {
           email: "erica@example.com",
           password: TEST_USER_PASSWORD,
@@ -208,7 +208,7 @@ describe("auth routes", () => {
       );
       expect(cookie).toBeDefined();
       expect(cookie?.value).toBe(body.refreshToken);
-      expect(cookie?.path).toBe("/sessions");
+      expect(cookie?.path).toBe("/api/v1/sessions");
     });
 
     it("rejects the wrong password with 401", async () => {
@@ -216,7 +216,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: "erica@example.com", password: WRONG_PASSWORD },
       });
 
@@ -226,7 +226,7 @@ describe("auth routes", () => {
     it("rejects an unknown email with 401", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: {
           email: "nobody@example.com",
           password: TEST_USER_PASSWORD,
@@ -242,7 +242,7 @@ describe("auth routes", () => {
       for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
         const response = await app.inject({
           method: "POST",
-          url: "/sessions",
+          url: "/api/v1/sessions",
           payload: { email: "erica@example.com", password: WRONG_PASSWORD },
         });
         expect(response.statusCode).toBe(401);
@@ -250,7 +250,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: {
           email: "erica@example.com",
           password: TEST_USER_PASSWORD,
@@ -264,7 +264,7 @@ describe("auth routes", () => {
       for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
         const response = await app.inject({
           method: "POST",
-          url: "/sessions",
+          url: "/api/v1/sessions",
           payload: { email: "nobody@example.com", password: WRONG_PASSWORD },
         });
         expect(response.statusCode).toBe(401);
@@ -272,7 +272,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: "nobody@example.com", password: WRONG_PASSWORD },
       });
 
@@ -285,14 +285,14 @@ describe("auth routes", () => {
       for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS - 1; i++) {
         await app.inject({
           method: "POST",
-          url: "/sessions",
+          url: "/api/v1/sessions",
           payload: { email: "erica@example.com", password: WRONG_PASSWORD },
         });
       }
 
       const success = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: {
           email: "erica@example.com",
           password: TEST_USER_PASSWORD,
@@ -302,7 +302,7 @@ describe("auth routes", () => {
 
       const afterReset = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: "erica@example.com", password: WRONG_PASSWORD },
       });
       expect(afterReset.statusCode).toBe(401);
@@ -319,7 +319,7 @@ describe("auth routes", () => {
       for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
         await app.inject({
           method: "POST",
-          url: "/sessions",
+          url: "/api/v1/sessions",
           payload: { email: "erica@example.com", password: WRONG_PASSWORD },
         });
       }
@@ -331,7 +331,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: {
           email: "erica@example.com",
           password: TEST_USER_PASSWORD,
@@ -344,14 +344,14 @@ describe("auth routes", () => {
 
   describe("GET /me", () => {
     it("rejects requests with no Authorization header with 401", async () => {
-      const response = await app.inject({ method: "GET", url: "/me" });
+      const response = await app.inject({ method: "GET", url: "/api/v1/me" });
       expect(response.statusCode).toBe(401);
     });
 
     it("rejects a malformed token with 401", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: "Bearer not-a-real-jwt" },
       });
       expect(response.statusCode).toBe(401);
@@ -366,7 +366,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
       });
 
@@ -385,7 +385,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
       });
 
@@ -398,7 +398,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
       });
 
@@ -426,7 +426,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
       });
 
@@ -442,7 +442,7 @@ describe("auth routes", () => {
     it("rejects requests with no Authorization header with 401", async () => {
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         payload: { name: "New Name" },
       });
       expect(response.statusCode).toBe(401);
@@ -454,7 +454,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { name: "New Name" },
       });
@@ -469,7 +469,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           locale: "pt-BR",
@@ -496,7 +496,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {},
       });
@@ -510,7 +510,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { colorTheme: "chartreuse" },
       });
@@ -524,7 +524,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { email: "new@example.com" },
       });
@@ -547,7 +547,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { email: "new@example.com" },
       });
@@ -562,7 +562,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           email: "new@example.com",
@@ -579,7 +579,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           email: "new@example.com",
@@ -598,7 +598,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           email: "taken@example.com",
@@ -614,7 +614,7 @@ describe("auth routes", () => {
     it("rejects requests with no Authorization header with 401", async () => {
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         payload: {
           currentPassword: TEST_USER_PASSWORD,
           newPassword: "new-password-1!",
@@ -629,7 +629,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           currentPassword: WRONG_PASSWORD,
@@ -647,7 +647,7 @@ describe("auth routes", () => {
       for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
         const response = await app.inject({
           method: "PATCH",
-          url: "/me/password",
+          url: "/api/v1/me/password",
           headers: { authorization: `Bearer ${token}` },
           payload: {
             currentPassword: WRONG_PASSWORD,
@@ -659,7 +659,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           currentPassword: TEST_USER_PASSWORD,
@@ -676,7 +676,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           currentPassword: TEST_USER_PASSWORD,
@@ -694,7 +694,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: { currentPassword: TEST_USER_PASSWORD, newPassword },
       });
@@ -702,14 +702,14 @@ describe("auth routes", () => {
 
       const oldLogin = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       expect(oldLogin.statusCode).toBe(401);
 
       const newLogin = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: newPassword },
       });
       expect(newLogin.statusCode).toBe(200);
@@ -722,12 +722,12 @@ describe("auth routes", () => {
       // Two independent sign-ins: two separate refresh-token families.
       const sessionA = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const sessionB = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const refreshTokenA = sessionA.json().refreshToken;
@@ -735,7 +735,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           currentPassword: TEST_USER_PASSWORD,
@@ -748,7 +748,7 @@ describe("auth routes", () => {
       // Family A (the caller's own) still refreshes fine.
       const refreshA = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: refreshTokenA },
       });
       expect(refreshA.statusCode).toBe(200);
@@ -756,7 +756,7 @@ describe("auth routes", () => {
       // Family B was revoked.
       const refreshB = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: refreshTokenB },
       });
       expect(refreshB.statusCode).toBe(401);
@@ -768,14 +768,14 @@ describe("auth routes", () => {
 
       const session = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const refreshToken = session.json().refreshToken;
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: {
           currentPassword: TEST_USER_PASSWORD,
@@ -786,7 +786,7 @@ describe("auth routes", () => {
 
       const refresh = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken },
       });
       expect(refresh.statusCode).toBe(401);
@@ -804,7 +804,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "PATCH",
-        url: "/me/password",
+        url: "/api/v1/me/password",
         headers: { authorization: `Bearer ${token}` },
         payload: { newPassword: "new-password-1!" },
       });
@@ -812,7 +812,7 @@ describe("auth routes", () => {
 
       const login = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: "new-password-1!" },
       });
       expect(login.statusCode).toBe(200);
@@ -839,7 +839,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: { idToken: "not-a-real-token" },
       });
 
@@ -853,7 +853,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: { idToken: "some-token" },
       });
 
@@ -865,7 +865,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: {
           idToken: "some-token",
           categories: [
@@ -897,7 +897,7 @@ describe("auth routes", () => {
       vi.mocked(verifyGoogleIdToken).mockResolvedValue(fakeGoogleProfile());
       await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: { idToken: "some-token" },
       });
       const firstUser = await prisma.user.findUniqueOrThrow({
@@ -906,7 +906,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: { idToken: "some-token" },
       });
 
@@ -928,7 +928,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: { idToken: "some-token" },
       });
 
@@ -946,7 +946,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/google",
+        url: "/api/v1/sessions/google",
         payload: { idToken: "some-token" },
       });
 
@@ -974,7 +974,7 @@ describe("auth routes", () => {
     it("rejects requests with no Authorization header with 401", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/me/google",
+        url: "/api/v1/me/google",
         payload: { idToken: "some-token" },
       });
       expect(response.statusCode).toBe(401);
@@ -987,7 +987,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/me/google",
+        url: "/api/v1/me/google",
         headers: { authorization: `Bearer ${token}` },
         payload: { idToken: "some-token" },
       });
@@ -1005,7 +1005,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/me/google",
+        url: "/api/v1/me/google",
         headers: { authorization: `Bearer ${token}` },
         payload: { idToken: "some-token" },
       });
@@ -1029,7 +1029,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/me/google",
+        url: "/api/v1/me/google",
         headers: { authorization: `Bearer ${token}` },
         payload: { idToken: "some-token" },
       });
@@ -1043,14 +1043,14 @@ describe("auth routes", () => {
       const user = await createTestUser();
       const login = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const { refreshToken } = login.json();
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         cookies: { [REFRESH_TOKEN_COOKIE_NAME]: refreshToken },
         payload: {},
       });
@@ -1064,14 +1064,14 @@ describe("auth routes", () => {
       const user = await createTestUser();
       const login = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const { refreshToken } = login.json();
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken },
       });
 
@@ -1081,7 +1081,7 @@ describe("auth routes", () => {
     it("rejects a request with no refresh token at all", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: {},
       });
       expect(response.statusCode).toBe(401);
@@ -1090,7 +1090,7 @@ describe("auth routes", () => {
     it("rejects an unknown refresh token", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: "not-a-real-token" },
       });
       expect(response.statusCode).toBe(401);
@@ -1110,7 +1110,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: rawToken },
       });
 
@@ -1121,14 +1121,14 @@ describe("auth routes", () => {
       const user = await createTestUser();
       const login = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const tokenA = login.json().refreshToken;
 
       const firstRefresh = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: tokenA },
       });
       expect(firstRefresh.statusCode).toBe(200);
@@ -1137,7 +1137,7 @@ describe("auth routes", () => {
       // Reusing the already-consumed token A is treated as theft.
       const reuseAttempt = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: tokenA },
       });
       expect(reuseAttempt.statusCode).toBe(401);
@@ -1146,7 +1146,7 @@ describe("auth routes", () => {
       // now revoked too, not just the reused token.
       const tokenBAfterTheft = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken: tokenB },
       });
       expect(tokenBAfterTheft.statusCode).toBe(401);
@@ -1157,7 +1157,7 @@ describe("auth routes", () => {
     it("returns 204 even with no token presented", async () => {
       const response = await app.inject({
         method: "DELETE",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: {},
       });
       expect(response.statusCode).toBe(204);
@@ -1167,14 +1167,14 @@ describe("auth routes", () => {
       const user = await createTestUser();
       const login = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       const { refreshToken } = login.json();
 
       const response = await app.inject({
         method: "DELETE",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { refreshToken },
       });
       expect(response.statusCode).toBe(204);
@@ -1186,7 +1186,7 @@ describe("auth routes", () => {
 
       const refreshAfterLogout = await app.inject({
         method: "POST",
-        url: "/sessions/refresh",
+        url: "/api/v1/sessions/refresh",
         payload: { refreshToken },
       });
       expect(refreshAfterLogout.statusCode).toBe(401);
@@ -1195,7 +1195,10 @@ describe("auth routes", () => {
 
   describe("DELETE /me", () => {
     it("rejects requests with no Authorization header with 401", async () => {
-      const response = await app.inject({ method: "DELETE", url: "/me" });
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/api/v1/me",
+      });
       expect(response.statusCode).toBe(401);
     });
 
@@ -1205,7 +1208,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { currentPassword: WRONG_PASSWORD },
       });
@@ -1222,7 +1225,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {},
       });
@@ -1237,7 +1240,7 @@ describe("auth routes", () => {
       for (let i = 0; i < MAX_FAILED_AUTH_ATTEMPTS; i++) {
         const response = await app.inject({
           method: "DELETE",
-          url: "/me",
+          url: "/api/v1/me",
           headers: { authorization: `Bearer ${token}` },
           payload: { currentPassword: WRONG_PASSWORD },
         });
@@ -1246,7 +1249,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { currentPassword: TEST_USER_PASSWORD },
       });
@@ -1269,7 +1272,7 @@ describe("auth routes", () => {
 
       const response = await app.inject({
         method: "DELETE",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: {},
       });
@@ -1292,14 +1295,14 @@ describe("auth routes", () => {
       const { series } = await createTestRecurringSeries(user.id);
       const login = await app.inject({
         method: "POST",
-        url: "/sessions",
+        url: "/api/v1/sessions",
         payload: { email: user.email, password: TEST_USER_PASSWORD },
       });
       expect(login.statusCode).toBe(200);
 
       const response = await app.inject({
         method: "DELETE",
-        url: "/me",
+        url: "/api/v1/me",
         headers: { authorization: `Bearer ${token}` },
         payload: { currentPassword: TEST_USER_PASSWORD },
       });
