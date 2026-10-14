@@ -13,6 +13,18 @@ const codespaceOrigin =
     ? `${process.env.CODESPACE_NAME}-3000.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}`
     : undefined;
 
+// The real production domain(s) this app is served from (e.g.
+// "crooge.mycustomdomain.com.br") — unset in every local/CI environment,
+// where "localhost:3000" below already covers it. Without this, every
+// Server Action (every form submit, every mutation in the app) would be
+// rejected in production with "Invalid Server Actions request" — Next's
+// CSRF origin check only ever allows what's explicitly listed here, and
+// it has no way to know the real domain on its own. Comma-separated to
+// allow more than one (e.g. a bare domain and a "www." alias).
+const productionOrigins = process.env.SERVER_ACTIONS_ALLOWED_ORIGIN
+  ? process.env.SERVER_ACTIONS_ALLOWED_ORIGIN.split(",").map((o) => o.trim())
+  : [];
+
 const nextConfig: NextConfig = {
   reactCompiler: true,
   turbopack: {
@@ -26,10 +38,12 @@ const nextConfig: NextConfig = {
       // arrive with an `Origin: localhost:<port>` header regardless of the
       // browser's real origin, which the CSRF origin check otherwise
       // rejects as "Invalid Server Actions request". Only add the
-      // Codespaces forwarding origin on top when actually running there.
-      allowedOrigins: codespaceOrigin
-        ? [codespaceOrigin, "localhost:3000"]
-        : ["localhost:3000"],
+      // Codespaces/production origins on top when they're actually set.
+      allowedOrigins: [
+        "localhost:3000",
+        ...(codespaceOrigin ? [codespaceOrigin] : []),
+        ...productionOrigins,
+      ],
     },
   },
 };
