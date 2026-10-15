@@ -23,23 +23,32 @@ not code:
       https://crooge.onrender.com, `/health` returns 200. `FRONTEND_URL`
       and `GOOGLE_CLIENT_ID` are still set to placeholders there (see the
       two items below)
-- [ ] Real Google Cloud OAuth Client ID in both `backend/.env`'s
-      `GOOGLE_CLIENT_ID` and `frontend/.env.local`'s
-      `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (both are placeholders today) — also
-      set the OAuth consent screen's app name/logo/support email and
-      "Authorized JavaScript origins" in Google Cloud Console
-- [ ] DNS: point `crooge.mycustomdomain.com.br` at Vercel, and a subdomain
-      (e.g. `api.crooge.mycustomdomain.com.br`) at the Render service
+- [x] Google Cloud Console — done. Branding filled in, stayed in Testing
+      publishing status with the 3-4 real users added as test users
+      (avoids any verification-review risk at this scale — see the "Move
+      Google OAuth config to production" item below for later), and
+      `https://crooge.ericahanemann.com.br` added alongside the existing
+      `http://localhost:3000` under the existing client's Authorized
+      JavaScript origins. Same `GOOGLE_CLIENT_ID` as before — no new
+      client, nothing to change in either `.env`
+- [ ] DNS: point `crooge.ericahanemann.com.br` at Vercel, and a subdomain
+      (e.g. `api.crooge.ericahanemann.com.br`) at the Render service
 - [ ] Set `SERVER_ACTIONS_ALLOWED_ORIGIN` (frontend) to the real prod
       domain — see `next.config.ts`
 - [ ] Set `FRONTEND_URL` (backend, for CORS) and `NEXT_PUBLIC_API_URL`
       (frontend) to each other's real prod URLs — `NEXT_PUBLIC_API_URL` is
-      just the host (e.g. `https://api.crooge.mycustomdomain.com.br`), no
+      just the host (e.g. `https://api.crooge.ericahanemann.com.br`), no
       `/api/v1` suffix — the frontend code appends that itself
 - [ ] Vercel project settings: Root Directory → `frontend`
 
 ## Next Features (after prod deploy)
 
+- [ ] Move Google OAuth config to production — flip the Google Auth
+      platform's publishing status from Testing to "In production" once
+      this needs to be open to more than the handful of people added as
+      test users. Not expected to trigger Google's verification review
+      (only basic identity scopes are requested, no sensitive/restricted
+      data), but confirm that's still true when the time comes.
 - [ ] Add password recovery
 - [ ] Add email verification
 - [ ] Design and build the dashboard page

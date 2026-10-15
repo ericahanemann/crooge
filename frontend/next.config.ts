@@ -14,7 +14,7 @@ const codespaceOrigin =
     : undefined;
 
 // The real production domain(s) this app is served from (e.g.
-// "crooge.mycustomdomain.com.br") — unset in every local/CI environment,
+// "crooge.ericahanemann.com.br") — unset in every local/CI environment,
 // where "localhost:3000" below already covers it. Without this, every
 // Server Action (every form submit, every mutation in the app) would be
 // rejected in production with "Invalid Server Actions request" — Next's
