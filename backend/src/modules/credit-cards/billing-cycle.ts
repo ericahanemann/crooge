@@ -31,10 +31,10 @@ function dueDateForClosing(
 }
 
 /**
- * A purchase made on or before `closingDay` of a month belongs to the cycle
- * that closes that month; made after it, it rolls into next month's cycle.
- * `cycleMonth` is keyed by the closing month (this becomes the API's
- * `CreditCardBill.month` field).
+ * A purchase made before `closingDay` of a month belongs to the cycle that
+ * closes that month; made on or after it, the cycle has already closed for
+ * the day, so it rolls into next month's cycle. `cycleMonth` is keyed by the
+ * closing month (this becomes the API's `CreditCardBill.month` field).
  */
 export function getCycleForDate(
   closingDay: number,
@@ -45,7 +45,7 @@ export function getCycleForDate(
   let cycleYear = date.getUTCFullYear();
   let cycleMonthIndex = date.getUTCMonth();
 
-  if (day > closingDay) {
+  if (day >= closingDay) {
     cycleMonthIndex += 1;
     if (cycleMonthIndex > 11) {
       cycleMonthIndex = 0;
