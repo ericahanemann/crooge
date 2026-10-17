@@ -1,7 +1,10 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { listCategoriesAction } from "@/lib/category-actions";
+import {
+  createCategoryAction,
+  listCategoriesAction,
+} from "@/lib/category-actions";
 import { todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import { render } from "../../../tests/setup/test-utils";
@@ -256,5 +259,36 @@ describe("AddExpenseDialog", () => {
     // still recurring + annual + credit + the same category
     expect(screen.getByLabelText("FREQUENCY")).toHaveTextContent("ANNUAL");
     expect(screen.getByRole("button", { name: "ADD" })).toBeInTheDocument();
+  });
+
+  it("submits immediately with a category just created inline, with no need to reopen the dialog", async () => {
+    const newCategory = {
+      id: "cat-new",
+      kind: "expense" as const,
+      label: "Pets",
+      icon: "tag",
+      isFallback: false,
+      isSystem: false,
+    };
+    vi.mocked(createCategoryAction).mockResolvedValue({
+      ok: true,
+      category: newCategory,
+    });
+    const user = await openDialog();
+
+    await user.type(screen.getByLabelText("NAME"), "Vet visit");
+    await user.type(screen.getByLabelText("AMOUNT"), "80");
+
+    await user.click(screen.getByRole("button", { name: "Add category" }));
+    await user.type(
+      screen.getByPlaceholderText("Category name"),
+      "Pets{Enter}",
+    );
+
+    await user.click(screen.getByRole("button", { name: "ADD" }));
+
+    expect(createTransactionAction).toHaveBeenCalledWith(
+      expect.objectContaining({ category: "cat-new" }),
+    );
   });
 });

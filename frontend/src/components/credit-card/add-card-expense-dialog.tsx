@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
-import { CategorySelect } from "@/components/monthly/category-select";
+import {
+  type ExpenseFormErrors,
+  ExpenseFormFields,
+  type Frequency,
+  type Timing,
+} from "@/components/monthly/expense-form-fields";
 import {
   Dialog,
   DialogContent,
@@ -30,13 +35,6 @@ import { cn, parseAmountInput } from "@/lib/utils";
 
 type Mode = "expense" | "pay";
 
-interface FormErrors {
-  description?: string;
-  amount?: string;
-  date?: string;
-  category?: string;
-}
-
 /**
  * @prop cardId - the card this expense/payment applies to
  * @prop billMonth - the bill's `month` key to pay in "pay" mode (always the current bill at both call sites)
@@ -55,7 +53,11 @@ interface AddCardExpenseDialogProps {
 /**
  * combined "add card expense" / "pay bill" dialog
  *
- * `mode` toggles which fields render: "expense" shows description + category, "pay" only needs amount + date
+ * `mode` toggles which fields render: "expense" shows the same
+ * description/timing/amount/date/category fields as the monthly page's
+ * "+ ADD EXPENSE" dialog (via the shared `ExpenseFormFields`) — payment
+ * method is fixed to credit (this card) rather than shown as a choice, since
+ * there's nothing to pick; "pay" only needs amount + date.
  */
 export function AddCardExpenseDialog({
   cardId,
@@ -74,12 +76,16 @@ export function AddCardExpenseDialog({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>(defaultMode);
 
+  const [timing, setTiming] = useState<Timing>("one_time");
+  const [frequency, setFrequency] = useState<Frequency>("monthly");
+
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [installmentCount, setInstallmentCount] = useState("2");
   const [date, setDate] = useState(todayISO());
   const [category, setCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<ExpenseFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -120,8 +126,11 @@ export function AddCardExpenseDialog({
 
   function resetForm() {
     setMode(defaultMode);
+    setTiming("one_time");
+    setFrequency("monthly");
     setDescription("");
     setAmount("");
+    setInstallmentCount("2");
     setDate(todayISO());
     setCategory(null);
     setCategories([]);
@@ -129,15 +138,32 @@ export function AddCardExpenseDialog({
     setSubmitError(null);
   }
 
+  const parsedAmount = parseAmountInput(amount);
+  const parsedInstallments = Number(installmentCount);
+  const perInstallment =
+    mode === "expense" &&
+    timing === "installments" &&
+    parsedAmount > 0 &&
+    parsedInstallments >= 1 &&
+    Number.isFinite(parsedAmount / parsedInstallments)
+      ? parsedAmount / parsedInstallments
+      : null;
+
   function validate(): boolean {
-    const next: FormErrors = {};
-    const parsed = parseAmountInput(amount);
-    if (mode === "expense" && !description.trim())
-      next.description = tc("errorRequired");
-    if (!amount || Number.isNaN(parsed) || parsed <= 0)
+    const next: ExpenseFormErrors = {};
+    if (mode === "expense") {
+      if (!description.trim()) next.description = tc("errorRequired");
+      if (
+        timing === "installments" &&
+        (!Number.isInteger(parsedInstallments) || parsedInstallments < 2)
+      ) {
+        next.installments = te("errorMinInstallments");
+      }
+      if (!category) next.category = tc("errorRequired");
+    }
+    if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0)
       next.amount = tc("errorPositive");
     if (!date) next.date = tc("errorRequired");
-    if (mode === "expense" && !category) next.category = tc("errorRequired");
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -155,20 +181,19 @@ export function AddCardExpenseDialog({
         type: "expense",
         description,
         category,
-        amount: parseAmountInput(amount),
+        amount: parsedAmount,
         date,
         paymentMethod: "credit",
         creditCardId: cardId,
-        timing: "one_time",
+        timing,
+        installments:
+          timing === "installments" ? parsedInstallments : undefined,
+        frequency: timing === "recurring" ? frequency : undefined,
       });
     } else {
       setSubmitting(true);
       setSubmitError(null);
-      result = await payCreditCardBillAction(
-        cardId,
-        billMonth,
-        parseAmountInput(amount),
-      );
+      result = await payCreditCardBillAction(cardId, billMonth, parsedAmount);
     }
 
     setSubmitting(false);
@@ -220,91 +245,82 @@ export function AddCardExpenseDialog({
           ]}
         />
 
-        <div className="flex flex-col gap-3.5">
-          {mode === "expense" && (
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="card-description"
-                className="font-sans text-sm text-muted-foreground uppercase"
-              >
-                {tc("description")}
-              </label>
-              <Input
-                id="card-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={tc("descriptionPlaceholder")}
-              />
-              {errors.description && (
-                <p className="text-xs text-destructive">{errors.description}</p>
-              )}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="card-amount"
-                className="font-sans text-sm text-muted-foreground uppercase"
-              >
-                {tc("amount")}
-              </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  {currencySymbol(currency)}
-                </span>
-                <Input
-                  id="card-amount"
-                  inputMode="decimal"
-                  className="pl-6"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                />
+        {mode === "expense" ? (
+          <ExpenseFormFields
+            idPrefix="card-expense"
+            showPaymentMethod={false}
+            paymentMethod="credit"
+            onPaymentMethodChange={() => {}}
+            timing={timing}
+            onTimingChange={setTiming}
+            frequency={frequency}
+            onFrequencyChange={setFrequency}
+            description={description}
+            onDescriptionChange={setDescription}
+            amount={amount}
+            onAmountChange={setAmount}
+            installmentCount={installmentCount}
+            onInstallmentCountChange={setInstallmentCount}
+            perInstallment={perInstallment}
+            currency={currency}
+            date={date}
+            onDateChange={setDate}
+            category={category}
+            onCategoryChange={setCategory}
+            categories={categories}
+            onAddCategory={handleAddCategory}
+            onEditCategory={handleEditCategory}
+            onDeleteCategory={handleDeleteCategory}
+            errors={errors}
+          />
+        ) : (
+          <div className="flex flex-col gap-3.5">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="card-pay-amount"
+                  className="font-sans text-sm text-muted-foreground uppercase"
+                >
+                  {tc("amount")}
+                </label>
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    {currencySymbol(currency)}
+                  </span>
+                  <Input
+                    id="card-pay-amount"
+                    inputMode="decimal"
+                    className="pl-6"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
+                {errors.amount && (
+                  <p className="text-xs text-destructive">{errors.amount}</p>
+                )}
               </div>
-              {errors.amount && (
-                <p className="text-xs text-destructive">{errors.amount}</p>
-              )}
-            </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="card-date"
-                className="font-sans text-sm text-muted-foreground uppercase"
-              >
-                {tc("date")}
-              </label>
-              <Input
-                id="card-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-              {errors.date && (
-                <p className="text-xs text-destructive">{errors.date}</p>
-              )}
+              <div className="flex flex-col gap-1.5">
+                <label
+                  htmlFor="card-pay-date"
+                  className="font-sans text-sm text-muted-foreground uppercase"
+                >
+                  {tc("date")}
+                </label>
+                <Input
+                  id="card-pay-date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
+                {errors.date && (
+                  <p className="text-xs text-destructive">{errors.date}</p>
+                )}
+              </div>
             </div>
           </div>
-
-          {mode === "expense" && (
-            <div className="flex flex-col gap-1.5">
-              <span className="font-sans text-sm text-muted-foreground uppercase">
-                {tc("category")}
-              </span>
-              <CategorySelect
-                value={category}
-                onChange={setCategory}
-                categories={categories}
-                onAdd={handleAddCategory}
-                onEdit={handleEditCategory}
-                onDelete={handleDeleteCategory}
-              />
-              {errors.category && (
-                <p className="text-xs text-destructive">{errors.category}</p>
-              )}
-            </div>
-          )}
-        </div>
+        )}
 
         {submitError && (
           <p className="text-xs text-destructive">{submitError}</p>

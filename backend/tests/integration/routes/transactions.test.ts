@@ -885,6 +885,32 @@ describe("transactions routes", () => {
       expect(body.items[1].id).toBe(inMonth1.id);
     });
 
+    it("excludes credit card purchases — those only show up on the card's own page", async () => {
+      const user = await createTestUser();
+      const card = await createTestCreditCard(user.id);
+      const accountExpense = await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 5)),
+        paymentMethod: "DEBIT_PIX",
+      });
+      await createTestTransaction(user.id, {
+        date: new Date(Date.UTC(2026, 2, 10)),
+        paymentMethod: "CREDIT",
+        creditCardId: card.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/v1/transactions?month=2026-03",
+        headers: await authHeader(user.id),
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.items).toHaveLength(1);
+      expect(body.total).toBe(1);
+      expect(body.items[0].id).toBe(accountExpense.id);
+    });
+
     it("paginates with page/pageSize", async () => {
       const user = await createTestUser();
       const older = await createTestTransaction(user.id, {

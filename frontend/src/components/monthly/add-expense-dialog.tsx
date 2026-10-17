@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, CreditCard, Wallet } from "lucide-react";
+import { Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -14,46 +14,30 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { SegmentedControl } from "@/components/ui/segmented-control";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
 import {
   createCategoryAction,
   deleteCategoryAction,
   listCategoriesAction,
   updateCategoryAction,
 } from "@/lib/category-actions";
-import { fmtCurrency, todayISO } from "@/lib/format";
+import { todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
-import { cn, parseAmountInput } from "@/lib/utils";
-import { CategorySelect } from "./category-select";
-
-type PaymentMethod = "debit_pix" | "credit";
-type Timing = "one_time" | "installments" | "recurring";
-type Frequency = "monthly" | "annual";
-
-interface FormErrors {
-  description?: string;
-  amount?: string;
-  installments?: string;
-  date?: string;
-  category?: string;
-}
+import { parseAmountInput } from "@/lib/utils";
+import type {
+  ExpenseFormErrors,
+  Frequency,
+  PaymentMethod,
+  Timing,
+} from "./expense-form-fields";
+import { ExpenseFormFields } from "./expense-form-fields";
 
 /**
  * "+ ADD EXPENSE" dialog triggered from `SpendingCard`
  *
- * @state paymentMethod - debit/pix vs credit. UI-only right now — doesn't
- *   change validation or the submit stub, since there's no backend yet to
- *   route the expense to a card vs. account balance.
+ * @state paymentMethod - debit/pix vs credit.
  * @state timing - which field set renders (one-time / installments /
- *   recurring); see the three conditional blocks below.
+ *   recurring); see `ExpenseFormFields`.
  * @state frequency - monthly/annual, only relevant (and only rendered) when `timing === "recurring"`.
  * @state installmentCount - only used/validated when `timing === "installments"`; must be an integer ≥ 2.
  * @state customCategories/keepAdding/errors/justAdded - same as `AddIncomeDialog`.
@@ -78,7 +62,7 @@ export function AddExpenseDialog() {
   const [categories, setCategories] = useState<Category[]>([]);
 
   const [keepAdding, setKeepAdding] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<ExpenseFormErrors>({});
   const [justAdded, setJustAdded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -152,7 +136,7 @@ export function AddExpenseDialog() {
   }
 
   function validate(): boolean {
-    const nextErrors: FormErrors = {};
+    const nextErrors: ExpenseFormErrors = {};
     if (!description.trim())
       nextErrors.description = t("dialogs.common.errorRequired");
     if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -217,106 +201,6 @@ export function AddExpenseDialog() {
     resetForm();
   }
 
-  const descriptionField = (
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor="expense-description"
-        className="font-sans text-sm text-muted-foreground uppercase"
-      >
-        {t("dialogs.common.description")}
-      </label>
-      <Input
-        id="expense-description"
-        ref={descriptionRef}
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder={t("dialogs.common.descriptionPlaceholder")}
-      />
-      {errors.description && (
-        <p className="text-xs text-destructive">{errors.description}</p>
-      )}
-    </div>
-  );
-
-  const amountField = (
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor="expense-amount"
-        className="font-sans text-sm text-muted-foreground uppercase"
-      >
-        {t("dialogs.common.amount")}
-      </label>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-          $
-        </span>
-        <Input
-          id="expense-amount"
-          inputMode="decimal"
-          className="pl-6"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          placeholder="0.00"
-        />
-      </div>
-      {errors.amount && (
-        <p className="text-xs text-destructive">{errors.amount}</p>
-      )}
-    </div>
-  );
-
-  const dateField = (
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor="expense-date"
-        className="font-sans text-sm text-muted-foreground uppercase"
-      >
-        {t("dialogs.common.date")}
-      </label>
-      <Input
-        id="expense-date"
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-      />
-      {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
-    </div>
-  );
-
-  const paymentMethods = [
-    {
-      value: "debit_pix" as const,
-      icon: Wallet,
-      label: t("dialogs.expense.paymentDebitPix"),
-      description: t("dialogs.expense.paymentDebitPixDescription"),
-    },
-    {
-      value: "credit" as const,
-      icon: CreditCard,
-      label: t("dialogs.expense.paymentCredit"),
-      description: t("dialogs.expense.paymentCreditDescription"),
-    },
-  ];
-
-  const categoryField = (
-    <div className="flex flex-col gap-1.5">
-      <span className="font-sans text-sm text-muted-foreground uppercase">
-        {t("dialogs.common.category")}
-      </span>
-      <CategorySelect
-        value={category}
-        onChange={setCategory}
-        categories={categories}
-        onAdd={handleAddCategory}
-        onEdit={handleEditCategory}
-        onDelete={handleDeleteCategory}
-      />
-      {errors.category && (
-        <p className="text-xs text-destructive">{errors.category}</p>
-      )}
-    </div>
-  );
-
   return (
     <Dialog
       open={open}
@@ -331,181 +215,33 @@ export function AddExpenseDialog() {
       <DialogContent>
         <DialogTitle>{t("dialogs.expense.title")}</DialogTitle>
 
-        <div className="flex flex-col gap-3.5">
-          <div className="grid grid-cols-2 gap-3">
-            {paymentMethods.map((method) => {
-              const active = paymentMethod === method.value;
-              const Icon = method.icon;
-              return (
-                <button
-                  key={method.value}
-                  type="button"
-                  onClick={() => setPaymentMethod(method.value)}
-                  className={cn(
-                    "flex cursor-pointer flex-col items-start gap-1.5 rounded-lg border p-3 text-left transition-colors",
-                    active
-                      ? "border-highlight bg-highlight/10"
-                      : "border-border hover:border-foreground/30",
-                  )}
-                >
-                  <Icon
-                    size={18}
-                    strokeWidth={1.5}
-                    className={
-                      active ? "text-highlight" : "text-muted-foreground"
-                    }
-                  />
-                  <span
-                    className={cn(
-                      "font-karantina text-2xl tracking-wide uppercase",
-                      active ? "text-foreground" : "text-muted-foreground",
-                    )}
-                  >
-                    {method.label}
-                  </span>
-                  <span className="font-sans text-xs text-muted-foreground">
-                    {method.description}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <SegmentedControl
-            value={timing}
-            onChange={setTiming}
-            options={[
-              { value: "one_time", label: t("dialogs.expense.timingOneTime") },
-              {
-                value: "installments",
-                label: t("dialogs.expense.timingInstallments"),
-              },
-              {
-                value: "recurring",
-                label: t("dialogs.expense.timingRecurring"),
-              },
-            ]}
-          />
-
-          {timing === "one_time" && (
-            <>
-              {descriptionField}
-              <div className="grid grid-cols-2 gap-3">
-                {amountField}
-                {dateField}
-              </div>
-              {categoryField}
-            </>
-          )}
-
-          {timing === "installments" && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="expense-total-amount"
-                    className="font-sans text-sm text-muted-foreground uppercase"
-                  >
-                    {t("dialogs.expense.totalAmount")}
-                  </label>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                      $
-                    </span>
-                    <Input
-                      id="expense-total-amount"
-                      inputMode="decimal"
-                      className="pl-6"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  {errors.amount && (
-                    <p className="text-xs text-destructive">{errors.amount}</p>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="expense-installments"
-                    className="font-sans text-sm text-muted-foreground uppercase"
-                  >
-                    {t("dialogs.expense.installments")}
-                  </label>
-                  <Input
-                    id="expense-installments"
-                    type="number"
-                    min={2}
-                    value={installmentCount}
-                    onChange={(e) => setInstallmentCount(e.target.value)}
-                  />
-                  {errors.installments && (
-                    <p className="text-xs text-destructive">
-                      {errors.installments}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {perInstallment !== null && (
-                <p className="-mt-2 font-sans text-sm text-muted-foreground">
-                  ≈ {fmtCurrency(perInstallment, currency)}{" "}
-                  {t("dialogs.expense.perMonth")}
-                </p>
-              )}
-
-              {descriptionField}
-              <div className="grid grid-cols-2 gap-3">
-                {dateField}
-                {categoryField}
-              </div>
-            </>
-          )}
-
-          {timing === "recurring" && (
-            <>
-              <div className="flex flex-col gap-1.5">
-                <label
-                  htmlFor="expense-frequency"
-                  className="font-sans text-sm text-muted-foreground uppercase"
-                >
-                  {t("dialogs.expense.frequency")}
-                </label>
-                <Select
-                  value={frequency}
-                  onValueChange={(v) => setFrequency(v as Frequency)}
-                >
-                  <SelectTrigger id="expense-frequency">
-                    <span className="font-karantina text-2xl tracking-wide uppercase">
-                      {frequency === "monthly"
-                        ? t("dialogs.expense.frequencyMonthly")
-                        : t("dialogs.expense.frequencyAnnual")}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">
-                      <span className="font-karantina text-2xl tracking-wide uppercase">
-                        {t("dialogs.expense.frequencyMonthly")}
-                      </span>
-                    </SelectItem>
-                    <SelectItem value="annual">
-                      <span className="font-karantina text-2xl tracking-wide uppercase">
-                        {t("dialogs.expense.frequencyAnnual")}
-                      </span>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {descriptionField}
-              <div className="grid grid-cols-2 gap-3">
-                {amountField}
-                {dateField}
-              </div>
-              {categoryField}
-            </>
-          )}
-        </div>
+        <ExpenseFormFields
+          idPrefix="expense"
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
+          timing={timing}
+          onTimingChange={setTiming}
+          frequency={frequency}
+          onFrequencyChange={setFrequency}
+          description={description}
+          onDescriptionChange={setDescription}
+          descriptionRef={descriptionRef}
+          amount={amount}
+          onAmountChange={setAmount}
+          installmentCount={installmentCount}
+          onInstallmentCountChange={setInstallmentCount}
+          perInstallment={perInstallment}
+          currency={currency}
+          date={date}
+          onDateChange={setDate}
+          category={category}
+          onCategoryChange={setCategory}
+          categories={categories}
+          onAddCategory={handleAddCategory}
+          onEditCategory={handleEditCategory}
+          onDeleteCategory={handleDeleteCategory}
+          errors={errors}
+        />
 
         {justAdded && (
           <p className="flex items-center gap-1.5 font-sans text-sm text-highlight">
