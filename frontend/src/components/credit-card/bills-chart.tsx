@@ -26,10 +26,14 @@ function monthLabel(month: string, locale: string): string {
     .toUpperCase();
 }
 
-/** bar color: full highlight for the selected month, dimmed highlight for other current/future bills, dimmed gray for paid (past) ones */
+/** bar color: full highlight for the selected month, dimmed highlight for other unpaid bills (current/overdue/future), dimmed gray for paid (past) ones */
 function barFill(bill: CreditCardBill, selectedMonth: string): string {
   if (bill.month === selectedMonth) return "var(--highlight)";
-  if (bill.status === "current" || bill.status === "future") {
+  if (
+    bill.status === "current" ||
+    bill.status === "overdue" ||
+    bill.status === "future"
+  ) {
     return "color-mix(in oklch, var(--highlight) 28%, transparent)";
   }
   return "color-mix(in oklch, var(--muted-foreground) 35%, transparent)";
