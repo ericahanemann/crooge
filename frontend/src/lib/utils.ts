@@ -12,6 +12,11 @@ export function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+/** Treats "," and "." as equivalent decimal separators — pt-BR users type amounts like "14,50", everything downstream expects "14.50". */
+export function parseAmountInput(value: string): number {
+  return Number(value.trim().replace(",", "."));
+}
+
 /** Client-only (`document.cookie`) — returns `null` during SSR/on the server. */
 export function readCookie(name: string): string | null {
   if (typeof document === "undefined") return null;

@@ -23,7 +23,7 @@ export default function RootNotFoundPage() {
       actions={
         <Link
           href="/"
-          className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] flex items-center justify-center gap-2"
+          className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 flex items-center justify-center gap-2"
         >
           <Home size={18} strokeWidth={1.5} />
           GO TO DASHBOARD

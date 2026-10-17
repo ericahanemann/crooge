@@ -7,6 +7,30 @@ export interface BillingCycle {
 }
 
 /**
+ * Whether `dueDay` falls in the same calendar month as `closingDay`, or the
+ * month after. Inferred from the day numbers alone (no separate field):
+ * `dueDay > closingDay` means the due date is later in the same month
+ * (e.g. closes the 4th, due the 11th); otherwise it's the analogous day of
+ * the next month (e.g. closes the 20th, due the 10th). This covers the
+ * common real-world patterns; it would only misfire for a due date 2+
+ * months after closing, which issuers don't do in practice.
+ */
+function dueDateForClosing(
+  closingDate: Date,
+  closingDay: number,
+  dueDay: number,
+): Date {
+  const sameMonth = dueDay > closingDay;
+  let dueMonthIndex = closingDate.getUTCMonth() + (sameMonth ? 0 : 1);
+  let dueYear = closingDate.getUTCFullYear();
+  if (dueMonthIndex > 11) {
+    dueMonthIndex = 0;
+    dueYear += 1;
+  }
+  return new Date(Date.UTC(dueYear, dueMonthIndex, dueDay));
+}
+
+/**
  * A purchase made on or before `closingDay` of a month belongs to the cycle
  * that closes that month; made after it, it rolls into next month's cycle.
  * `cycleMonth` is keyed by the closing month (this becomes the API's
@@ -33,13 +57,7 @@ export function getCycleForDate(
     Date.UTC(cycleYear, cycleMonthIndex, closingDay),
   );
 
-  let dueMonthIndex = cycleMonthIndex + 1;
-  let dueYear = cycleYear;
-  if (dueMonthIndex > 11) {
-    dueMonthIndex = 0;
-    dueYear += 1;
-  }
-  const dueDate = new Date(Date.UTC(dueYear, dueMonthIndex, dueDay));
+  const dueDate = dueDateForClosing(closingDate, closingDay, dueDay);
 
   const cycleMonth = `${cycleYear}-${String(cycleMonthIndex + 1).padStart(2, "0")}`;
 
@@ -64,6 +82,17 @@ export function closingDateForCycleMonth(
 ): Date {
   const [year, month] = cycleMonth.split("-").map(Number) as [number, number];
   return new Date(Date.UTC(year, month - 1, closingDay));
+}
+
+/** Re-derives `closingDate`/`dueDate` for an already-keyed cycle under a (possibly just-edited) closing/due day — used to refresh unpaid `CreditCardBill` rows after a schedule edit, without re-keying which transactions belong to which cycle. */
+export function datesForCycleMonth(
+  closingDay: number,
+  dueDay: number,
+  cycleMonth: string,
+): { closingDate: Date; dueDate: Date } {
+  const closingDate = closingDateForCycleMonth(closingDay, cycleMonth);
+  const dueDate = dueDateForClosing(closingDate, closingDay, dueDay);
+  return { closingDate, dueDate };
 }
 
 /** Upserts the `CreditCardBill` row for whichever cycle `date` falls into, so it always exists to hold `paidAt`/`paidAmount`. */

@@ -31,7 +31,7 @@ import {
 import { fmtCurrency, todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, parseAmountInput } from "@/lib/utils";
 import { CategorySelect } from "./category-select";
 
 type PaymentMethod = "debit_pix" | "credit";
@@ -125,7 +125,7 @@ export function AddExpenseDialog() {
     setCategory((prev) => (prev === id ? null : prev));
   }
 
-  const parsedAmount = Number(amount);
+  const parsedAmount = parseAmountInput(amount);
   const parsedInstallments = Number(installmentCount);
   const perInstallment =
     timing === "installments" &&

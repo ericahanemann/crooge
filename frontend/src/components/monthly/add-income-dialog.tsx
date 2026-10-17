@@ -23,6 +23,7 @@ import {
 import { todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
+import { parseAmountInput } from "@/lib/utils";
 import { CategorySelect } from "./category-select";
 
 interface FormErrors {
@@ -115,7 +116,7 @@ export function AddIncomeDialog() {
     const nextErrors: FormErrors = {};
     if (!description.trim())
       nextErrors.description = t("dialogs.common.errorRequired");
-    const parsedAmount = Number(amount);
+    const parsedAmount = parseAmountInput(amount);
     if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
       nextErrors.amount = t("dialogs.common.errorPositive");
     }
@@ -142,7 +143,7 @@ export function AddIncomeDialog() {
     const result = await createTransactionAction({
       type: "income",
       description,
-      amount: Number(amount),
+      amount: parseAmountInput(amount),
       date,
       category,
     });
@@ -177,7 +178,7 @@ export function AddIncomeDialog() {
         if (!next) resetForm();
       }}
     >
-      <DialogTrigger className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] cursor-pointer">
+      <DialogTrigger className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 cursor-pointer">
         {t("monthly.addIncome")}
       </DialogTrigger>
       <DialogContent>

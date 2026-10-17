@@ -155,7 +155,7 @@ function DialogPrimaryButton({
       type="button"
       data-slot="dialog-primary-button"
       className={cn(
-        "cursor-pointer rounded-lg bg-primary px-5 py-2 font-karantina text-2xl tracking-wide text-primary-foreground uppercase transition-[filter] hover:brightness-110 disabled:pointer-events-none disabled:opacity-50",
+        "cursor-pointer rounded-lg bg-primary px-5 py-2 font-karantina text-2xl tracking-wide text-primary-foreground uppercase outline-none transition-[filter] hover:brightness-110 focus-visible:ring-3 focus-visible:ring-highlight/50 disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
       {...props}

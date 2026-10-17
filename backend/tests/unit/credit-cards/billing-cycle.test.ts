@@ -17,9 +17,21 @@ describe("getCycleForDate", () => {
     expect(result.cycleMonth).toBe("2026-01");
   });
 
-  it("rolls the due date's own month and year over when the cycle lands in December", () => {
-    const result = getCycleForDate(10, 20, new Date(Date.UTC(2025, 10, 15)));
-    expect(result.cycleMonth).toBe("2025-12");
+  it("puts the due date in the same month as closing when dueDay is after closingDay", () => {
+    const result = getCycleForDate(10, 20, new Date(Date.UTC(2025, 11, 15)));
+    expect(result.cycleMonth).toBe("2026-01");
     expect(result.dueDate).toEqual(new Date(Date.UTC(2026, 0, 20)));
+  });
+
+  it("puts the due date in the month after closing when dueDay is on or before closingDay", () => {
+    const result = getCycleForDate(20, 10, new Date(Date.UTC(2025, 11, 15)));
+    expect(result.cycleMonth).toBe("2025-12");
+    expect(result.dueDate).toEqual(new Date(Date.UTC(2026, 0, 10)));
+  });
+
+  it("rolls the due date's own year over when the next-month due date lands in January", () => {
+    const result = getCycleForDate(20, 10, new Date(Date.UTC(2025, 11, 5)));
+    expect(result.cycleMonth).toBe("2025-12");
+    expect(result.dueDate).toEqual(new Date(Date.UTC(2026, 0, 10)));
   });
 });

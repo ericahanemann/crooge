@@ -34,7 +34,7 @@ export default function ErrorPage({
           <button
             type="button"
             onClick={reset}
-            className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] cursor-pointer"
+            className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 cursor-pointer"
           >
             {t("tryAgain")}
           </button>
