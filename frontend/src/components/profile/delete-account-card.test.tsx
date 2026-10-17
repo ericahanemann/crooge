@@ -63,6 +63,13 @@ describe("DeleteAccountCard", () => {
       currentUser = passwordUser;
     });
 
+    it("right-aligns the delete button, matching the other profile cards' save-button convention", () => {
+      render(<DeleteAccountCard />);
+
+      const button = screen.getByRole("button", { name: "DELETE ACCOUNT" });
+      expect(button.parentElement).toHaveClass("justify-end");
+    });
+
     it("shows a current-password field in the confirm dialog", async () => {
       const user = userEvent.setup();
       render(<DeleteAccountCard />);

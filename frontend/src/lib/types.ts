@@ -36,7 +36,7 @@ export interface CreditCardSummary {
   currentMonth: string;
 }
 
-export type CreditCardBillStatus = "paid" | "current" | "future";
+export type CreditCardBillStatus = "paid" | "overdue" | "current" | "future";
 
 export interface CreditCardBill {
   month: string;

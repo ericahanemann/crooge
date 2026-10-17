@@ -2,8 +2,8 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
-import { updateProfileAction } from "@/lib/auth-actions";
 
 /**
  * sun/moon icon button that flips light/dark mode
@@ -18,6 +18,7 @@ import { updateProfileAction } from "@/lib/auth-actions";
  * server/client mismatch
  */
 export function ThemeToggle() {
+  const { updateProfile } = useAuth();
   const [isDark, setIsDark] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -33,8 +34,11 @@ export function ThemeToggle() {
     document.cookie = `theme=${theme};path=/;max-age=31536000;SameSite=Lax`;
     // Account-scoped sync, best-effort — the toggle above is instant and
     // never waits on this; signed-out visitors just update the cookie, same
-    // as before (the action no-ops without a session, see `updateProfileAction`).
-    updateProfileAction({ theme }).catch(() => {});
+    // as before (`updateProfile` no-ops without a session). Routed through
+    // `useAuth`'s `updateProfile` (not the raw action) so it also updates
+    // `AuthContext.user`, keeping `PreferencesCard`'s theme control in sync
+    // instead of only the DB/cookie.
+    updateProfile({ theme }).catch(() => {});
   }
 
   return (

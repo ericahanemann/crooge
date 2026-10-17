@@ -36,7 +36,12 @@ z.globalRegistry.add(creditCardSummaryResponseSchema, {
   id: "CreditCardSummary",
 });
 
-export const creditCardBillStatusSchema = z.enum(["paid", "current", "future"]);
+export const creditCardBillStatusSchema = z.enum([
+  "paid",
+  "overdue",
+  "current",
+  "future",
+]);
 
 /**
  * A billing cycle. `amount` is always computed from that cycle's

@@ -38,7 +38,7 @@ export function DeleteAccountCard() {
       <p className="font-sans text-sm text-muted-foreground">
         {t("description")}
       </p>
-      <div>
+      <div className="flex justify-end">
         <button
           type="button"
           onClick={() => setOpen(true)}

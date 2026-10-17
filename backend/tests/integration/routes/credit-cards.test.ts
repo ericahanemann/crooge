@@ -379,6 +379,38 @@ describe("credit cards routes", () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it("still reports today's live cycle as currentBill even with an old unpaid bill sitting around", async () => {
+      const user = await createTestUser();
+      const card = await createTestCreditCard(user.id, {
+        closingDay: 10,
+        dueDay: 20,
+      });
+      const current = getCycleForDate(card.closingDay, card.dueDay, new Date());
+
+      // a bill from 2 cycles ago that was never paid off
+      await prisma.creditCardBill.create({
+        data: {
+          creditCardId: card.id,
+          cycleMonth: nextCycleMonth(current.cycleMonth, -2),
+          closingDate: new Date(),
+          dueDate: new Date(),
+          paidAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/v1/credit-cards/${card.id}`,
+        headers: await authHeader(user.id),
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().currentBill).toMatchObject({
+        month: current.cycleMonth,
+        status: "current",
+      });
+    });
+
     it("is reachable for an archived card", async () => {
       const user = await createTestUser();
       const card = await createTestCreditCard(user.id, {
@@ -529,7 +561,7 @@ describe("credit cards routes", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("reflects paid/current/future status per bill", async () => {
+    it("reflects paid/overdue/current/future status per bill", async () => {
       const user = await createTestUser();
       const card = await createTestCreditCard(user.id, {
         closingDay: 10,
@@ -556,6 +588,15 @@ describe("credit cards routes", () => {
           paidAmount: 0,
         },
       });
+      await prisma.creditCardBill.create({
+        data: {
+          creditCardId: card.id,
+          cycleMonth: nextCycleMonth(current.cycleMonth, -1),
+          closingDate: new Date(),
+          dueDate: new Date(),
+          paidAt: null,
+        },
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -569,6 +610,7 @@ describe("credit cards routes", () => {
         .items.map((item: { status: string }) => item.status);
       expect(statuses).toContain("future");
       expect(statuses).toContain("paid");
+      expect(statuses).toContain("overdue");
     });
   });
 

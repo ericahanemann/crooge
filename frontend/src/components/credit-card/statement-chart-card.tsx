@@ -12,7 +12,7 @@ interface StatementChartCardProps {
 }
 
 /**
- * bills summary page's main tile: month header + action button (varies by the selected bill's status — "add transaction" for the current bill, "antecipar" for a future one, neither for a paid one) + `BillsChart`
+ * bills summary page's main tile: month header + action button (varies by the selected bill's status — "add transaction" for the current or an overdue bill, "antecipar" for a future one, neither for a paid one) + `BillsChart`
  *
  * `selectedMonth` drives both the header label and which action shows; falls back to the current bill if it doesn't match any bill (e.g. a stale/invalid `?month=` param)
  */
@@ -46,7 +46,8 @@ export async function StatementChartCard({
         <h2 className="font-karantina text-2xl tracking-wide text-foreground uppercase">
           {formattedMonth}
         </h2>
-        {selectedBill.status === "current" && (
+        {(selectedBill.status === "current" ||
+          selectedBill.status === "overdue") && (
           <AddCardExpenseDialog
             cardId={cardId}
             billMonth={selectedBill.month}

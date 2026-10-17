@@ -30,13 +30,20 @@ export async function getBillAmount(
   return Number(aggregate._sum.amount ?? 0);
 }
 
-/** Bills that closed before the current cycle but were never paid collapse into "current" — the frontend only models paid/current/future. */
+/**
+ * "current" means exactly the cycle open today — never more than one bill
+ * at a time. An unpaid bill that closed before today's cycle is "overdue"
+ * rather than "current": conflating the two let a stale unpaid bill from
+ * months ago outrank the real current cycle wherever callers do
+ * `bills.find((b) => b.status === "current")`.
+ */
 export function billStatus(
   bill: { paidAt: Date | null; cycleMonth: string },
   currentCycleMonth: string,
-): "paid" | "current" | "future" {
+): "paid" | "overdue" | "current" | "future" {
   if (bill.paidAt) return "paid";
-  return bill.cycleMonth > currentCycleMonth ? "future" : "current";
+  if (bill.cycleMonth === currentCycleMonth) return "current";
+  return bill.cycleMonth > currentCycleMonth ? "future" : "overdue";
 }
 
 /** `limit` minus whatever's outstanding on the currently open cycle (0 if it's already been paid off). See `getBillAmount` re: the optional `client`. */
