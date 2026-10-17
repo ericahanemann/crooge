@@ -26,7 +26,7 @@ import { payCreditCardBillAction } from "@/lib/credit-card-actions";
 import { currencySymbol, todayISO } from "@/lib/format";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, parseAmountInput } from "@/lib/utils";
 
 type Mode = "expense" | "pay";
 
@@ -131,7 +131,7 @@ export function AddCardExpenseDialog({
 
   function validate(): boolean {
     const next: FormErrors = {};
-    const parsed = Number(amount);
+    const parsed = parseAmountInput(amount);
     if (mode === "expense" && !description.trim())
       next.description = tc("errorRequired");
     if (!amount || Number.isNaN(parsed) || parsed <= 0)
@@ -155,7 +155,7 @@ export function AddCardExpenseDialog({
         type: "expense",
         description,
         category,
-        amount: Number(amount),
+        amount: parseAmountInput(amount),
         date,
         paymentMethod: "credit",
         creditCardId: cardId,
@@ -164,7 +164,11 @@ export function AddCardExpenseDialog({
     } else {
       setSubmitting(true);
       setSubmitError(null);
-      result = await payCreditCardBillAction(cardId, billMonth, Number(amount));
+      result = await payCreditCardBillAction(
+        cardId,
+        billMonth,
+        parseAmountInput(amount),
+      );
     }
 
     setSubmitting(false);

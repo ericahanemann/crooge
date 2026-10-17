@@ -28,7 +28,7 @@ import type {
   TransactionPaymentMethod,
   TransactionTiming,
 } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, parseAmountInput } from "@/lib/utils";
 
 export interface EditableTransaction {
   id: string;
@@ -148,7 +148,7 @@ export function EditTransactionDialog({
     if (!description.trim())
       nextErrors.description = t("dialogs.common.errorRequired");
     if (!isSeries) {
-      const parsedAmount = Number(amount);
+      const parsedAmount = parseAmountInput(amount);
       if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
         nextErrors.amount = t("dialogs.common.errorPositive");
       }
@@ -167,7 +167,7 @@ export function EditTransactionDialog({
 
     const input: UpdateTransactionInput = { description, category };
     if (!isSeries) {
-      input.amount = Number(amount);
+      input.amount = parseAmountInput(amount);
       input.date = date;
       if (isExpense) {
         input.paymentMethod = paymentMethod;
