@@ -11,13 +11,18 @@ import {
 import { serializeTransaction } from "../serialize.ts";
 
 /**
- * Lists a page of the caller's transactions (account + credit card) for one
- * calendar month, newest first. `search`/`category` filter within that same
- * month — scoped the same way the UI's search box already was, just moved
- * server-side so it no longer requires shipping the whole month to the
- * browser. `categories` in the response ignores the current filter (always
- * every category used this month) so the filter dropdown doesn't shrink as
- * you narrow the list.
+ * Lists a page of the caller's account transactions for one calendar month,
+ * newest first. Excludes credit card purchases (`creditCardId` set) — same
+ * convention as `GET /transactions/summary`: a card purchase hits the
+ * card's bill, not the account balance, until the bill is paid, at which
+ * point it materializes into its own non-card `Transaction` row and shows
+ * up here like any other expense. Card purchases themselves are only ever
+ * shown on the credit card's own page (`GET /credit-cards/:id/transactions`).
+ * `search`/`category` filter within that same month — scoped the same way
+ * the UI's search box already was, just moved server-side so it no longer
+ * requires shipping the whole month to the browser. `categories` in the
+ * response ignores the current filter (always every category used this
+ * month) so the filter dropdown doesn't shrink as you narrow the list.
  */
 export async function listTransactions(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
@@ -40,7 +45,11 @@ export async function listTransactions(app: FastifyInstance) {
       await materializeOverdueBills(userId);
       await materializeRecurringOccurrences(userId, start, end);
 
-      const monthRangeWhere = { userId, date: { gte: start, lt: end } };
+      const monthRangeWhere = {
+        userId,
+        creditCardId: null,
+        date: { gte: start, lt: end },
+      };
       const where = {
         ...monthRangeWhere,
         ...(category ? { category } : {}),
