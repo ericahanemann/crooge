@@ -161,7 +161,7 @@ export function AddCreditCardDialog({
           <Pencil size={18} strokeWidth={1.5} />
         </DialogTrigger>
       ) : variant === "primary" ? (
-        <DialogTrigger className="py-3 px-6 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] cursor-pointer">
+        <DialogTrigger className="py-3 px-6 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 cursor-pointer">
           {t("addCard")}
         </DialogTrigger>
       ) : (

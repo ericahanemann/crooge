@@ -301,7 +301,7 @@ export function ProfileCard() {
         <button
           type="submit"
           disabled={saving || !dirty}
-          className="px-5 py-2 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
+          className="px-5 py-2 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] outline-none focus-visible:ring-3 focus-visible:ring-highlight/50 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:brightness-100"
         >
           {saving ? t("saving") : t("save")}
         </button>

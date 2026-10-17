@@ -216,8 +216,9 @@ Hover on both solid variants uses `brightness` (not `opacity`) — buttons shoul
 
 **Primary** — white bg (`bg-primary`/`text-primary-foreground` already resolve to white-on-dark in dark mode, dark-on-white in light mode). Used for the card that should feel like the "main" action on the page (e.g. Balance card's "+ ADD INCOME"):
 ```
-w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter]
+w-full py-3 rounded-lg bg-primary text-primary-foreground font-karantina text-2xl tracking-wide uppercase hover:brightness-110 transition-[filter] outline-none focus-visible:ring-3 focus-visible:ring-highlight/50
 ```
+The focus ring uses `--highlight`, not the shadcn default `--ring` token — `--ring` is grayscale (chroma 0) and nearly invisible against this button's own white/near-white background. Every raw-string Primary button (there's no shared component for this style — it's copy-pasted per call site, same as the rest of this section) needs the same `outline-none focus-visible:ring-3 focus-visible:ring-highlight/50` suffix; `Button`'s `default` variant and `DialogPrimaryButton` get the equivalent override in their own component files instead, since those two *do* go through shared components.
 
 **Secondary** — same treatment as the sidebar's active nav link (`bg-muted text-foreground`), plus a border since it stands alone rather than inside a nav list. Theme-aware automatically (`--muted` swaps light/dark). Used for the card that should feel secondary (e.g. Spending card's "+ ADD EXPENSE"). Its bg is darker/more saturated than Primary's, so it needs a stronger brightness bump (`125` vs `110`) to read as "lighter" on hover:
 ```
