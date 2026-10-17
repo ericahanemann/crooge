@@ -6,6 +6,7 @@ import {
 } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { getAvailableCredit } from "../bill.ts";
+import { datesForCycleMonth } from "../billing-cycle.ts";
 import { creditCardSummaryResponseSchema } from "../schemas.ts";
 import { serializeCreditCardSummary } from "../serialize.ts";
 import {
@@ -14,10 +15,13 @@ import {
 } from "./create-credit-card.ts";
 
 /**
- * Updates a card's own fields (name/brand/limit/closing+due day). Existing
- * `CreditCardBill` rows aren't re-keyed if closing/due day change — a
- * schedule edit only affects cycles computed after the change, same
- * known-limit tradeoff as everywhere else the cycle math isn't backfilled.
+ * Updates a card's own fields (name/brand/limit/closing+due day). Unpaid
+ * `CreditCardBill` rows have their stored `closingDate`/`dueDate` refreshed
+ * to match the new schedule, so an already-displayed statement doesn't keep
+ * showing stale dates — but they keep their existing `cycleMonth` key (which
+ * transactions belong to which cycle isn't re-derived; only a known,
+ * accepted limitation, not part of this fix). Paid bills are left alone —
+ * they're historical record, not something an edit should rewrite.
  */
 export async function updateCreditCard(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().patch(
@@ -47,15 +51,34 @@ export async function updateCreditCard(app: FastifyInstance) {
         return reply.status(404).send({ message: "credit card not found" });
       }
 
-      const card = await prisma.creditCard.update({
-        where: { id },
-        data: {
-          name: body.name,
-          brand: BRAND_TO_DB[body.brand],
-          limit: body.limit,
-          closingDay: body.closingDay,
-          dueDay: body.dueDay,
-        },
+      const card = await prisma.$transaction(async (tx) => {
+        const updated = await tx.creditCard.update({
+          where: { id },
+          data: {
+            name: body.name,
+            brand: BRAND_TO_DB[body.brand],
+            limit: body.limit,
+            closingDay: body.closingDay,
+            dueDay: body.dueDay,
+          },
+        });
+
+        const unpaidBills = await tx.creditCardBill.findMany({
+          where: { creditCardId: id, paidAt: null },
+        });
+        for (const bill of unpaidBills) {
+          const { closingDate, dueDate } = datesForCycleMonth(
+            updated.closingDay,
+            updated.dueDay,
+            bill.cycleMonth,
+          );
+          await tx.creditCardBill.update({
+            where: { id: bill.id },
+            data: { closingDate, dueDate },
+          });
+        }
+
+        return updated;
       });
 
       const available = await getAvailableCredit(card);

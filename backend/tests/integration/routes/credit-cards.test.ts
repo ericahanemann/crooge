@@ -188,7 +188,7 @@ describe("credit cards routes", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("doesn't re-key existing bills when closingDay/dueDay change", async () => {
+    it("doesn't re-key existing bills when closingDay/dueDay change, but refreshes an unpaid bill's stored dates", async () => {
       const user = await createTestUser();
       const { card, bill } = await createTestCreditCardWithBill(user.id, {
         card: { closingDay: 10, dueDay: 20 },
@@ -208,11 +208,49 @@ describe("credit cards routes", () => {
       });
 
       expect(response.statusCode).toBe(200);
+      const updatedBill = await prisma.creditCardBill.findUniqueOrThrow({
+        where: { id: bill.id },
+      });
+      expect(updatedBill.cycleMonth).toBe(bill.cycleMonth);
+      const [year, month] = bill.cycleMonth.split("-").map(Number) as [
+        number,
+        number,
+      ];
+      expect(updatedBill.closingDate).toEqual(
+        new Date(Date.UTC(year, month - 1, 5)),
+      );
+      expect(updatedBill.dueDate).toEqual(
+        new Date(Date.UTC(year, month - 1, 15)),
+      );
+    });
+
+    it("leaves a paid bill's stored dates untouched when closingDay/dueDay change", async () => {
+      const user = await createTestUser();
+      const { card, bill } = await createTestCreditCardWithBill(user.id, {
+        card: { closingDay: 10, dueDay: 20 },
+        paidAt: new Date(),
+        paidAmount: 0,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/v1/credit-cards/${card.id}`,
+        headers: await authHeader(user.id),
+        payload: {
+          name: card.name,
+          brand: "visa",
+          limit: Number(card.limit),
+          closingDay: 5,
+          dueDay: 15,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
       const unchangedBill = await prisma.creditCardBill.findUniqueOrThrow({
         where: { id: bill.id },
       });
-      expect(unchangedBill.cycleMonth).toBe(bill.cycleMonth);
       expect(unchangedBill.closingDate).toEqual(bill.closingDate);
+      expect(unchangedBill.dueDate).toEqual(bill.dueDate);
     });
   });
 
