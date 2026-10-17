@@ -154,6 +154,82 @@ describe("AddCardExpenseDialog", () => {
     ).toBeInTheDocument();
   });
 
+  it("offers installments and recurring timing, same as the monthly Add Expense dialog", async () => {
+    await openDialog();
+
+    expect(
+      screen.getByRole("button", { name: "ONE-TIME" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "INSTALLMENTS" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "RECURRING" }),
+    ).toBeInTheDocument();
+  });
+
+  it("submits an installment expense with the fixed card id and no payment-method field shown", async () => {
+    const user = await openDialog();
+
+    expect(
+      screen.queryByRole("button", { name: /debit|pix/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "INSTALLMENTS" }));
+    await user.type(screen.getByLabelText("TOTAL AMOUNT"), "300");
+    const installmentsInput = screen.getByLabelText("INSTALLMENTS");
+    await user.clear(installmentsInput);
+    await user.type(installmentsInput, "3");
+    await user.type(screen.getByLabelText("NAME"), "Sofa");
+    await user.click(screen.getByRole("combobox"));
+    await user.click(await screen.findByText("Travel"));
+    await user.click(screen.getByRole("button", { name: "ADD" }));
+
+    expect(createTransactionAction).toHaveBeenCalledWith({
+      type: "expense",
+      description: "Sofa",
+      category: "cat-travel",
+      amount: 300,
+      date: todayISO(),
+      paymentMethod: "credit",
+      creditCardId: "card-1",
+      timing: "installments",
+      installments: 3,
+      frequency: undefined,
+    });
+  });
+
+  it("submits a recurring expense with the fixed card id", async () => {
+    const user = await openDialog();
+
+    await user.click(screen.getByRole("button", { name: "RECURRING" }));
+    await user.type(screen.getByLabelText("NAME"), "Gym");
+    await user.type(
+      screen.getByLabelText("AMOUNT", { selector: "input" }),
+      "100",
+    );
+    const combobox = screen
+      .getAllByRole("combobox")
+      .find((el) => el.id !== "card-expense-frequency");
+    if (!combobox) throw new Error("category combobox not found");
+    await user.click(combobox);
+    await user.click(await screen.findByText("Travel"));
+    await user.click(screen.getByRole("button", { name: "ADD" }));
+
+    expect(createTransactionAction).toHaveBeenCalledWith({
+      type: "expense",
+      description: "Gym",
+      category: "cat-travel",
+      amount: 100,
+      date: todayISO(),
+      paymentMethod: "credit",
+      creditCardId: "card-1",
+      timing: "recurring",
+      installments: undefined,
+      frequency: "monthly",
+    });
+  });
+
   it("falls through to the generic message on a pay-mode failure (no credit-limit mapping there)", async () => {
     vi.mocked(payCreditCardBillAction).mockResolvedValue({
       ok: false,
