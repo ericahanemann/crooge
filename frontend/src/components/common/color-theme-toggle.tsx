@@ -3,7 +3,7 @@
 import { Menu } from "@base-ui/react/menu";
 import { Palette } from "lucide-react";
 import { useEffect, useState } from "react";
-import { updateProfileAction } from "@/lib/auth-actions";
+import { useAuth } from "@/components/auth/auth-provider";
 import { COLOR_THEME_OPTIONS, type ColorThemeKey } from "@/lib/color-themes";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
  * mirrors it into state
  */
 export function ColorThemeToggle() {
+  const { updateProfile } = useAuth();
   const [colorTheme, setColorTheme] = useState<ColorThemeKey | null>(null);
 
   useEffect(() => {
@@ -33,8 +34,9 @@ export function ColorThemeToggle() {
     setColorTheme(key);
     // biome-ignore lint/suspicious/noDocumentCookie: cookie needed for SSR theme persistence
     document.cookie = `color-theme=${key};path=/;max-age=31536000;SameSite=Lax`;
-    // Account-scoped sync, best-effort — see the matching comment in `ThemeToggle`.
-    updateProfileAction({ colorTheme: key }).catch(() => {});
+    // Account-scoped sync, best-effort, routed through `useAuth`'s
+    // `updateProfile` — see the matching comment in `ThemeToggle`.
+    updateProfile({ colorTheme: key }).catch(() => {});
   }
 
   return (
