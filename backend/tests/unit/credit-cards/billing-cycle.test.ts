@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import { getCycleForDate } from "../../../src/modules/credit-cards/billing-cycle.ts";
 
 describe("getCycleForDate", () => {
-  it("stays in the current month's cycle when the day is on or before closingDay", () => {
+  it("stays in the current month's cycle when the day is before closingDay", () => {
     const result = getCycleForDate(10, 20, new Date(Date.UTC(2026, 2, 5)));
     expect(result.cycleMonth).toBe("2026-03");
+  });
+
+  it("rolls into next month's cycle when the day is on closingDay itself", () => {
+    const result = getCycleForDate(10, 20, new Date(Date.UTC(2026, 2, 10)));
+    expect(result.cycleMonth).toBe("2026-04");
   });
 
   it("rolls into next month's cycle when the day is after closingDay", () => {
