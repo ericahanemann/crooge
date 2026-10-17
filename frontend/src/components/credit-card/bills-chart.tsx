@@ -26,8 +26,8 @@ function monthLabel(month: string, locale: string): string {
     .toUpperCase();
 }
 
-/** bar color: full highlight for the selected month, dimmed highlight for other unpaid bills (current/overdue/future), dimmed gray for paid (past) ones */
-function barFill(bill: CreditCardBill, selectedMonth: string): string {
+/** bar color: full highlight for the selected month, dimmed highlight for other unpaid bills (current/overdue/future), dimmed gray for paid (past) ones. Exported for a direct unit test — rendering the actual recharts bars in jsdom isn't worth the setup for a pure color-mapping function. */
+export function barFill(bill: CreditCardBill, selectedMonth: string): string {
   if (bill.month === selectedMonth) return "var(--highlight)";
   if (
     bill.status === "current" ||
