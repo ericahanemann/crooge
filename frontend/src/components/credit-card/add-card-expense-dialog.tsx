@@ -1,9 +1,9 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
 import {
   type ExpenseFormErrors,
@@ -11,6 +11,7 @@ import {
   type Frequency,
   type Timing,
 } from "@/components/monthly/expense-form-fields";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -86,13 +87,22 @@ export function AddCardExpenseDialog({
   const [category, setCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [errors, setErrors] = useState<ExpenseFormErrors>({});
+  const [keepAdding, setKeepAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const descriptionRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     listCategoriesAction("expense").then(setCategories);
   }, [open]);
+
+  useEffect(() => {
+    if (!justAdded) return;
+    const timeout = setTimeout(() => setJustAdded(false), 1500);
+    return () => clearTimeout(timeout);
+  }, [justAdded]);
 
   async function handleAddCategory(
     label: string,
@@ -135,6 +145,8 @@ export function AddCardExpenseDialog({
     setCategory(null);
     setCategories([]);
     setErrors({});
+    setKeepAdding(false);
+    setJustAdded(false);
     setSubmitError(null);
   }
 
@@ -208,6 +220,17 @@ export function AddCardExpenseDialog({
     }
 
     router.refresh();
+
+    if (mode === "expense" && keepAdding) {
+      setDescription("");
+      setAmount("");
+      setInstallmentCount("2");
+      setErrors({});
+      setJustAdded(true);
+      descriptionRef.current?.focus();
+      return;
+    }
+
     setOpen(false);
     resetForm();
   }
@@ -257,6 +280,7 @@ export function AddCardExpenseDialog({
             onFrequencyChange={setFrequency}
             description={description}
             onDescriptionChange={setDescription}
+            descriptionRef={descriptionRef}
             amount={amount}
             onAmountChange={setAmount}
             installmentCount={installmentCount}
@@ -322,22 +346,40 @@ export function AddCardExpenseDialog({
           </div>
         )}
 
+        {justAdded && (
+          <p className="flex items-center gap-1.5 font-sans text-sm text-highlight">
+            <Check size={14} />
+            {tc("added")}
+          </p>
+        )}
+
         {submitError && (
           <p className="text-xs text-destructive">{submitError}</p>
         )}
 
-        <div className="flex justify-end gap-3">
-          <DialogSecondaryButton
-            onClick={() => {
-              setOpen(false);
-              resetForm();
-            }}
-          >
-            {tc("cancel")}
-          </DialogSecondaryButton>
-          <DialogPrimaryButton onClick={handleSubmit} disabled={submitting}>
-            {tc("add")}
-          </DialogPrimaryButton>
+        <div className="flex items-center justify-between gap-3">
+          {mode === "expense" ? (
+            // biome-ignore lint/a11y/noLabelWithoutControl: Checkbox renders a native input under the hood
+            <label className="flex items-center gap-2 font-sans text-sm text-muted-foreground cursor-pointer">
+              <Checkbox checked={keepAdding} onCheckedChange={setKeepAdding} />
+              {tc("keepAdding")}
+            </label>
+          ) : (
+            <div />
+          )}
+          <div className="flex gap-3">
+            <DialogSecondaryButton
+              onClick={() => {
+                setOpen(false);
+                resetForm();
+              }}
+            >
+              {tc("cancel")}
+            </DialogSecondaryButton>
+            <DialogPrimaryButton onClick={handleSubmit} disabled={submitting}>
+              {tc("add")}
+            </DialogPrimaryButton>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
