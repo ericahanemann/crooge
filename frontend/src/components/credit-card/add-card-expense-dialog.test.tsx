@@ -64,6 +64,13 @@ describe("AddCardExpenseDialog", () => {
     expect(screen.getByRole("combobox")).toBeInTheDocument();
   });
 
+  it("shows the user's actual currency symbol on the amount field, not a hardcoded $", async () => {
+    await openDialog();
+
+    expect(screen.getByText("R$")).toBeInTheDocument();
+    expect(screen.queryByText("$")).not.toBeInTheDocument();
+  });
+
   it("switching to pay mode hides description/category", async () => {
     const user = await openDialog();
 
@@ -176,6 +183,9 @@ describe("AddCardExpenseDialog", () => {
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "INSTALLMENTS" }));
+
+    expect(screen.getByText("R$")).toBeInTheDocument();
+
     await user.type(screen.getByLabelText("TOTAL AMOUNT"), "300");
     const installmentsInput = screen.getByLabelText("INSTALLMENTS");
     await user.clear(installmentsInput);
@@ -247,5 +257,31 @@ describe("AddCardExpenseDialog", () => {
     expect(
       await screen.findByText("Something went wrong. Please try again."),
     ).toBeInTheDocument();
+  });
+
+  it("keep adding clears description/amount/installments but keeps timing/date/category, and only shows in expense mode", async () => {
+    const user = await openDialog();
+
+    expect(screen.getByRole("checkbox")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("checkbox"));
+    await user.type(screen.getByLabelText("NAME"), "Coffee");
+    await user.type(
+      screen.getByLabelText("AMOUNT", { selector: "input" }),
+      "15",
+    );
+    await user.click(screen.getByRole("combobox"));
+    await user.click(await screen.findByText("Travel"));
+    await user.click(screen.getByRole("button", { name: "ADD" }));
+
+    expect(await screen.findByText("Added")).toBeInTheDocument();
+    expect(screen.getByLabelText("NAME")).toHaveValue("");
+    expect(screen.getByLabelText("AMOUNT", { selector: "input" })).toHaveValue(
+      "",
+    );
+    expect(screen.getByRole("button", { name: "ADD" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "PAYMENT" }));
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
 });

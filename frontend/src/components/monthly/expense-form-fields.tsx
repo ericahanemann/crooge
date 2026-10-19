@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { fmtCurrency } from "@/lib/format";
+import { currencySymbol, fmtCurrency } from "@/lib/format";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -128,7 +128,7 @@ export function ExpenseFormFields({
       </label>
       <div className="relative">
         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-          $
+          {currencySymbol(currency)}
         </span>
         <Input
           id={`${idPrefix}-amount`}
@@ -281,7 +281,7 @@ export function ExpenseFormFields({
               </label>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  $
+                  {currencySymbol(currency)}
                 </span>
                 <Input
                   id={`${idPrefix}-total-amount`}
