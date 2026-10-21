@@ -1,10 +1,11 @@
+import { randomUUID } from "node:crypto";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
 import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
-import fastify, { type FastifyError } from "fastify";
+import fastify, { type FastifyError, type FastifyRequest } from "fastify";
 import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
@@ -16,6 +17,7 @@ import {
 import { env } from "./env/index.ts";
 import { API_V1_PREFIX } from "./http/api-prefix.ts";
 import { authenticate } from "./http/hooks/authenticate.ts";
+import { Sentry } from "./lib/sentry.ts";
 import { resolveTrustProxy } from "./lib/trust-proxy.ts";
 import { authenticateSession } from "./modules/auth/routes/authenticate-session.ts";
 import { deleteMe } from "./modules/auth/routes/delete-me.ts";
@@ -61,6 +63,11 @@ export const app = fastify({
       }
     : false,
   trustProxy: resolveTrustProxy(env.TRUST_PROXY),
+  // Fastify's default id is a per-process counter (`req-1`, `req-2`, ...) —
+  // fine for in-process log correlation, but it resets on every restart and
+  // isn't unique across instances, so it can't double as the id we hand back
+  // to a client and tag a Sentry event with (see the error handler below).
+  genReqId: () => randomUUID(),
 });
 
 // Unauthenticated, no rate limit — this is what a host's own health check
@@ -197,7 +204,29 @@ app.register(
   { prefix: API_V1_PREFIX },
 );
 
-app.setErrorHandler<FastifyError>((error, _request, reply) => {
+// Only the two `captureReportableError` call sites below are truly
+// unexpected (a bug, not a known/handled failure mode) — validation errors
+// and routes' own `reply.status(4xx).send(...)` returns never reach this
+// handler at all, and the "known 4xx thrown by Fastify itself" branch just
+// below is still something a client caused on purpose (bad JSON, payload
+// too large, ...). Reporting only these two keeps Sentry's inbox to actual
+// bugs instead of routine client mistakes.
+function captureReportableError(error: FastifyError, request: FastifyRequest) {
+  app.log.error(error);
+  Sentry.captureException(error, {
+    contexts: {
+      request: {
+        method: request.method,
+        url: request.url,
+        route: request.routeOptions.url,
+      },
+    },
+    tags: { requestId: request.id },
+    user: request.user ? { id: request.user.sub } : undefined,
+  });
+}
+
+app.setErrorHandler<FastifyError>((error, request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {
     const issues: Record<string, string[]> = {};
     for (const issue of error.validation) {
@@ -213,8 +242,10 @@ app.setErrorHandler<FastifyError>((error, _request, reply) => {
   if (isResponseSerializationError(error)) {
     // A route's handler returned data that doesn't match its own declared
     // response schema — a bug in the route, not a client error.
-    app.log.error(error);
-    return reply.status(500).send({ message: "internal server error" });
+    captureReportableError(error, request);
+    return reply
+      .status(500)
+      .send({ message: "internal server error", requestId: request.id });
   }
 
   // Fastify's own request-parsing errors (malformed/empty JSON body,
@@ -225,7 +256,9 @@ app.setErrorHandler<FastifyError>((error, _request, reply) => {
     return reply.status(error.statusCode).send({ message: error.message });
   }
 
-  app.log.error(error);
+  captureReportableError(error, request);
 
-  return reply.status(500).send({ message: "internal server error" });
+  return reply
+    .status(500)
+    .send({ message: "internal server error", requestId: request.id });
 });

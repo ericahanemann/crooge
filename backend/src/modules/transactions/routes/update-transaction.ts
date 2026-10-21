@@ -168,9 +168,10 @@ export async function updateTransaction(app: FastifyInstance) {
         return reply.status(200).send(serializeTransaction(updated));
       } catch (error) {
         if (error instanceof CreditLimitExceededError) {
-          return reply
-            .status(422)
-            .send({ message: "purchase exceeds available credit" });
+          return reply.status(422).send({
+            message: "purchase exceeds available credit",
+            code: "credit_limit_exceeded",
+          });
         }
         throw error;
       }
