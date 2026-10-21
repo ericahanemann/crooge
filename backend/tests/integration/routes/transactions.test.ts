@@ -245,6 +245,7 @@ describe("transactions routes", () => {
       expect(response.statusCode).toBe(422);
       expect(response.json()).toMatchObject({
         message: "purchase exceeds available credit",
+        code: "credit_limit_exceeded",
       });
     });
 
@@ -685,6 +686,7 @@ describe("transactions routes", () => {
       });
 
       expect(response.statusCode).toBe(422);
+      expect(response.json()).toMatchObject({ code: "credit_limit_exceeded" });
       const row = await prisma.transaction.findUniqueOrThrow({
         where: { id: transaction.id },
       });

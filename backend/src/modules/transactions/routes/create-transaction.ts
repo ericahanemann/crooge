@@ -169,9 +169,10 @@ export async function createTransaction(app: FastifyInstance) {
 
         const available = await getAvailableCredit(card);
         if (body.amount > available) {
-          return reply
-            .status(422)
-            .send({ message: "purchase exceeds available credit" });
+          return reply.status(422).send({
+            message: "purchase exceeds available credit",
+            code: "credit_limit_exceeded",
+          });
         }
       }
 

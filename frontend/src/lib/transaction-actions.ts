@@ -55,7 +55,10 @@ export async function createTransactionAction(
     const body = await response.json().catch(() => null);
     return {
       ok: false,
-      code: response.status === 422 ? "credit_limit_exceeded" : "unknown",
+      code:
+        body?.code === "credit_limit_exceeded"
+          ? "credit_limit_exceeded"
+          : "unknown",
       message: body?.message ?? "request failed",
     };
   }
@@ -103,7 +106,10 @@ export async function updateTransactionAction(
     const body = await response.json().catch(() => null);
     return {
       ok: false,
-      code: response.status === 422 ? "credit_limit_exceeded" : "unknown",
+      code:
+        body?.code === "credit_limit_exceeded"
+          ? "credit_limit_exceeded"
+          : "unknown",
       message: body?.message ?? "request failed",
     };
   }

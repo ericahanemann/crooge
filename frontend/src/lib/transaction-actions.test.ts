@@ -82,11 +82,14 @@ describe("createTransactionAction", () => {
     expect(result).toEqual({ ok: true });
   });
 
-  it("maps a 422 response to credit_limit_exceeded", async () => {
+  it("maps a 422 response carrying code credit_limit_exceeded to credit_limit_exceeded", async () => {
     server.use(
       http.post(`${API_URL}/transactions`, () =>
         HttpResponse.json(
-          { message: "purchase exceeds available credit" },
+          {
+            message: "purchase exceeds available credit",
+            code: "credit_limit_exceeded",
+          },
           { status: 422 },
         ),
       ),
@@ -106,6 +109,33 @@ describe("createTransactionAction", () => {
       ok: false,
       code: "credit_limit_exceeded",
       message: "purchase exceeds available credit",
+    });
+  });
+
+  it("maps a 422 response with no matching code to unknown, rather than assuming credit_limit_exceeded from the status alone", async () => {
+    server.use(
+      http.post(`${API_URL}/transactions`, () =>
+        HttpResponse.json(
+          { message: "creditCardId required when paymentMethod is credit" },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    const result = await createTransactionAction({
+      type: "expense",
+      description: "Flight",
+      amount: 100,
+      date: "2026-03-05",
+      category: "travel",
+      paymentMethod: "credit",
+      creditCardId: "card-1",
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "unknown",
+      message: "creditCardId required when paymentMethod is credit",
     });
   });
 
@@ -153,6 +183,47 @@ describe("updateTransactionAction", () => {
     });
 
     expect(result).toEqual({ ok: true });
+  });
+
+  it("maps a 422 response carrying code credit_limit_exceeded to credit_limit_exceeded", async () => {
+    server.use(
+      http.patch(`${API_URL}/transactions/t1`, () =>
+        HttpResponse.json(
+          {
+            message: "purchase exceeds available credit",
+            code: "credit_limit_exceeded",
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    await expect(
+      updateTransactionAction("t1", { amount: 999999 }),
+    ).resolves.toEqual({
+      ok: false,
+      code: "credit_limit_exceeded",
+      message: "purchase exceeds available credit",
+    });
+  });
+
+  it("maps a 422 response with no matching code to unknown, rather than assuming credit_limit_exceeded from the status alone", async () => {
+    server.use(
+      http.patch(`${API_URL}/transactions/t1`, () =>
+        HttpResponse.json(
+          { message: "creditCardId required when paymentMethod is credit" },
+          { status: 422 },
+        ),
+      ),
+    );
+
+    await expect(
+      updateTransactionAction("t1", { amount: 999999 }),
+    ).resolves.toEqual({
+      ok: false,
+      code: "unknown",
+      message: "creditCardId required when paymentMethod is credit",
+    });
   });
 });
 
