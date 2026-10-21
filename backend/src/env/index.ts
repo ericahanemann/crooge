@@ -23,6 +23,11 @@ const envSchema = z.object({
   // chosen — see `resolveTrustProxy` in `lib/trust-proxy.ts` for exactly
   // what this accepts, and why it's not just "how many hops."
   TRUST_PROXY: z.string().optional(),
+  // DSN Sentry gives a project, e.g. "https://<key>@o0.ingest.sentry.io/0".
+  // Unset in dev/test on purpose — `lib/sentry.ts` only calls `Sentry.init`
+  // when this is present, so local runs and the test suite never report
+  // anywhere.
+  SENTRY_DSN: z.string().optional(),
 });
 
 const _env = envSchema.safeParse(process.env);
