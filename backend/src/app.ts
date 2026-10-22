@@ -211,7 +211,17 @@ app.register(
 // below is still something a client caused on purpose (bad JSON, payload
 // too large, ...). Reporting only these two keeps Sentry's inbox to actual
 // bugs instead of routine client mistakes.
-function captureReportableError(error: FastifyError, request: FastifyRequest) {
+// `captureException` only queues the event — actual delivery happens on a
+// background timer. In a long-running server that's normally fine (the
+// process keeps running and the queue drains on its own), but it gives no
+// guarantee the event is actually on the wire before this function returns.
+// Awaiting `flush` here forces that queue to drain (or time out) before the
+// response goes out, trading a little latency on the 500 path for certainty
+// the event was actually sent.
+async function captureReportableError(
+  error: FastifyError,
+  request: FastifyRequest,
+) {
   app.log.error(error);
   Sentry.captureException(error, {
     contexts: {
@@ -224,9 +234,10 @@ function captureReportableError(error: FastifyError, request: FastifyRequest) {
     tags: { requestId: request.id },
     user: request.user ? { id: request.user.sub } : undefined,
   });
+  await Sentry.flush(2000);
 }
 
-app.setErrorHandler<FastifyError>((error, request, reply) => {
+app.setErrorHandler<FastifyError>(async (error, request, reply) => {
   if (hasZodFastifySchemaValidationErrors(error)) {
     const issues: Record<string, string[]> = {};
     for (const issue of error.validation) {
@@ -242,7 +253,7 @@ app.setErrorHandler<FastifyError>((error, request, reply) => {
   if (isResponseSerializationError(error)) {
     // A route's handler returned data that doesn't match its own declared
     // response schema — a bug in the route, not a client error.
-    captureReportableError(error, request);
+    await captureReportableError(error, request);
     return reply
       .status(500)
       .send({ message: "internal server error", requestId: request.id });
@@ -256,7 +267,7 @@ app.setErrorHandler<FastifyError>((error, request, reply) => {
     return reply.status(error.statusCode).send({ message: error.message });
   }
 
-  captureReportableError(error, request);
+  await captureReportableError(error, request);
 
   return reply
     .status(500)
