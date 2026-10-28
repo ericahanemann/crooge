@@ -8,6 +8,7 @@ import {
   vi,
 } from "vitest";
 import { app } from "../../src/app.ts";
+import { Prisma } from "../../src/generated/prisma/client.ts";
 import { Sentry } from "../../src/lib/sentry.ts";
 import { createTestUser } from "../setup/factories.ts";
 
@@ -18,6 +19,14 @@ vi.mock("@sentry/node");
 // `src/modules` is already under.
 app.get("/api/v1/__test/throw", { onRequest: [app.authenticate] }, async () => {
   throw new Error("boom");
+});
+
+// The exact failure the 12-installment bug produced in production.
+app.get("/api/v1/__test/throw-prisma", async () => {
+  throw new Prisma.PrismaClientKnownRequestError(
+    "Transaction API error: A query cannot be executed on an expired transaction.",
+    { code: "P2028", clientVersion: "test" },
+  );
 });
 
 async function authHeader(userId: string) {
@@ -35,6 +44,27 @@ describe("global error handler (app.ts)", () => {
 
   afterEach(() => {
     vi.mocked(Sentry.captureException).mockClear();
+    vi.mocked(Sentry.flush).mockClear();
+  });
+
+  it("tags a Prisma failure with its error code and route, and flushes before responding", async () => {
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/__test/throw-prisma",
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(Sentry.captureException).toHaveBeenCalledTimes(1);
+    const [, captureContext] = vi.mocked(Sentry.captureException).mock.calls[0];
+    expect(captureContext).toMatchObject({
+      tags: {
+        prismaCode: "P2028",
+        route: "GET /api/v1/__test/throw-prisma",
+        requestId: response.json().requestId,
+      },
+    });
+    // Without this, the event was only queued — and never arrived in prod.
+    expect(Sentry.flush).toHaveBeenCalled();
   });
 
   it("reports an unexpected error to Sentry with request context, and returns a requestId the client can correlate", async () => {

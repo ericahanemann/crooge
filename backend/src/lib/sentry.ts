@@ -10,6 +10,9 @@ if (env.SENTRY_DSN) {
   Sentry.init({
     dsn: env.SENTRY_DSN,
     environment: env.NODE_ENV,
+    // Render sets this to the deployed commit — lets Sentry show which
+    // deploy first produced an error.
+    release: env.RENDER_GIT_COMMIT,
   });
 }
 
