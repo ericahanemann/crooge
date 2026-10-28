@@ -4,7 +4,13 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { Prisma } from "../../../generated/prisma/client.ts";
 import { AUTH_REGISTER_RATE_LIMIT } from "../../../http/rate-limit.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_LABEL_LENGTH,
+  MAX_NAME_LENGTH,
+  MAX_SEEDED_CATEGORIES,
+  requiredText,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
   categoryKindSchema,
@@ -14,7 +20,7 @@ import {
 import { passwordSchema } from "../schemas.ts";
 
 const registerUserBodySchema = z.object({
-  name: z.string().trim().min(1).describe("Full display name."),
+  name: requiredText(MAX_NAME_LENGTH).describe("Full display name."),
   email: z
     .email()
     .trim()
@@ -25,11 +31,12 @@ const registerUserBodySchema = z.object({
     .array(
       z.object({
         kind: categoryKindSchema,
-        label: z.string().trim().min(1),
+        label: requiredText(MAX_LABEL_LENGTH),
         icon: iconKeySchema,
         isFallback: z.boolean().optional(),
       }),
     )
+    .max(MAX_SEEDED_CATEGORIES)
     .optional()
     .describe(
       "Starter categories to seed for the new account, pre-localized by the caller — the backend has no translation content of its own.",

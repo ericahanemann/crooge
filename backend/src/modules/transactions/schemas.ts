@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { monthQuerySchema } from "../../http/schemas/common.ts";
+import {
+  MAX_DESCRIPTION_LENGTH,
+  MAX_ID_LENGTH,
+  moneySchema,
+  monthQuerySchema,
+  requiredText,
+} from "../../http/schemas/common.ts";
 
 export const transactionTimingSchema = z.enum([
   "oneTime",
@@ -78,16 +84,14 @@ z.globalRegistry.add(transactionResponseSchema, { id: "Transaction" });
  */
 export const updateTransactionBodySchema = z
   .object({
-    description: z.string().trim().min(1).optional(),
-    amount: z
-      .number()
-      .positive()
+    description: requiredText(MAX_DESCRIPTION_LENGTH).optional(),
+    amount: moneySchema
       .optional()
       .describe(
         "Always positive; sign stays implied by the transaction's existing type.",
       ),
     date: z.iso.date().optional(),
-    category: z.string().trim().min(1).optional(),
+    category: requiredText(MAX_ID_LENGTH).optional(),
     paymentMethod: z
       .enum(["debit_pix", "credit"])
       .optional()

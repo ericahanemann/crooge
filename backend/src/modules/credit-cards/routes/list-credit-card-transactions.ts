@@ -9,10 +9,7 @@ import {
 import { prisma } from "../../../lib/prisma.ts";
 import { transactionResponseSchema } from "../../transactions/schemas.ts";
 import { serializeTransaction } from "../../transactions/serialize.ts";
-import {
-  closingDateForCycleMonth,
-  previousClosingDate,
-} from "../billing-cycle.ts";
+import { closingDateForCycleMonth, cycleDateFilter } from "../billing-cycle.ts";
 
 /** Transactions charged to this card within one billing cycle (not a calendar month, despite the `month` query key — it's the cycle's `cycleMonth`). */
 export async function listCreditCardTransactions(app: FastifyInstance) {
@@ -44,12 +41,11 @@ export async function listCreditCardTransactions(app: FastifyInstance) {
       }
 
       const closingDate = closingDateForCycleMonth(card.closingDay, month);
-      const start = previousClosingDate(closingDate);
 
       const transactions = await prisma.transaction.findMany({
         where: {
           creditCardId: card.id,
-          date: { gt: start, lte: closingDate },
+          date: cycleDateFilter(closingDate),
         },
         orderBy: { date: "desc" },
       });

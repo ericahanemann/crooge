@@ -19,6 +19,7 @@ import {
   listCategoriesAction,
   updateCategoryAction,
 } from "@/lib/category-actions";
+import { MAX_DESCRIPTION_LENGTH } from "@/lib/limits";
 import {
   type UpdateTransactionInput,
   updateTransactionAction,
@@ -269,6 +270,7 @@ export function EditTransactionDialog({
             </label>
             <Input
               id="edit-tx-description"
+              maxLength={MAX_DESCRIPTION_LENGTH}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />

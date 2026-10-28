@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MAX_PASSWORD_LENGTH } from "../../http/schemas/common.ts";
 
 /**
  * Access/refresh token pair issued by `POST /sessions` and `POST
@@ -32,6 +33,7 @@ z.globalRegistry.add(sessionResponseSchema, { id: "Session" });
 export const passwordSchema = z
   .string()
   .min(8)
+  .max(MAX_PASSWORD_LENGTH)
   .refine((value) => /\d/.test(value), {
     message: "must contain at least one number",
   })

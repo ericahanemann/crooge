@@ -3,7 +3,10 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AUTH_REAUTH_RATE_LIMIT } from "../../../http/rate-limit.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_PASSWORD_LENGTH,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
   clearFailedAttempts,
@@ -17,6 +20,7 @@ const updatePasswordBodySchema = z.object({
   currentPassword: z
     .string()
     .min(1)
+    .max(MAX_PASSWORD_LENGTH)
     .optional()
     .describe(
       "Required unless the account has no password yet (a Google-only account setting its first one — see `hasPassword` on `GET /me`).",

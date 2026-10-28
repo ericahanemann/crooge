@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   errorResponseSchema,
   idAndMonthParamSchema,
+  moneySchema,
 } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { getBillAmount } from "../bill.ts";
@@ -14,9 +15,7 @@ import { serializeCreditCardBill } from "../serialize-bill.ts";
 
 const bodySchema = z
   .object({
-    amount: z
-      .number()
-      .positive()
+    amount: moneySchema
       .optional()
       .describe(
         "Overrides the computed bill amount. Omit to pay exactly the computed amount — the common case.",

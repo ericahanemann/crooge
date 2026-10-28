@@ -2,7 +2,11 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { Prisma } from "../../../generated/prisma/client.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_LABEL_LENGTH,
+  requiredText,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
   categoryKindSchema,
@@ -14,7 +18,7 @@ import { serializeCategory } from "../serialize.ts";
 
 const bodySchema = z.object({
   kind: categoryKindSchema,
-  label: z.string().trim().min(1),
+  label: requiredText(MAX_LABEL_LENGTH),
   icon: iconKeySchema,
 });
 

@@ -15,6 +15,7 @@ import {
   validatorCompiler,
 } from "fastify-type-provider-zod";
 import { env } from "./env/index.ts";
+import { Prisma } from "./generated/prisma/client.ts";
 import { API_V1_PREFIX } from "./http/api-prefix.ts";
 import { authenticate } from "./http/hooks/authenticate.ts";
 import { Sentry } from "./lib/sentry.ts";
@@ -231,7 +232,15 @@ async function captureReportableError(
         route: request.routeOptions.url,
       },
     },
-    tags: { requestId: request.id },
+    // Tags (unlike contexts) are searchable/filterable in Sentry — e.g.
+    // `prismaCode:P2028` finds every interactive-transaction timeout.
+    tags: {
+      requestId: request.id,
+      route: `${request.method} ${request.routeOptions.url ?? request.url}`,
+      ...(error instanceof Prisma.PrismaClientKnownRequestError
+        ? { prismaCode: error.code }
+        : {}),
+    },
     user: request.user ? { id: request.user.sub } : undefined,
   });
   await Sentry.flush(2000);

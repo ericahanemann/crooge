@@ -1,6 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import {
+  MAX_NAME_LENGTH,
+  moneySchema,
+  requiredText,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { ensureBill } from "../billing-cycle.ts";
 import {
@@ -10,9 +15,9 @@ import {
 import { serializeCreditCardSummary } from "../serialize.ts";
 
 export const createCreditCardBodySchema = z.object({
-  name: z.string().trim().min(1),
+  name: requiredText(MAX_NAME_LENGTH),
   brand: creditCardBrandSchema,
-  limit: z.number().positive(),
+  limit: moneySchema,
   closingDay: z
     .number()
     .int()

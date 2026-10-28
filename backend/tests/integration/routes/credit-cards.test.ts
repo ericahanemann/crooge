@@ -623,9 +623,16 @@ describe("credit cards routes", () => {
       });
       const cycle = getCycleForDate(card.closingDay, card.dueDay, new Date());
 
+      const lastDayOfCycle = new Date(
+        Date.UTC(
+          cycle.closingDate.getUTCFullYear(),
+          cycle.closingDate.getUTCMonth(),
+          cycle.closingDate.getUTCDate() - 1,
+        ),
+      );
       const inCycle = await createTestTransaction(user.id, {
         creditCardId: card.id,
-        date: cycle.closingDate,
+        date: lastDayOfCycle,
       });
       const nextMonthDate = new Date(
         Date.UTC(
@@ -786,6 +793,68 @@ describe("credit cards routes", () => {
         payload: {},
       });
       expect(second.statusCode).toBe(409);
+    });
+  });
+
+  // Regression: `getCycleForDate` rolls a purchase made ON the closing day
+  // into the next bill, but bill amounts and the per-cycle transaction list
+  // used to window cycles as (previous closing, closing] — so that same
+  // purchase still showed up on, and was charged to, the bill that closed.
+  describe("closing-day boundary", () => {
+    it("bills and lists a purchase made on the closing day under the next cycle, everywhere", async () => {
+      const user = await createTestUser();
+      const card = await createTestCreditCard(user.id, {
+        limit: 10_000,
+        closingDay: 4,
+        dueDay: 10,
+      });
+      const headers = await authHeader(user.id);
+
+      for (const [date, amount] of [
+        ["2027-03-03", 10],
+        ["2027-03-04", 100],
+      ] as const) {
+        const created = await app.inject({
+          method: "POST",
+          url: "/api/v1/transactions",
+          headers,
+          payload: {
+            type: "expense",
+            description: `bought ${date}`,
+            amount,
+            date,
+            category: "shopping",
+            paymentMethod: "credit",
+            creditCardId: card.id,
+          },
+        });
+        expect(created.statusCode).toBe(201);
+      }
+
+      const listFor = async (month: string) => {
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/v1/credit-cards/${card.id}/transactions?month=${month}`,
+          headers,
+        });
+        expect(response.statusCode).toBe(200);
+        return (response.json() as { date: string }[]).map((t) => t.date);
+      };
+      expect(await listFor("2027-03")).toEqual(["2027-03-03"]);
+      expect(await listFor("2027-04")).toEqual(["2027-03-04"]);
+
+      const bills = await app.inject({
+        method: "GET",
+        url: `/api/v1/credit-cards/${card.id}/bills`,
+        headers,
+      });
+      const byMonth = Object.fromEntries(
+        (
+          bills.json() as { items: { month: string; amount: number }[] }
+        ).items.map((bill) => [bill.month, bill.amount]),
+      );
+      expect(byMonth["2027-03"]).toBe(10);
+      expect(byMonth["2027-04"]).toBe(100);
     });
   });
 });

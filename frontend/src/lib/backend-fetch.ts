@@ -51,6 +51,20 @@ export async function backendFetch(
 
   if (response.status === 401) await redirectToSignin();
 
+  // Callers collapse a 5xx into a generic "unknown" result for the UI, so
+  // this is the one place the backend's requestId (the tag its Sentry event
+  // carries) is still visible — log it to the server logs for correlation.
+  if (response.status >= 500) {
+    const body = await response
+      .clone()
+      .json()
+      .catch(() => null);
+    console.error(
+      `backend ${init?.method ?? "GET"} ${path} failed with ${response.status}` +
+        (body?.requestId ? ` (Sentry: requestId:${body.requestId})` : ""),
+    );
+  }
+
   return response;
 }
 

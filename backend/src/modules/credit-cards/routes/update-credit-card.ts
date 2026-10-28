@@ -51,35 +51,42 @@ export async function updateCreditCard(app: FastifyInstance) {
         return reply.status(404).send({ message: "credit card not found" });
       }
 
-      const card = await prisma.$transaction(async (tx) => {
-        const updated = await tx.creditCard.update({
-          where: { id },
-          data: {
-            name: body.name,
-            brand: BRAND_TO_DB[body.brand],
-            limit: body.limit,
-            closingDay: body.closingDay,
-            dueDay: body.dueDay,
-          },
-        });
-
-        const unpaidBills = await tx.creditCardBill.findMany({
-          where: { creditCardId: id, paidAt: null },
-        });
-        for (const bill of unpaidBills) {
-          const { closingDate, dueDate } = datesForCycleMonth(
-            updated.closingDay,
-            updated.dueDay,
-            bill.cycleMonth,
-          );
-          await tx.creditCardBill.update({
-            where: { id: bill.id },
-            data: { closingDate, dueDate },
+      // One update per unpaid bill, and every long installment purchase adds
+      // a dozen future bills — against the remote prod database that can
+      // outgrow Prisma's default 5s interactive-transaction timeout. Each
+      // bill's dates differ, so this can't collapse into one updateMany.
+      const card = await prisma.$transaction(
+        async (tx) => {
+          const updated = await tx.creditCard.update({
+            where: { id },
+            data: {
+              name: body.name,
+              brand: BRAND_TO_DB[body.brand],
+              limit: body.limit,
+              closingDay: body.closingDay,
+              dueDay: body.dueDay,
+            },
           });
-        }
 
-        return updated;
-      });
+          const unpaidBills = await tx.creditCardBill.findMany({
+            where: { creditCardId: id, paidAt: null },
+          });
+          for (const bill of unpaidBills) {
+            const { closingDate, dueDate } = datesForCycleMonth(
+              updated.closingDay,
+              updated.dueDay,
+              bill.cycleMonth,
+            );
+            await tx.creditCardBill.update({
+              where: { id: bill.id },
+              data: { closingDate, dueDate },
+            });
+          }
+
+          return updated;
+        },
+        { timeout: 30_000 },
+      );
 
       const available = await getAvailableCredit(card);
 

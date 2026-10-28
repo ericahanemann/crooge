@@ -4,7 +4,10 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AUTH_SESSIONS_RATE_LIMIT } from "../../../http/rate-limit.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_PASSWORD_LENGTH,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
   ACCESS_TOKEN_EXPIRES_IN,
@@ -22,7 +25,7 @@ import { generateRefreshToken, hashToken } from "../tokens.ts";
 
 const authenticateSessionBodySchema = z.object({
   email: z.email().trim().toLowerCase(),
-  password: z.string().min(1),
+  password: z.string().min(1).max(MAX_PASSWORD_LENGTH),
 });
 
 // Precomputed once so a login for a non-existent email still pays the

@@ -284,4 +284,21 @@ describe("AddCardExpenseDialog", () => {
     await user.click(screen.getByRole("button", { name: "PAYMENT" }));
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   });
+
+  it("rejects installments above the backend's max instead of failing with a generic error", async () => {
+    const user = await openDialog();
+
+    await user.click(screen.getByRole("button", { name: "INSTALLMENTS" }));
+    await user.type(screen.getByLabelText("TOTAL AMOUNT"), "100");
+    const installmentsInput = screen.getByLabelText("INSTALLMENTS");
+    await user.clear(installmentsInput);
+    await user.type(installmentsInput, "121");
+    await user.type(screen.getByLabelText("NAME"), "Sofa");
+    await user.click(screen.getByRole("combobox"));
+    await user.click(await screen.findByText("Travel"));
+    await user.click(screen.getByRole("button", { name: "ADD" }));
+
+    expect(await screen.findByText("Must be at most 120")).toBeInTheDocument();
+    expect(createTransactionAction).not.toHaveBeenCalled();
+  });
 });

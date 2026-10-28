@@ -21,6 +21,7 @@ import {
   updateCategoryAction,
 } from "@/lib/category-actions";
 import { todayISO } from "@/lib/format";
+import { MAX_INSTALLMENTS } from "@/lib/limits";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
 import { parseAmountInput } from "@/lib/utils";
@@ -147,6 +148,13 @@ export function AddExpenseDialog() {
       (!Number.isInteger(parsedInstallments) || parsedInstallments < 2)
     ) {
       nextErrors.installments = t("dialogs.expense.errorMinInstallments");
+    } else if (
+      timing === "installments" &&
+      parsedInstallments > MAX_INSTALLMENTS
+    ) {
+      nextErrors.installments = t("dialogs.expense.errorMaxInstallments", {
+        max: MAX_INSTALLMENTS,
+      });
     }
     if (!date) nextErrors.date = t("dialogs.common.errorRequired");
     if (!category) nextErrors.category = t("dialogs.common.errorRequired");
