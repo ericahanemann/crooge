@@ -1,6 +1,5 @@
-import { Prisma } from "../../generated/prisma/client.ts";
 import { prisma } from "../../lib/prisma.ts";
-import { ensureBill } from "../credit-cards/billing-cycle.ts";
+import { ensureBills } from "../credit-cards/billing-cycle.ts";
 import { occurrenceInRange } from "./generate-occurrences.ts";
 
 /**
@@ -24,16 +23,16 @@ import { occurrenceInRange } from "./generate-occurrences.ts";
  * Both `GET /transactions` and `GET /transactions/summary` call this for the
  * same month, and the Monthly page's RSC streaming fetches each section's
  * data independently — so two calls for the same series/date can genuinely
- * race on separate connections. The actual creation therefore goes through
- * an `upsert` keyed on `Transaction`'s `(recurringSeriesId, date)` unique
- * constraint (mirroring `ensureBill`'s `creditCardId`/`cycleMonth` upsert)
- * rather than trusting the existence check above, which is only a fast-path
- * skip, not the correctness guarantee. Even so, Prisma's `upsert` isn't a
- * single atomic statement — under a tight enough race both sides' internal
- * existence check can miss, and the loser's `INSERT` still raises a P2002
- * unique-violation instead of transparently becoming an update. That's
- * caught below and treated as a no-op: if the row exists now, whoever
- * created it is fine.
+ * race on separate connections. The insert skips rows that collide with
+ * `Transaction`'s `(recurringSeriesId, date)` unique constraint, so the
+ * existence lookup below is only a fast path — the loser of a race is a
+ * no-op, not an error.
+ *
+ * Query count doesn't grow with the number of series: one series lookup,
+ * one existence lookup, and only if something is actually missing, one
+ * transaction with one bill insert per card plus one row insert. This runs
+ * on every Monthly page load, so a per-series round trip here was paid by
+ * every page view.
  *
  * A series canceled via "delete from here forward"
  * (`routes/delete-transaction.ts`) has `endDate` set and is simply excluded
@@ -53,65 +52,66 @@ export async function materializeRecurringOccurrences(
     include: { creditCard: { select: { closingDay: true, dueDay: true } } },
   });
 
-  for (const s of series) {
-    const occurrenceDate = occurrenceInRange(
+  const due = series.flatMap((s) => {
+    const date = occurrenceInRange(
       s.startDate,
       s.frequency,
       rangeStart,
       rangeEnd,
     );
-    if (!occurrenceDate) continue;
-    if (s.endDate && occurrenceDate >= s.endDate) continue;
+    if (!date || (s.endDate && date >= s.endDate)) return [];
+    return [{ series: s, date }];
+  });
+  if (due.length === 0) return;
 
-    const existing = await prisma.transaction.findFirst({
-      where: { recurringSeriesId: s.id, date: occurrenceDate },
-      select: { id: true },
-    });
-    if (existing) continue;
+  const existing = await prisma.transaction.findMany({
+    where: {
+      recurringSeriesId: { in: due.map(({ series }) => series.id) },
+      date: { gte: rangeStart, lt: rangeEnd },
+    },
+    select: { recurringSeriesId: true, date: true },
+  });
+  const key = (seriesId: string, date: Date) =>
+    `${seriesId}:${date.toISOString()}`;
+  const existingKeys = new Set(
+    existing.map((row) => key(row.recurringSeriesId ?? "", row.date)),
+  );
+  const missing = due.filter(
+    ({ series, date }) => !existingKeys.has(key(series.id, date)),
+  );
+  if (missing.length === 0) return;
 
-    try {
-      await prisma.$transaction(async (tx) => {
-        if (s.creditCardId && s.creditCard) {
-          await ensureBill(
-            tx,
-            s.creditCardId,
-            s.creditCard.closingDay,
-            s.creditCard.dueDay,
-            occurrenceDate,
-          );
-        }
-
-        await tx.transaction.upsert({
-          where: {
-            recurringSeriesId_date: {
-              recurringSeriesId: s.id,
-              date: occurrenceDate,
-            },
-          },
-          update: {},
-          create: {
-            userId,
-            type: "EXPENSE",
-            category: s.category,
-            description: s.description,
-            amount: s.amount,
-            date: occurrenceDate,
-            timing: "RECURRING",
-            paymentMethod: s.paymentMethod,
-            creditCardId: s.creditCardId,
-            recurringSeriesId: s.id,
-          },
-        });
-      });
-    } catch (error) {
-      if (
-        !(
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002"
-        )
-      ) {
-        throw error;
-      }
+  await prisma.$transaction(async (tx) => {
+    const onCard = missing.filter(({ series }) => series.creditCard);
+    for (const [creditCardId, entries] of Map.groupBy(
+      onCard,
+      ({ series }) => series.creditCardId ?? "",
+    )) {
+      const card = entries[0]?.series.creditCard;
+      if (!card) continue;
+      await ensureBills(
+        tx,
+        creditCardId,
+        card.closingDay,
+        card.dueDay,
+        entries.map(({ date }) => date),
+      );
     }
-  }
+
+    await tx.transaction.createMany({
+      data: missing.map(({ series, date }) => ({
+        userId,
+        type: "EXPENSE" as const,
+        category: series.category,
+        description: series.description,
+        amount: series.amount,
+        date,
+        timing: "RECURRING" as const,
+        paymentMethod: series.paymentMethod,
+        creditCardId: series.creditCardId,
+        recurringSeriesId: series.id,
+      })),
+      skipDuplicates: true,
+    });
+  });
 }

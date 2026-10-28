@@ -64,15 +64,22 @@ export function getCycleForDate(
   return { cycleMonth, closingDate, dueDate };
 }
 
-/** Start of the cycle ending at `closingDate` (exclusive) — the previous cycle's closing date, since cycles are always exactly one calendar month apart. */
-export function previousClosingDate(closingDate: Date): Date {
-  return new Date(
+/**
+ * Prisma `date` filter for the transactions belonging to the cycle that
+ * closes on `closingDate`: from the previous closing day (inclusive) up to
+ * this one (exclusive). Must agree with `getCycleForDate`, which rolls a
+ * purchase made on the closing day itself into the next cycle — every query
+ * that windows a cycle goes through here so the two can't drift apart again.
+ */
+export function cycleDateFilter(closingDate: Date): { gte: Date; lt: Date } {
+  const previousClosing = new Date(
     Date.UTC(
       closingDate.getUTCFullYear(),
       closingDate.getUTCMonth() - 1,
       closingDate.getUTCDate(),
     ),
   );
+  return { gte: previousClosing, lt: closingDate };
 }
 
 /** Inverse of the `cycleMonth` half of `getCycleForDate`: given a "YYYY-MM" key, the closing date of that cycle. */
@@ -113,5 +120,35 @@ export async function ensureBill(
     where: { creditCardId_cycleMonth: { creditCardId, cycleMonth } },
     update: {},
     create: { creditCardId, cycleMonth, closingDate, dueDate },
+  });
+}
+
+/**
+ * `ensureBill` for many dates in one round trip — a single insert that skips
+ * cycles already on file. Interactive transactions time out after 5s, and
+ * against a remote database one upsert per installment was enough to blow
+ * through that on a 12-installment purchase.
+ */
+export async function ensureBills(
+  tx: Prisma.TransactionClient,
+  creditCardId: string,
+  closingDay: number,
+  dueDay: number,
+  dates: Date[],
+) {
+  const cycles = new Map<string, BillingCycle>();
+  for (const date of dates) {
+    const cycle = getCycleForDate(closingDay, dueDay, date);
+    cycles.set(cycle.cycleMonth, cycle);
+  }
+
+  await tx.creditCardBill.createMany({
+    data: [...cycles.values()].map(({ cycleMonth, closingDate, dueDate }) => ({
+      creditCardId,
+      cycleMonth,
+      closingDate,
+      dueDate,
+    })),
+    skipDuplicates: true,
   });
 }

@@ -21,6 +21,29 @@ export const errorResponseSchema = z
 
 z.globalRegistry.add(errorResponseSchema, { id: "Error" });
 
+// Input bounds shared by every request schema. Without them, a value the
+// database can't store surfaced as a 500 (and a Sentry alert) instead of a
+// clean 400, and an unbounded count let a single request allocate as many
+// rows as it asked for.
+
+/** Largest value a `Decimal(12, 2)` column holds — above it Postgres throws "numeric field overflow". */
+export const MAX_MONEY = 9_999_999_999.99;
+export const moneySchema = z.number().positive().max(MAX_MONEY);
+
+/** Each installment is its own row (and bill), all written in one request. */
+export const MAX_INSTALLMENTS = 120;
+
+export const MAX_DESCRIPTION_LENGTH = 200;
+export const MAX_NAME_LENGTH = 100;
+export const MAX_LABEL_LENGTH = 50;
+/** Ids are UUIDs (36 chars); this just stops arbitrarily long junk. */
+export const MAX_ID_LENGTH = 100;
+export const MAX_SEEDED_CATEGORIES = 50;
+/** argon2 hashes any length, but there's no reason to accept megabytes of it. */
+export const MAX_PASSWORD_LENGTH = 256;
+
+export const requiredText = (max: number) => z.string().trim().min(1).max(max);
+
 /** "YYYY-MM" cycle/month key shared by every route that scopes data to a calendar month or billing cycle. */
 export const MONTH_KEY_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
 

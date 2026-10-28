@@ -3,7 +3,12 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { Prisma } from "../../../generated/prisma/client.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_NAME_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  requiredText,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
   colorThemeSchema,
@@ -17,7 +22,9 @@ import { serializeMe } from "../serialize.ts";
 
 const updateMeBodySchema = z
   .object({
-    name: z.string().trim().min(1).optional().describe("Full display name."),
+    name: requiredText(MAX_NAME_LENGTH)
+      .optional()
+      .describe("Full display name."),
     email: z
       .email()
       .trim()
@@ -26,6 +33,7 @@ const updateMeBodySchema = z
       .describe("Must be unique across all users."),
     currentPassword: z
       .string()
+      .max(MAX_PASSWORD_LENGTH)
       .optional()
       .describe(
         "Required when `email` is present and the account has a password — changing the account's identity is gated behind reauth, same reasoning as `PATCH /me/password`. Not required for a Google-only account with no password set (nothing to reauth against); see `hasPassword` on `GET /me`.",

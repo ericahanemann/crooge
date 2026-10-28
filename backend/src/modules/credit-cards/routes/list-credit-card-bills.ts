@@ -5,7 +5,7 @@ import {
   idParamSchema,
 } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
-import { getBillAmount } from "../bill.ts";
+import { getBillAmounts } from "../bill.ts";
 import { getCycleForDate } from "../billing-cycle.ts";
 import {
   creditCardBillsPageResponseSchema,
@@ -63,11 +63,12 @@ export async function listCreditCardBills(app: FastifyInstance) {
         prisma.creditCardBill.count({ where: { creditCardId: card.id } }),
       ]);
 
-      const items = await Promise.all(
-        bills.map(async (bill) => {
-          const amount = await getBillAmount(card.id, bill.closingDate);
-          return serializeCreditCardBill(bill, amount, currentCycleMonth);
-        }),
+      const amounts = await getBillAmounts(
+        card.id,
+        bills.map((bill) => bill.closingDate),
+      );
+      const items = bills.map((bill, i) =>
+        serializeCreditCardBill(bill, amounts[i] ?? 0, currentCycleMonth),
       );
 
       return reply.status(200).send({ items, total, page, pageSize });

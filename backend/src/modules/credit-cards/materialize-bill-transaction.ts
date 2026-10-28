@@ -1,10 +1,10 @@
-import {
-  type CreditCard,
-  type CreditCardBill,
+import type {
+  CreditCard,
+  CreditCardBill,
   Prisma,
 } from "../../generated/prisma/client.ts";
 import { prisma } from "../../lib/prisma.ts";
-import { getBillAmount } from "./bill.ts";
+import { getBillAmounts } from "./bill.ts";
 
 /**
  * Backend-managed, per-user, non-deletable expense category every
@@ -98,13 +98,13 @@ export async function materializeBillTransaction(
  *
  * Both of those endpoints call this for the same user, and the Monthly
  * page's RSC streaming fetches each section's data independently, so two
- * calls can genuinely race on separate connections. `materializeBillTransaction`'s
- * upsert guards against ending up with two rows, but Prisma's `upsert` isn't
- * a single atomic statement — under a tight enough race the loser's insert
- * can still raise a P2002 unique-violation instead of transparently
- * becoming an update. Caught below and treated as a no-op: both sides would
- * have computed the same `amount` for the same bill, so whichever call won
- * the race already left the right row behind.
+ * calls can genuinely race on separate connections. The insert skips rows
+ * whose `creditCardBillId` already exists, so whichever call loses the race
+ * is a no-op — both would have computed the same amount for the same bill.
+ *
+ * Query count doesn't grow with the number of overdue bills: one lookup,
+ * then (only if anything is overdue) one category upsert, one amount query
+ * per card, and one insert.
  */
 export async function materializeOverdueBills(
   userId: string,
@@ -119,26 +119,35 @@ export async function materializeOverdueBills(
     },
     include: { creditCard: true },
   });
+  if (overdueBills.length === 0) return;
 
-  for (const bill of overdueBills) {
-    const amount = await getBillAmount(bill.creditCardId, bill.closingDate);
-    try {
-      await materializeBillTransaction(prisma, {
-        userId,
-        card: bill.creditCard,
-        bill,
-        amount,
-        date: bill.dueDate,
+  const billsByCard = Map.groupBy(overdueBills, (bill) => bill.creditCardId);
+  const amountByBillId = new Map<string, number>();
+  await Promise.all(
+    [...billsByCard].map(async ([creditCardId, bills]) => {
+      const amounts = await getBillAmounts(
+        creditCardId,
+        bills.map((bill) => bill.closingDate),
+      );
+      bills.forEach((bill, i) => {
+        amountByBillId.set(bill.id, amounts[i] ?? 0);
       });
-    } catch (error) {
-      if (
-        !(
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === "P2002"
-        )
-      ) {
-        throw error;
-      }
-    }
-  }
+    }),
+  );
+
+  const categoryId = await ensureCreditCardBillCategory(prisma, userId);
+
+  await prisma.transaction.createMany({
+    data: overdueBills.map((bill) => ({
+      userId,
+      type: "EXPENSE" as const,
+      category: categoryId,
+      description: `${bill.creditCard.name} bill`,
+      amount: amountByBillId.get(bill.id) ?? 0,
+      date: bill.dueDate,
+      timing: "ONE_TIME" as const,
+      creditCardBillId: bill.id,
+    })),
+    skipDuplicates: true,
+  });
 }

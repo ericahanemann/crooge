@@ -5,13 +5,15 @@ import { Prisma } from "../../../generated/prisma/client.ts";
 import {
   errorResponseSchema,
   idParamSchema,
+  MAX_LABEL_LENGTH,
+  requiredText,
 } from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { categoryResponseSchema, iconKeySchema } from "../schemas.ts";
 import { serializeCategory } from "../serialize.ts";
 
 const bodySchema = z.object({
-  label: z.string().trim().min(1),
+  label: requiredText(MAX_LABEL_LENGTH),
   icon: iconKeySchema,
 });
 

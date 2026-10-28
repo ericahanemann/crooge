@@ -3,7 +3,12 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AUTH_GOOGLE_RATE_LIMIT } from "../../../http/rate-limit.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_LABEL_LENGTH,
+  MAX_SEEDED_CATEGORIES,
+  requiredText,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import {
   categoryKindSchema,
@@ -44,11 +49,12 @@ const googleSignInBodySchema = z.object({
     .array(
       z.object({
         kind: categoryKindSchema,
-        label: z.string().trim().min(1),
+        label: requiredText(MAX_LABEL_LENGTH),
         icon: iconKeySchema,
         isFallback: z.boolean().optional(),
       }),
     )
+    .max(MAX_SEEDED_CATEGORIES)
     .optional()
     .describe(
       "Starter categories to seed, same as `POST /users` — only used if this call creates a brand-new account; ignored when signing into (or linking) an existing one.",

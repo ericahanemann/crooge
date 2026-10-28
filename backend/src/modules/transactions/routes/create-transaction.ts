@@ -2,10 +2,17 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import type { CreditCard } from "../../../generated/prisma/client.ts";
-import { errorResponseSchema } from "../../../http/schemas/common.ts";
+import {
+  errorResponseSchema,
+  MAX_DESCRIPTION_LENGTH,
+  MAX_ID_LENGTH,
+  MAX_INSTALLMENTS,
+  moneySchema,
+  requiredText,
+} from "../../../http/schemas/common.ts";
 import { prisma } from "../../../lib/prisma.ts";
 import { getAvailableCredit } from "../../credit-cards/bill.ts";
-import { ensureBill } from "../../credit-cards/billing-cycle.ts";
+import { ensureBill, ensureBills } from "../../credit-cards/billing-cycle.ts";
 import {
   generateInstallments,
   type Occurrence,
@@ -15,26 +22,20 @@ import { serializeTransaction } from "../serialize.ts";
 
 const incomeBodySchema = z.object({
   type: z.literal("income"),
-  description: z.string().trim().min(1),
-  amount: z
-    .number()
-    .positive()
-    .describe("Always positive; sign is implied by `type`."),
+  description: requiredText(MAX_DESCRIPTION_LENGTH),
+  amount: moneySchema.describe("Always positive; sign is implied by `type`."),
   date: z.iso.date(),
-  category: z.string().trim().min(1),
+  category: requiredText(MAX_ID_LENGTH),
 });
 
 const expenseBodySchema = z.object({
   type: z.literal("expense"),
-  description: z.string().trim().min(1),
-  amount: z
-    .number()
-    .positive()
-    .describe(
-      "Always positive. For installments, this is the *total* purchase amount — it gets split across `installments` occurrences.",
-    ),
+  description: requiredText(MAX_DESCRIPTION_LENGTH),
+  amount: moneySchema.describe(
+    "Always positive. For installments, this is the *total* purchase amount — it gets split across `installments` occurrences.",
+  ),
   date: z.iso.date().describe("Date of the first (or only) occurrence."),
-  category: z.string().trim().min(1),
+  category: requiredText(MAX_ID_LENGTH),
   paymentMethod: z.enum(["debit_pix", "credit"]),
   creditCardId: z
     .uuid()
@@ -47,6 +48,7 @@ const expenseBodySchema = z.object({
     .number()
     .int()
     .min(2)
+    .max(MAX_INSTALLMENTS)
     .optional()
     .describe(
       'Number of installments. Required when timing is "installments".',
@@ -105,7 +107,7 @@ const createTransactionBodySchema = z
  * first occurrence only — later occurrences materialize lazily, see
  * `materialize-recurring-occurrences.ts`. Every occurrence charged to a
  * credit card also gets its billing-cycle `CreditCardBill` row ensured to
- * exist via `modules/credit-cards/billing-cycle.ts#ensureBill`.
+ * exist via `modules/credit-cards/billing-cycle.ts#ensureBill(s)`.
  */
 export async function createTransaction(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -251,38 +253,39 @@ export async function createTransaction(app: FastifyInstance) {
           ? ("INSTALLMENT" as const)
           : ("ONE_TIME" as const);
 
+      // Two queries total, however many installments: interactive
+      // transactions time out after 5s, and one bill upsert + one insert per
+      // installment against the remote prod database blew past that at 12.
       const created = await prisma.$transaction(async (tx) => {
-        const rows = [];
-        for (const occurrence of occurrences) {
-          if (resolvedCreditCardId && card) {
-            await ensureBill(
-              tx,
-              resolvedCreditCardId,
-              card.closingDay,
-              card.dueDay,
-              occurrence.date,
-            );
-          }
-
-          const row = await tx.transaction.create({
-            data: {
-              userId,
-              type: "EXPENSE",
-              category: body.category,
-              description: body.description,
-              amount: occurrence.amount,
-              date: occurrence.date,
-              timing,
-              paymentMethod: resolvedPaymentMethod,
-              installmentCurrent: occurrence.installmentCurrent,
-              installmentTotal: occurrence.installmentTotal,
-              groupId,
-              creditCardId: resolvedCreditCardId,
-            },
-          });
-          rows.push(row);
+        if (resolvedCreditCardId && card) {
+          await ensureBills(
+            tx,
+            resolvedCreditCardId,
+            card.closingDay,
+            card.dueDay,
+            occurrences.map((occurrence) => occurrence.date),
+          );
         }
-        return rows;
+
+        const rows = await tx.transaction.createManyAndReturn({
+          data: occurrences.map((occurrence) => ({
+            userId,
+            type: "EXPENSE" as const,
+            category: body.category,
+            description: body.description,
+            amount: occurrence.amount,
+            date: occurrence.date,
+            timing,
+            paymentMethod: resolvedPaymentMethod,
+            installmentCurrent: occurrence.installmentCurrent,
+            installmentTotal: occurrence.installmentTotal,
+            groupId,
+            creditCardId: resolvedCreditCardId,
+          })),
+        });
+
+        // RETURNING order isn't guaranteed to match insert order.
+        return rows.sort((a, b) => a.date.getTime() - b.date.getTime());
       });
 
       return reply.status(201).send(created.map(serializeTransaction));

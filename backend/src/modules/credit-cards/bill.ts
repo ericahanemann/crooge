@@ -1,6 +1,6 @@
 import type { CreditCard, Prisma } from "../../generated/prisma/client.ts";
 import { prisma } from "../../lib/prisma.ts";
-import { getCycleForDate, previousClosingDate } from "./billing-cycle.ts";
+import { cycleDateFilter, getCycleForDate } from "./billing-cycle.ts";
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
@@ -17,17 +17,49 @@ export async function getBillAmount(
   closingDate: Date,
   client: DbClient = prisma,
 ): Promise<number> {
-  const start = previousClosingDate(closingDate);
-
   const aggregate = await client.transaction.aggregate({
     _sum: { amount: true },
-    where: {
-      creditCardId,
-      date: { gt: start, lte: closingDate },
-    },
+    where: { creditCardId, date: cycleDateFilter(closingDate) },
   });
 
   return Number(aggregate._sum.amount ?? 0);
+}
+
+/**
+ * `getBillAmount` for many of one card's bills in a single query instead of
+ * one per bill: fetches every transaction across the combined date range,
+ * then sums each bill's own window in memory (in integer cents, so the
+ * totals match what a SQL SUM over `Decimal(12,2)` would return). Results
+ * are in the same order as `closingDates`.
+ */
+export async function getBillAmounts(
+  creditCardId: string,
+  closingDates: Date[],
+  client: DbClient = prisma,
+): Promise<number[]> {
+  if (closingDates.length === 0) return [];
+
+  const windows = closingDates.map(cycleDateFilter);
+  const earliest = Math.min(...windows.map((w) => w.gte.getTime()));
+  const latest = Math.max(...windows.map((w) => w.lt.getTime()));
+
+  const rows = await client.transaction.findMany({
+    where: {
+      creditCardId,
+      date: { gte: new Date(earliest), lt: new Date(latest) },
+    },
+    select: { date: true, amount: true },
+  });
+
+  return windows.map((window) => {
+    let cents = 0;
+    for (const row of rows) {
+      if (row.date >= window.gte && row.date < window.lt) {
+        cents += Math.round(Number(row.amount) * 100);
+      }
+    }
+    return cents / 100;
+  });
 }
 
 /**
