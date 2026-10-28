@@ -6,7 +6,7 @@ import {
   MAX_MONEY,
   MAX_SEEDED_CATEGORIES,
 } from "../../../src/http/schemas/common.ts";
-import { createTestUser } from "../../setup/factories.ts";
+import { createTestUser, TEST_USER_PASSWORD } from "../../setup/factories.ts";
 import { prisma, resetDatabase } from "../../setup/test-db.ts";
 
 async function postExpense(userId: string, overrides: Record<string, unknown>) {
@@ -96,7 +96,7 @@ describe("request input bounds", () => {
       payload: {
         name: "New User",
         email: "new@example.test",
-        password: "s3cret!pass",
+        password: TEST_USER_PASSWORD,
         categories: Array.from(
           { length: MAX_SEEDED_CATEGORIES + 1 },
           (_, i) => ({ kind: "expense", label: `Category ${i}`, icon: "tag" }),
