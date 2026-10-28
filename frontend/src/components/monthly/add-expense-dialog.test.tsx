@@ -103,6 +103,28 @@ describe("AddExpenseDialog", () => {
     expect(createTransactionAction).not.toHaveBeenCalled();
   });
 
+  it("rejects installments above the backend's max instead of failing with a generic error", async () => {
+    const user = await openDialog();
+
+    await user.click(screen.getByRole("button", { name: "INSTALLMENTS" }));
+    await user.type(screen.getByLabelText("TOTAL AMOUNT"), "100");
+    const installmentsInput = screen.getByLabelText("INSTALLMENTS");
+    await user.clear(installmentsInput);
+    await user.type(installmentsInput, "121");
+    await user.type(screen.getByLabelText("NAME"), "Sofa");
+    await selectCategory(user);
+    await user.click(screen.getByRole("button", { name: "ADD" }));
+
+    expect(await screen.findByText("Must be at most 120")).toBeInTheDocument();
+    expect(createTransactionAction).not.toHaveBeenCalled();
+  });
+
+  it("caps the description at the backend's max length", async () => {
+    await openDialog();
+
+    expect(screen.getByLabelText("NAME")).toHaveAttribute("maxLength", "200");
+  });
+
   it("switching timing to recurring reveals the frequency select, defaulting to monthly", async () => {
     const user = await openDialog();
 

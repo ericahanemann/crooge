@@ -90,4 +90,27 @@ describe("backendFetchJson", () => {
       locale: "en",
     });
   });
+
+  it("logs a 5xx with the backend's requestId, so the failure can be found in Sentry", async () => {
+    mockGetAccessToken.mockResolvedValue("token-123");
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    server.use(
+      http.post(`${API_URL}/transactions`, () =>
+        HttpResponse.json(
+          { message: "internal server error", requestId: "req-abc" },
+          { status: 500 },
+        ),
+      ),
+    );
+
+    await expect(
+      backendFetchJson("/transactions", { method: "POST" }),
+    ).rejects.toMatchObject({ status: 500, message: "internal server error" });
+    expect(consoleError).toHaveBeenCalledWith(
+      "backend POST /transactions failed with 500 (Sentry: requestId:req-abc)",
+    );
+    consoleError.mockRestore();
+  });
 });

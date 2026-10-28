@@ -30,6 +30,7 @@ import {
 } from "@/lib/category-actions";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
 import { currencySymbol, todayISO } from "@/lib/format";
+import { MAX_INSTALLMENTS } from "@/lib/limits";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
 import { cn, parseAmountInput } from "@/lib/utils";
@@ -170,6 +171,13 @@ export function AddCardExpenseDialog({
         (!Number.isInteger(parsedInstallments) || parsedInstallments < 2)
       ) {
         next.installments = te("errorMinInstallments");
+      } else if (
+        timing === "installments" &&
+        parsedInstallments > MAX_INSTALLMENTS
+      ) {
+        next.installments = te("errorMaxInstallments", {
+          max: MAX_INSTALLMENTS,
+        });
       }
       if (!category) next.category = tc("errorRequired");
     }

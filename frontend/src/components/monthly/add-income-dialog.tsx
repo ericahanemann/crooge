@@ -21,6 +21,7 @@ import {
   updateCategoryAction,
 } from "@/lib/category-actions";
 import { todayISO } from "@/lib/format";
+import { MAX_DESCRIPTION_LENGTH } from "@/lib/limits";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
 import { parseAmountInput } from "@/lib/utils";
@@ -194,6 +195,7 @@ export function AddIncomeDialog() {
             </label>
             <Input
               id="income-description"
+              maxLength={MAX_DESCRIPTION_LENGTH}
               ref={descriptionRef}
               value={description}
               onChange={(e) => setDescription(e.target.value)}

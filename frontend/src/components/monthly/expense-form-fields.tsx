@@ -13,6 +13,7 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { currencySymbol, fmtCurrency } from "@/lib/format";
+import { MAX_DESCRIPTION_LENGTH, MAX_INSTALLMENTS } from "@/lib/limits";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +108,7 @@ export function ExpenseFormFields({
       </label>
       <Input
         id={`${idPrefix}-description`}
+        maxLength={MAX_DESCRIPTION_LENGTH}
         ref={descriptionRef}
         value={description}
         onChange={(e) => onDescriptionChange(e.target.value)}
@@ -308,6 +310,7 @@ export function ExpenseFormFields({
                 id={`${idPrefix}-installments`}
                 type="number"
                 min={2}
+                max={MAX_INSTALLMENTS}
                 value={installmentCount}
                 onChange={(e) => onInstallmentCountChange(e.target.value)}
               />
