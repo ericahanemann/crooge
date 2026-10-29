@@ -3,6 +3,7 @@
 import { CreditCard, Wallet } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { RefObject } from "react";
+import { MoneyInput } from "@/components/common/money-input";
 import { CategorySelect } from "@/components/monthly/category-select";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
@@ -12,7 +13,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { currencySymbol, fmtCurrency } from "@/lib/format";
+import { fmtCurrency } from "@/lib/format";
 import { MAX_DESCRIPTION_LENGTH, MAX_INSTALLMENTS } from "@/lib/limits";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -128,19 +129,12 @@ export function ExpenseFormFields({
       >
         {t("dialogs.common.amount")}
       </label>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-          {currencySymbol(currency)}
-        </span>
-        <Input
-          id={`${idPrefix}-amount`}
-          inputMode="decimal"
-          className="pl-6"
-          value={amount}
-          onChange={(e) => onAmountChange(e.target.value)}
-          placeholder="0.00"
-        />
-      </div>
+      <MoneyInput
+        id={`${idPrefix}-amount`}
+        value={amount}
+        onChange={(e) => onAmountChange(e.target.value)}
+        currency={currency}
+      />
       {errors.amount && (
         <p className="text-xs text-destructive">{errors.amount}</p>
       )}
@@ -281,19 +275,12 @@ export function ExpenseFormFields({
               >
                 {t("dialogs.expense.totalAmount")}
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  {currencySymbol(currency)}
-                </span>
-                <Input
-                  id={`${idPrefix}-total-amount`}
-                  inputMode="decimal"
-                  className="pl-6"
-                  value={amount}
-                  onChange={(e) => onAmountChange(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
+              <MoneyInput
+                id={`${idPrefix}-total-amount`}
+                value={amount}
+                onChange={(e) => onAmountChange(e.target.value)}
+                currency={currency}
+              />
               {errors.amount && (
                 <p className="text-xs text-destructive">{errors.amount}</p>
               )}

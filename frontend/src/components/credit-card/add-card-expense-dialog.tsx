@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { MoneyInput } from "@/components/common/money-input";
 import {
   type ExpenseFormErrors,
   ExpenseFormFields,
@@ -29,7 +30,7 @@ import {
   updateCategoryAction,
 } from "@/lib/category-actions";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
-import { currencySymbol, todayISO } from "@/lib/format";
+import { todayISO } from "@/lib/format";
 import { MAX_INSTALLMENTS } from "@/lib/limits";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
@@ -315,19 +316,12 @@ export function AddCardExpenseDialog({
                 >
                   {tc("amount")}
                 </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    {currencySymbol(currency)}
-                  </span>
-                  <Input
-                    id="card-pay-amount"
-                    inputMode="decimal"
-                    className="pl-6"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
+                <MoneyInput
+                  id="card-pay-amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  currency={currency}
+                />
                 {errors.amount && (
                   <p className="text-xs text-destructive">{errors.amount}</p>
                 )}

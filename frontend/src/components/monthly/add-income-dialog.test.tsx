@@ -9,6 +9,10 @@ import { AddIncomeDialog } from "./add-income-dialog";
 
 const mockRefresh = vi.fn();
 
+vi.mock("@/components/auth/auth-provider", () => ({
+  useAuth: () => ({ user: { currency: "BRL" } }),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: mockRefresh, push: vi.fn() }),
 }));
@@ -54,6 +58,12 @@ describe("AddIncomeDialog", () => {
 
     await user.click(screen.getByRole("combobox"));
     expect(await screen.findByText("Salary")).toBeInTheDocument();
+  });
+
+  it("prefixes the amount with the user's currency symbol, not a hardcoded $", async () => {
+    await openDialog();
+    expect(screen.getByText("R$")).toBeInTheDocument();
+    expect(screen.queryByText("$")).not.toBeInTheDocument();
   });
 
   it("shows required/positive errors and doesn't submit when the form is empty", async () => {

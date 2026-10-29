@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { MoneyInput } from "@/components/common/money-input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -14,9 +15,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
-import { currencySymbol, fmtCurrency, toIntlLocale } from "@/lib/format";
+import { fmtCurrency, toIntlLocale } from "@/lib/format";
 import type { CreditCardBill } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -188,19 +188,12 @@ export function AnteciparDialog({
             >
               {tc("amount")}
             </label>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                {currencySymbol(currency)}
-              </span>
-              <Input
-                id="antecipar-amount"
-                inputMode="decimal"
-                className="pl-6"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
+            <MoneyInput
+              id="antecipar-amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              currency={currency}
+            />
           </div>
         </div>
 

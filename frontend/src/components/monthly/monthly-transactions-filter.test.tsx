@@ -7,6 +7,10 @@ import { MonthlyTransactionsFilter } from "./monthly-transactions-filter";
 
 const mockReplace = vi.fn();
 
+vi.mock("@/components/auth/auth-provider", () => ({
+  useAuth: () => ({ user: { currency: "BRL" } }),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: mockReplace }),
   usePathname: () => "/en/monthly",

@@ -7,17 +7,22 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 interface CardOption {
   id: string;
   name: string;
 }
 
-/** @prop selectedMonth - preserved in the url when switching cards so the page stays on the same month */
+/**
+ * @prop selectedMonth - preserved in the url when switching cards so the page stays on the same month
+ * @prop className - overrides the trigger's default `w-48` width
+ */
 interface CardSelectorProps {
   cards: CardOption[];
   selectedCard: string;
   selectedMonth?: string;
+  className?: string;
 }
 
 /** dropdown for switching between credit cards; selecting one updates the `?card=` (and `?month=`, if provided) search param via `router.push` */
@@ -25,6 +30,7 @@ export function CardSelector({
   cards,
   selectedCard,
   selectedMonth,
+  className,
 }: CardSelectorProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -41,7 +47,12 @@ export function CardSelector({
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
       }}
     >
-      <SelectTrigger className="w-48 font-karantina text-2xl tracking-wide uppercase">
+      <SelectTrigger
+        className={cn(
+          "w-48 font-karantina text-2xl tracking-wide uppercase",
+          className,
+        )}
+      >
         <span className="truncate">{selected?.name}</span>
       </SelectTrigger>
       <SelectContent>

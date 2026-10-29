@@ -4,6 +4,8 @@ import { Pencil, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
+import { MoneyInput } from "@/components/common/money-input";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +61,8 @@ export function AddCreditCardDialog({
 }: AddCreditCardDialogProps) {
   const isEdit = card != null;
   const t = useTranslations("creditCards");
+  const { user } = useAuth();
+  const currency = user?.currency ?? "BRL";
   const td = useTranslations("dialogs.creditCard");
   const tc = useTranslations("dialogs.common");
   const router = useRouter();
@@ -224,19 +228,12 @@ export function AddCreditCardDialog({
               >
                 {td("limit")}
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                  $
-                </span>
-                <Input
-                  id="card-limit"
-                  inputMode="decimal"
-                  className="pl-6"
-                  value={limit}
-                  onChange={(e) => setLimit(e.target.value)}
-                  placeholder="0.00"
-                />
-              </div>
+              <MoneyInput
+                id="card-limit"
+                value={limit}
+                onChange={(e) => setLimit(e.target.value)}
+                currency={currency}
+              />
               {errors.limit && (
                 <p className="text-xs text-destructive">{errors.limit}</p>
               )}

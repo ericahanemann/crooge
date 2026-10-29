@@ -12,6 +12,10 @@ import { TransactionsFilterClient } from "./transactions-filter-client";
 
 const mockRefresh = vi.fn();
 
+vi.mock("@/components/auth/auth-provider", () => ({
+  useAuth: () => ({ user: { currency: "BRL" } }),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: mockRefresh, push: vi.fn() }),
 }));

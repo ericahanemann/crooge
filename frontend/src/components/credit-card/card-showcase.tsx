@@ -75,9 +75,15 @@ export async function CardShowcase({
         >
           <CardVisual name={card.name} brand={card.brand} />
         </div>
-        <div className="flex-1 flex flex-col gap-3.5">
-          <div className="flex items-center gap-3">
-            <CardSelector cards={cards} selectedCard={selectedCard} />
+        {/* `min-w-0` so the header row can never widen this column past the card */}
+        <div className="flex-1 min-w-0 flex flex-col gap-3.5">
+          {/* mobile: the selector shrinks to whatever the 3 buttons leave over */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <CardSelector
+              cards={cards}
+              selectedCard={selectedCard}
+              className="min-w-0 flex-1 sm:w-48 sm:flex-none"
+            />
             <AddCreditCardDialog key={card.id} card={card} />
             <ArchiveCreditCardButton
               key={`archive-${card.id}`}

@@ -11,6 +11,10 @@ import { AddCreditCardDialog } from "./add-credit-card-dialog";
 
 const mockRefresh = vi.fn();
 
+vi.mock("@/components/auth/auth-provider", () => ({
+  useAuth: () => ({ user: { currency: "BRL" } }),
+}));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: mockRefresh, push: vi.fn() }),
 }));
