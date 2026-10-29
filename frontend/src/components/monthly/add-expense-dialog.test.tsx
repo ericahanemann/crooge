@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -55,7 +55,10 @@ async function selectCategory(user: ReturnType<typeof userEvent.setup>) {
     .find((el) => el.id !== "expense-frequency");
   if (!combobox) throw new Error("category combobox not found");
   await user.click(combobox);
-  await user.click(await screen.findByText("Travel"));
+  // Base UI mounts the listbox with `pointer-events: none` for a frame; on a
+  // slow CI runner the option can resolve inside that window, so retry the click.
+  const option = await screen.findByText("Travel");
+  await waitFor(() => user.click(option));
 }
 
 describe("AddExpenseDialog", () => {

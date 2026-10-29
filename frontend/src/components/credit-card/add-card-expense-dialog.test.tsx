@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listCategoriesAction } from "@/lib/category-actions";
@@ -49,6 +49,17 @@ async function openDialog() {
   return user;
 }
 
+/**
+ * Clicks the "Travel" option once the popup has finished mounting. Base UI
+ * mounts the listbox with `pointer-events: none` for a frame, and user-event
+ * refuses to click through that — on a slow CI runner `findByText` can resolve
+ * inside that window, so retry the click until the option is interactive.
+ */
+async function pickTravel(user: ReturnType<typeof userEvent.setup>) {
+  const option = await screen.findByText("Travel");
+  await waitFor(() => user.click(option));
+}
+
 describe("AddCardExpenseDialog", () => {
   beforeEach(() => {
     mockRefresh.mockReset();
@@ -92,7 +103,7 @@ describe("AddCardExpenseDialog", () => {
       "15",
     );
     await user.click(screen.getByRole("combobox"));
-    await user.click(await screen.findByText("Travel"));
+    await pickTravel(user);
     await user.click(screen.getByRole("button", { name: "ADD" }));
 
     expect(createTransactionAction).toHaveBeenCalledWith({
@@ -151,7 +162,7 @@ describe("AddCardExpenseDialog", () => {
       "15",
     );
     await user.click(screen.getByRole("combobox"));
-    await user.click(await screen.findByText("Travel"));
+    await pickTravel(user);
     await user.click(screen.getByRole("button", { name: "ADD" }));
 
     expect(
@@ -192,7 +203,7 @@ describe("AddCardExpenseDialog", () => {
     await user.type(installmentsInput, "3");
     await user.type(screen.getByLabelText("NAME"), "Sofa");
     await user.click(screen.getByRole("combobox"));
-    await user.click(await screen.findByText("Travel"));
+    await pickTravel(user);
     await user.click(screen.getByRole("button", { name: "ADD" }));
 
     expect(createTransactionAction).toHaveBeenCalledWith({
@@ -223,7 +234,7 @@ describe("AddCardExpenseDialog", () => {
       .find((el) => el.id !== "card-expense-frequency");
     if (!combobox) throw new Error("category combobox not found");
     await user.click(combobox);
-    await user.click(await screen.findByText("Travel"));
+    await pickTravel(user);
     await user.click(screen.getByRole("button", { name: "ADD" }));
 
     expect(createTransactionAction).toHaveBeenCalledWith({
@@ -271,7 +282,7 @@ describe("AddCardExpenseDialog", () => {
       "15",
     );
     await user.click(screen.getByRole("combobox"));
-    await user.click(await screen.findByText("Travel"));
+    await pickTravel(user);
     await user.click(screen.getByRole("button", { name: "ADD" }));
 
     expect(await screen.findByText("Added")).toBeInTheDocument();
@@ -295,7 +306,7 @@ describe("AddCardExpenseDialog", () => {
     await user.type(installmentsInput, "121");
     await user.type(screen.getByLabelText("NAME"), "Sofa");
     await user.click(screen.getByRole("combobox"));
-    await user.click(await screen.findByText("Travel"));
+    await pickTravel(user);
     await user.click(screen.getByRole("button", { name: "ADD" }));
 
     expect(await screen.findByText("Must be at most 120")).toBeInTheDocument();
