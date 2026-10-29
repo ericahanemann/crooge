@@ -4,6 +4,8 @@ import { CreditCard, Wallet } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
+import { MoneyInput } from "@/components/common/money-input";
 import { CategorySelect } from "@/components/monthly/category-select";
 import {
   Dialog,
@@ -79,6 +81,8 @@ export function EditTransactionDialog({
   fixedCreditCardId,
 }: EditTransactionDialogProps) {
   const t = useTranslations();
+  const { user } = useAuth();
+  const currency = user?.currency ?? "BRL";
   const router = useRouter();
 
   const [description, setDescription] = useState("");
@@ -288,19 +292,12 @@ export function EditTransactionDialog({
                 >
                   {t("dialogs.common.amount")}
                 </label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    $
-                  </span>
-                  <Input
-                    id="edit-tx-amount"
-                    inputMode="decimal"
-                    className="pl-6"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="0.00"
-                  />
-                </div>
+                <MoneyInput
+                  id="edit-tx-amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  currency={currency}
+                />
                 {errors.amount && (
                   <p className="text-xs text-destructive">{errors.amount}</p>
                 )}
