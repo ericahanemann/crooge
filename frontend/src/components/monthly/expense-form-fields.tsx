@@ -13,12 +13,8 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-<<<<<<< Updated upstream
-import { currencySymbol, fmtCurrency } from "@/lib/format";
-import { MAX_DESCRIPTION_LENGTH, MAX_INSTALLMENTS } from "@/lib/limits";
-=======
 import { fmtCurrency } from "@/lib/format";
->>>>>>> Stashed changes
+import { MAX_DESCRIPTION_LENGTH, MAX_INSTALLMENTS } from "@/lib/limits";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
 

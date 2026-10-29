@@ -30,12 +30,8 @@ import {
   updateCategoryAction,
 } from "@/lib/category-actions";
 import { payCreditCardBillAction } from "@/lib/credit-card-actions";
-<<<<<<< Updated upstream
-import { currencySymbol, todayISO } from "@/lib/format";
-import { MAX_INSTALLMENTS } from "@/lib/limits";
-=======
 import { todayISO } from "@/lib/format";
->>>>>>> Stashed changes
+import { MAX_INSTALLMENTS } from "@/lib/limits";
 import { createTransactionAction } from "@/lib/transaction-actions";
 import type { Category } from "@/lib/types";
 import { cn, parseAmountInput } from "@/lib/utils";
